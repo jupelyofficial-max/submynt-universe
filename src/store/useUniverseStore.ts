@@ -1,0 +1,124 @@
+import { create } from "zustand";
+import type {
+  BillingCycle,
+  Category,
+  FilterState,
+  Region,
+  SortOption,
+  UserStatusFilter,
+} from "@/types/subscription";
+
+export type ViewMode = "universe" | "list";
+
+export type CameraCommand =
+  | { type: "zoom"; delta: number }
+  | { type: "reset" }
+  | { type: "focus-node"; id: string }
+  | { type: "focus-mine" }
+  | { type: "discover" };
+
+const EMPTY_FILTERS: FilterState = {
+  categories: [],
+  billing: [],
+  priceBands: [],
+  userStatus: [],
+  regions: [],
+  sort: "popular",
+};
+
+function toggleInArray<T>(arr: T[], value: T): T[] {
+  return arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
+}
+
+interface UniverseUIState {
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+
+  viewMode: ViewMode;
+  setViewMode: (v: ViewMode) => void;
+
+  filters: FilterState;
+  toggleCategory: (c: Category) => void;
+  toggleBilling: (b: BillingCycle) => void;
+  togglePriceBand: (id: string) => void;
+  toggleUserStatus: (u: UserStatusFilter) => void;
+  toggleRegion: (r: Region) => void;
+  setSort: (s: SortOption) => void;
+  clearFilters: () => void;
+  activeFilterCount: () => number;
+
+  isFilterSheetOpen: boolean;
+  setFilterSheetOpen: (v: boolean) => void;
+
+  selectedId: string | null;
+  select: (id: string | null) => void;
+  hoveredId: string | null;
+  setHovered: (id: string | null) => void;
+
+  compareIds: string[];
+  addToCompare: (id: string) => void;
+  removeFromCompare: (id: string) => void;
+  clearCompare: () => void;
+
+  isAddModalOpen: boolean;
+  openAddModal: (prefillId?: string) => void;
+  closeAddModal: () => void;
+  addModalPrefillId: string | null;
+
+  discoverMode: boolean;
+  setDiscoverMode: (v: boolean) => void;
+
+  cameraCommand: (CameraCommand & { nonce: number }) | null;
+  sendCameraCommand: (cmd: CameraCommand) => void;
+}
+
+export const useUniverseStore = create<UniverseUIState>()((set, get) => ({
+  searchQuery: "",
+  setSearchQuery: (q) => set({ searchQuery: q }),
+
+  viewMode: "universe",
+  setViewMode: (v) => set({ viewMode: v }),
+
+  filters: EMPTY_FILTERS,
+  toggleCategory: (c) =>
+    set((s) => ({ filters: { ...s.filters, categories: toggleInArray(s.filters.categories, c) } })),
+  toggleBilling: (b) =>
+    set((s) => ({ filters: { ...s.filters, billing: toggleInArray(s.filters.billing, b) } })),
+  togglePriceBand: (id) =>
+    set((s) => ({ filters: { ...s.filters, priceBands: toggleInArray(s.filters.priceBands, id) } })),
+  toggleUserStatus: (u) =>
+    set((s) => ({ filters: { ...s.filters, userStatus: toggleInArray(s.filters.userStatus, u) } })),
+  toggleRegion: (r) =>
+    set((s) => ({ filters: { ...s.filters, regions: toggleInArray(s.filters.regions, r) } })),
+  setSort: (sort) => set((s) => ({ filters: { ...s.filters, sort } })),
+  clearFilters: () => set({ filters: EMPTY_FILTERS }),
+  activeFilterCount: () => {
+    const f = get().filters;
+    return f.categories.length + f.billing.length + f.priceBands.length + f.userStatus.length + f.regions.length;
+  },
+
+  isFilterSheetOpen: false,
+  setFilterSheetOpen: (v) => set({ isFilterSheetOpen: v }),
+
+  selectedId: null,
+  select: (id) => set({ selectedId: id }),
+  hoveredId: null,
+  setHovered: (id) => set({ hoveredId: id }),
+
+  compareIds: [],
+  addToCompare: (id) => set((s) => (s.compareIds.includes(id) || s.compareIds.length >= 3 ? s : { compareIds: [...s.compareIds, id] })),
+  removeFromCompare: (id) => set((s) => ({ compareIds: s.compareIds.filter((c) => c !== id) })),
+  clearCompare: () => set({ compareIds: [] }),
+
+  isAddModalOpen: false,
+  addModalPrefillId: null,
+  openAddModal: (prefillId) => set({ isAddModalOpen: true, addModalPrefillId: prefillId ?? null }),
+  closeAddModal: () => set({ isAddModalOpen: false, addModalPrefillId: null }),
+
+  discoverMode: false,
+  setDiscoverMode: (v) => set({ discoverMode: v }),
+
+  cameraCommand: null,
+  sendCameraCommand: (cmd) =>
+    set((s) => ({ cameraCommand: { ...cmd, nonce: (s.cameraCommand?.nonce ?? 0) + 1 } })),
+}));

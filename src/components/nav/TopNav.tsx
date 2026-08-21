@@ -1,13 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Plus, Search, User, X } from "lucide-react";
+import { Menu, Search, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { useUniverseStore } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 
 const NAV_LINKS = [
@@ -19,7 +18,6 @@ export function TopNav() {
   const pathname = usePathname();
   const isExplore = pathname === "/explore" || pathname?.startsWith("/explore/");
   const router = useRouter();
-  const openAddModal = useUniverseStore((s) => s.openAddModal);
   const ownedCount = useMySubscriptionsStore((s) => s.owned.length);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -79,11 +77,6 @@ export function TopNav() {
             </button>
           </>
         )}
-
-        <Button size="md" className="hidden md:inline-flex" onClick={() => openAddModal()}>
-          <Plus size={16} />
-          Add Subscription
-        </Button>
 
         <Link
           href="/my-subscriptions"
@@ -147,18 +140,6 @@ export function TopNav() {
                   </Link>
                 ))}
               </nav>
-              <div className="mt-auto p-4 border-t border-line-soft">
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    openAddModal();
-                  }}
-                >
-                  <Plus size={16} />
-                  Add Subscription
-                </Button>
-              </div>
             </motion.div>
           </>
         )}

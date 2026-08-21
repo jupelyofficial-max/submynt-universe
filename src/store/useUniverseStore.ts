@@ -57,11 +57,6 @@ interface UniverseUIState {
   removeFromCompare: (id: string) => void;
   clearCompare: () => void;
 
-  isAddModalOpen: boolean;
-  openAddModal: (prefillId?: string) => void;
-  closeAddModal: () => void;
-  addModalPrefillId: string | null;
-
   discoverMode: boolean;
   setDiscoverMode: (v: boolean) => void;
 
@@ -106,11 +101,6 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
   addToCompare: (id) => set((s) => (s.compareIds.includes(id) || s.compareIds.length >= 3 ? s : { compareIds: [...s.compareIds, id] })),
   removeFromCompare: (id) => set((s) => ({ compareIds: s.compareIds.filter((c) => c !== id) })),
   clearCompare: () => set({ compareIds: [] }),
-
-  isAddModalOpen: false,
-  addModalPrefillId: null,
-  openAddModal: (prefillId) => set({ isAddModalOpen: true, addModalPrefillId: prefillId ?? null }),
-  closeAddModal: () => set({ isAddModalOpen: false, addModalPrefillId: null }),
 
   discoverMode: false,
   setDiscoverMode: (v) => set({ discoverMode: v }),

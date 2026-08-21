@@ -38,7 +38,6 @@ export function CompareClient() {
   const subs = ids.map((id) => SUBSCRIPTIONS_BY_ID[id]);
   const owned = useMySubscriptionsStore((s) => s.owned);
   const ownedIds = useMemo(() => new Set(owned.map((o) => o.subscriptionId)), [owned]);
-  const openAddModal = useUniverseStore((s) => s.openAddModal);
   const select = useUniverseStore((s) => s.select);
   const router = useRouter();
 
@@ -109,7 +108,7 @@ export function CompareClient() {
                 </dl>
 
                 <div className="mt-1 flex flex-col gap-2">
-                  {isOwned ? (
+                  {isOwned && (
                     <Button
                       variant={kept === sub.id ? "secondary" : "primary"}
                       size="sm"
@@ -119,10 +118,6 @@ export function CompareClient() {
                       }}
                     >
                       {kept === sub.id ? "Kept ✓" : "Keep Current"}
-                    </Button>
-                  ) : (
-                    <Button size="sm" onClick={() => openAddModal(sub.id)}>
-                      Choose
                     </Button>
                   )}
                   <Button

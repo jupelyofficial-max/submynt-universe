@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Plus, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -15,7 +15,6 @@ export function ListView() {
   const searchQuery = useUniverseStore((s) => s.searchQuery);
   const filters = useUniverseStore((s) => s.filters);
   const select = useUniverseStore((s) => s.select);
-  const openAddModal = useUniverseStore((s) => s.openAddModal);
   const owned = useMySubscriptionsStore((s) => s.owned);
   const ownedIds = useMemo(() => new Set(owned.map((o) => o.subscriptionId)), [owned]);
 
@@ -78,16 +77,10 @@ export function ListView() {
               </div>
             )}
 
-            <div className="mt-auto flex gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
-              <Button size="sm" variant="outline" className="flex-1" onClick={() => select(sub.id)}>
+            <div className="mt-auto pt-1" onClick={(e) => e.stopPropagation()}>
+              <Button size="sm" variant="outline" className="w-full" onClick={() => select(sub.id)}>
                 View Details
               </Button>
-              {!isOwned && (
-                <Button size="sm" className="flex-1" onClick={() => openAddModal(sub.id)}>
-                  <Plus size={14} />
-                  Add
-                </Button>
-              )}
             </div>
           </div>
         );

@@ -13,7 +13,6 @@ import { useUniverseStore } from "@/store/useUniverseStore";
 export default function OptimizePage() {
   const owned = useMySubscriptionsStore((s) => s.owned);
   const hydrated = useMySubscriptionsStore((s) => s.hydrated);
-  const openAddModal = useUniverseStore((s) => s.openAddModal);
   const select = useUniverseStore((s) => s.select);
   const toggleUserStatus = useUniverseStore((s) => s.toggleUserStatus);
   const router = useRouter();
@@ -51,9 +50,8 @@ export default function OptimizePage() {
         </span>
         <h1 className="font-display text-2xl font-semibold text-ink-0">Nothing to optimize yet</h1>
         <p className="text-sm text-ink-400">
-          Add your subscriptions and we&apos;ll surface real savings across your universe.
+          Track your subscriptions and we&apos;ll surface real savings across your universe.
         </p>
-        <Button onClick={() => openAddModal()}>Add Subscription</Button>
       </div>
     );
   }

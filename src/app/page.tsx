@@ -2,11 +2,10 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Compass, Plus, Telescope } from "lucide-react";
+import { Compass, Telescope } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CATEGORIES } from "@/data/categories";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
-import { useUniverseStore } from "@/store/useUniverseStore";
 
 const HomePreviewScene = dynamic(
   () => import("@/components/home/HomePreviewScene").then((m) => m.HomePreviewScene),
@@ -14,8 +13,6 @@ const HomePreviewScene = dynamic(
 );
 
 export default function HomePage() {
-  const openAddModal = useUniverseStore((s) => s.openAddModal);
-
   return (
     <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
       <section className="relative flex flex-1 flex-col overflow-hidden bg-void-950">
@@ -36,17 +33,13 @@ export default function HomePage() {
           <p className="mx-auto mt-5 max-w-xl text-base text-ink-300 sm:text-lg">
             Discover everything you pay for — every service, one map, no bank login required.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8">
             <Link href="/explore">
               <Button size="lg" className="w-full sm:w-auto">
                 <Telescope size={17} />
                 Explore the Universe
               </Button>
             </Link>
-            <Button size="lg" variant="secondary" onClick={() => openAddModal()}>
-              <Plus size={17} />
-              Add Your Subscriptions
-            </Button>
           </div>
         </div>
       </section>

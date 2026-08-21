@@ -9,7 +9,7 @@ import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { SUBSCRIPTIONS_BY_ID, bestSavingsAlternative, getAlternatives, potentialSavingsMonthly } from "@/data/subscriptions";
-import { formatDate, formatINR } from "@/lib/utils";
+import { cn, formatDate, formatINR } from "@/lib/utils";
 import { BILLING_LABELS } from "@/data/categories";
 
 export function DetailPanel() {
@@ -27,7 +27,6 @@ export function DetailPanel() {
 function DetailContent({ subscriptionId }: { subscriptionId: string }) {
   const sub = SUBSCRIPTIONS_BY_ID[subscriptionId];
   const select = useUniverseStore((s) => s.select);
-  const openAddModal = useUniverseStore((s) => s.openAddModal);
   const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
 
   const isOwned = useMySubscriptionsStore((s) => s.isOwned(sub.id));
@@ -90,8 +89,8 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
 
       {/* Primary actions */}
       <div className="px-5 py-4 border-b border-line-soft">
-        <div className="grid grid-cols-2 gap-2">
-          {isOwned ? (
+        <div className={cn("grid gap-2", isOwned ? "grid-cols-2" : "grid-cols-1")}>
+          {isOwned && (
             <Button
               variant={kept ? "secondary" : "primary"}
               onClick={() => {
@@ -102,8 +101,6 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
               {kept ? <Check size={16} /> : <Heart size={16} />}
               {kept ? "Kept" : "Keep"}
             </Button>
-          ) : (
-            <Button onClick={() => openAddModal(sub.id)}>Add to My Subscriptions</Button>
           )}
           <Button variant="outline" onClick={() => document.getElementById("alt-section")?.scrollIntoView({ behavior: "smooth" })}>
             Explore Alternatives

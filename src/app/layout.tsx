@@ -4,7 +4,6 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { TopNav } from "@/components/nav/TopNav";
 import { DetailPanel } from "@/components/detail/DetailPanel";
-import { AddSubscriptionModal } from "@/components/subscriptions/AddSubscriptionModal";
 
 const workSans = Work_Sans({
   variable: "--font-work-sans",
@@ -44,7 +43,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <TopNav />
           <main className="flex-1 flex flex-col min-h-0 overflow-y-auto no-scrollbar">{children}</main>
           <DetailPanel />
-          <AddSubscriptionModal />
         </Providers>
       </body>
     </html>

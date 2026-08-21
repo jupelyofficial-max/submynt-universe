@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Orbit, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Orbit, Sparkles, Trash2 } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { SUBSCRIPTIONS_BY_ID, potentialSavingsMonthly } from "@/data/subscriptions";
@@ -14,7 +14,6 @@ export default function MySubscriptionsPage() {
   const owned = useMySubscriptionsStore((s) => s.owned);
   const hydrated = useMySubscriptionsStore((s) => s.hydrated);
   const remove = useMySubscriptionsStore((s) => s.remove);
-  const openAddModal = useUniverseStore((s) => s.openAddModal);
   const select = useUniverseStore((s) => s.select);
   const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
   const router = useRouter();
@@ -46,28 +45,16 @@ export default function MySubscriptionsPage() {
           <div>
             <h1 className="font-display text-2xl font-semibold text-ink-0">My Subscriptions</h1>
             <p className="text-sm text-ink-400">
-              {owned.length > 0
-                ? `${owned.length} tracked · ${formatINR(totalMonthly)}/mo`
-                : "Nothing tracked yet — add your first one."}
+              {owned.length > 0 ? `${owned.length} tracked · ${formatINR(totalMonthly)}/mo` : "Nothing tracked yet."}
             </p>
           </div>
         </div>
-        <Button onClick={() => openAddModal()}>
-          <Plus size={16} />
-          Add Subscription
-        </Button>
       </div>
 
       {hydrated && items.length === 0 ? (
         <div className="glass-panel flex flex-col items-center gap-3 rounded-2xl p-16 text-center">
           <p className="font-display text-lg text-ink-0">Your universe is empty for now</p>
-          <p className="max-w-sm text-sm text-ink-400">
-            Add subscriptions manually — no bank login, no statements, no OTP. Just what you already know you pay.
-          </p>
-          <Button className="mt-2" onClick={() => openAddModal()}>
-            <Plus size={16} />
-            Add Subscription
-          </Button>
+          <p className="max-w-sm text-sm text-ink-400">Your tracked subscriptions will show up here.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

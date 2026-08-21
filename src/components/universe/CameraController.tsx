@@ -1,7 +1,7 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { UniverseNode } from "@/types/subscription";
 import { useUniverseStore } from "@/store/useUniverseStore";
@@ -9,23 +9,68 @@ import { trackDown, trackMove } from "@/lib/dragTracker";
 import { WORLD_MAP_WORLD_HEIGHT, WORLD_MAP_WORLD_WIDTH } from "@/lib/geo";
 
 export const MIN_ZOOM = 20;
+// Absolute ceiling — the actual per-session cap is computed per aspect ratio
+// (see computeMaxZoom) so panning/scrolling out never reveals background
+// beyond the map plane's edges, but this bounds it in case that computation
+// ever produces something unreasonable.
 export const MAX_ZOOM = 130;
-export const DEFAULT_ZOOM = 92;
+// Close, dense framing by default — the subscriptions are the hero, not the
+// whole world map. Users can still scroll out to computeMaxZoom's ceiling.
+export const DEFAULT_ZOOM = 34;
 
 // Must match WorldMapBackground's mesh position and UniverseScene's camera fov.
 const MAP_PLANE_Z = -18;
 const CAMERA_FOV_DEG = 45;
 
 /** Zoom (camera z) at which the map plane exactly covers the viewport — like
- * CSS `background-size: cover` — for the given canvas aspect ratio, so there's
- * no empty background showing around the map regardless of window shape. */
-function computeFitZoom(width: number, height: number): number {
-  if (!width || !height) return DEFAULT_ZOOM;
+ * CSS `background-size: cover` — for the given canvas aspect ratio. Used as
+ * the zoom-OUT ceiling, not the default: it guarantees there's never empty
+ * background showing beyond the map, without forcing the initial view to be
+ * a huge, sparse whole-world shot. */
+function computeMaxZoom(width: number, height: number): number {
+  if (!width || !height) return MAX_ZOOM;
   const aspect = width / height;
   const fovRad = (CAMERA_FOV_DEG * Math.PI) / 180;
   const targetHeight = Math.min(WORLD_MAP_WORLD_HEIGHT, WORLD_MAP_WORLD_WIDTH / aspect);
   const distance = targetHeight / (2 * Math.tan(fovRad / 2));
   return THREE.MathUtils.clamp(distance + MAP_PLANE_Z, MIN_ZOOM, MAX_ZOOM);
+}
+
+/** Keeps the camera's look-at point far enough from the map plane's edges
+ * that the visible frustum never spills past them — otherwise panning close
+ * to an edge cluster (or being centered on one by default) reveals empty
+ * background beyond the finite map plane. */
+function clampPanToMap(x: number, y: number, zoomZ: number, aspect: number) {
+  const distance = zoomZ - MAP_PLANE_Z;
+  const fovRad = (CAMERA_FOV_DEG * Math.PI) / 180;
+  const halfHeight = distance * Math.tan(fovRad / 2);
+  const halfWidth = halfHeight * aspect;
+  const maxX = Math.max(0, WORLD_MAP_WORLD_WIDTH / 2 - halfWidth);
+  const maxY = Math.max(0, WORLD_MAP_WORLD_HEIGHT / 2 - halfHeight);
+  return {
+    x: THREE.MathUtils.clamp(x, -maxX, maxX),
+    y: THREE.MathUtils.clamp(y, -maxY, maxY),
+  };
+}
+
+/** Centroid of the single largest origin-country cluster — where the map
+ * opens by default, so the busiest, most recognizable logos are on screen
+ * immediately instead of a global view dominated by empty ocean. */
+function computeDefaultFocus(nodes: UniverseNode[]): { x: number; y: number } {
+  const byCluster = new Map<number, { sumX: number; sumY: number; count: number }>();
+  for (const n of nodes) {
+    const c = byCluster.get(n.cluster) ?? { sumX: 0, sumY: 0, count: 0 };
+    c.sumX += n.position.x;
+    c.sumY += n.position.y;
+    c.count += 1;
+    byCluster.set(n.cluster, c);
+  }
+  let biggest: { sumX: number; sumY: number; count: number } | null = null;
+  for (const c of byCluster.values()) {
+    if (!biggest || c.count > biggest.count) biggest = c;
+  }
+  if (!biggest) return { x: 0, y: 0 };
+  return { x: biggest.sumX / biggest.count, y: biggest.sumY / biggest.count };
 }
 
 interface Props {
@@ -35,9 +80,9 @@ interface Props {
 
 export function CameraController({ nodes, ownedIds }: Props) {
   const { camera, gl, size } = useThree();
-  const initialFitZoom = computeFitZoom(size.width, size.height);
-  const fitZoom = useRef(initialFitZoom);
-  const desired = useRef({ x: 0, y: 0, zoom: initialFitZoom });
+  const defaultFocus = useMemo(() => computeDefaultFocus(nodes), [nodes]);
+  const maxZoom = useRef(computeMaxZoom(size.width, size.height));
+  const desired = useRef({ x: defaultFocus.x, y: defaultFocus.y, zoom: DEFAULT_ZOOM });
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
   const pinchDist = useRef<number | null>(null);
@@ -45,7 +90,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
   const idleT = useRef(0);
 
   useEffect(() => {
-    fitZoom.current = computeFitZoom(size.width, size.height);
+    maxZoom.current = computeMaxZoom(size.width, size.height);
   }, [size.width, size.height]);
 
   const cameraCommand = useUniverseStore((s) => s.cameraCommand);
@@ -87,7 +132,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
     function onWheel(e: WheelEvent) {
       e.preventDefault();
       if (discoverMode) setDiscoverMode(false);
-      desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom + e.deltaY * 0.06, MIN_ZOOM, MAX_ZOOM);
+      desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom + e.deltaY * 0.06, MIN_ZOOM, maxZoom.current);
     }
     function touchDist(t: TouchList) {
       return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
@@ -106,7 +151,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
       if (e.touches.length === 2 && pinchDist.current !== null) {
         const d = touchDist(e.touches);
         const delta = pinchDist.current - d;
-        desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom + delta * 0.18, MIN_ZOOM, MAX_ZOOM);
+        desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom + delta * 0.18, MIN_ZOOM, maxZoom.current);
         pinchDist.current = d;
       } else if (e.touches.length === 1 && dragging.current) {
         trackMove(e.touches[0].clientX, e.touches[0].clientY);
@@ -123,7 +168,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
       if (e.touches.length === 0) dragging.current = false;
     }
     function onDoubleClick() {
-      desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom * 0.55, MIN_ZOOM, MAX_ZOOM);
+      desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom * 0.55, MIN_ZOOM, maxZoom.current);
     }
 
     el.addEventListener("pointerdown", onPointerDown);
@@ -151,14 +196,14 @@ export function CameraController({ nodes, ownedIds }: Props) {
     if (!cameraCommand) return;
     switch (cameraCommand.type) {
       case "zoom":
-        desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom + cameraCommand.delta, MIN_ZOOM, MAX_ZOOM);
+        desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom + cameraCommand.delta, MIN_ZOOM, maxZoom.current);
         break;
       case "reset":
-        desired.current = { x: 0, y: 0, zoom: fitZoom.current };
+        desired.current = { x: defaultFocus.x, y: defaultFocus.y, zoom: DEFAULT_ZOOM };
         break;
       case "focus-node": {
         const node = nodes.find((n) => n.subscription.id === cameraCommand.id);
-        if (node) desired.current = { x: node.position.x, y: node.position.y, zoom: MIN_ZOOM + 12 };
+        if (node) desired.current = { x: node.position.x, y: node.position.y, zoom: MIN_ZOOM + 6 };
         break;
       }
       case "focus-mine": {
@@ -166,7 +211,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
         if (mine.length) {
           const cx = mine.reduce((sum, n) => sum + n.position.x, 0) / mine.length;
           const cy = mine.reduce((sum, n) => sum + n.position.y, 0) / mine.length;
-          desired.current = { x: cx, y: cy, zoom: Math.max(MIN_ZOOM + 8, 46) };
+          desired.current = { x: cx, y: cy, zoom: Math.max(MIN_ZOOM + 8, 32) };
         }
         break;
       }
@@ -184,9 +229,13 @@ export function CameraController({ nodes, ownedIds }: Props) {
   useFrame((_, delta) => {
     if (discoverMode && !dragging.current) {
       idleT.current += delta * 0.045;
-      desired.current.x = Math.sin(idleT.current) * 26;
-      desired.current.y = Math.cos(idleT.current * 0.7) * 15;
+      desired.current.x = defaultFocus.x + Math.sin(idleT.current) * 9;
+      desired.current.y = defaultFocus.y + Math.cos(idleT.current * 0.7) * 6;
     }
+    const clamped = clampPanToMap(desired.current.x, desired.current.y, desired.current.zoom, size.width / size.height);
+    desired.current.x = clamped.x;
+    desired.current.y = clamped.y;
+
     const damp = 1 - Math.pow(0.0015, delta);
     const parallaxX = dragging.current ? 0 : pointerNorm.current.x * 2.4;
     const parallaxY = dragging.current ? 0 : -pointerNorm.current.y * 1.6;

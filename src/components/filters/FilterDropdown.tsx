@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 
@@ -66,14 +66,14 @@ export function FilterDropdown<T extends string>({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-xs font-medium transition-colors cursor-pointer",
+          "flex h-11 items-center gap-2 whitespace-nowrap rounded-full border-[1.5px] px-4 text-sm font-medium transition-colors cursor-pointer",
           selected.length > 0
-            ? "border border-aurora-500/50 bg-aurora-500/15 text-aurora-400"
-            : "glass-panel text-ink-300 hover:text-ink-0 hover:border-black/20"
+            ? "border-aurora-500 bg-aurora-500/10 text-aurora-500"
+            : "border-black/15 bg-void-950 text-ink-0 hover:border-ink-0"
         )}
       >
         {buttonLabel}
-        <ChevronDown size={13} className={cn("transition-transform", open && "rotate-180")} />
+        <ChevronsUpDown size={14} className="shrink-0 text-ink-300" />
       </button>
 
       {open &&

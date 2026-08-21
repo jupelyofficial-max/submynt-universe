@@ -54,11 +54,16 @@ export function ExploreClient() {
       <div className="shrink-0">
         <ViewSwitcher />
       </div>
-      <Button variant="ghost" size="md" className="glass-panel shrink-0 rounded-full" onClick={() => setBoostModalOpen(true)}>
+      <Button
+        variant="outline"
+        size="md"
+        className="h-11 shrink-0 rounded-full border-[1.5px] border-aurora-500 bg-void-950 text-aurora-500 hover:bg-aurora-500/5"
+        onClick={() => setBoostModalOpen(true)}
+      >
         <Rocket size={14} />
         Boost
       </Button>
-      <Button size="md" className="shrink-0 rounded-full" onClick={() => setSubmitModalOpen(true)}>
+      <Button size="md" className="h-11 shrink-0 rounded-full" onClick={() => setSubmitModalOpen(true)}>
         <Upload size={14} />
         Submit
       </Button>

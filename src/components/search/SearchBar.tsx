@@ -11,8 +11,8 @@ export function SearchBar({ compact }: { compact?: boolean }) {
 
   return (
     <div className="w-full">
-      <div className="glass-panel flex items-center gap-2.5 rounded-2xl px-4 h-12 shadow-xl shadow-black/30">
-        <Search size={18} className="text-ink-300 shrink-0" />
+      <div className="flex h-11 items-center gap-2.5 rounded-full border-[1.5px] border-ink-0 bg-void-950 px-4 transition-colors focus-within:border-aurora-500">
+        <Search size={17} className="text-ink-300 shrink-0" />
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

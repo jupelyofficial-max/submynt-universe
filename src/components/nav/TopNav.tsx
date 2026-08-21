@@ -9,10 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 
-const NAV_LINKS = [
-  { href: "/explore", label: "Explore" },
-  { href: "/my-subscriptions", label: "My Subscriptions" },
-];
+const NAV_LINKS = [{ href: "/explore", label: "Explore" }];
 
 export function TopNav() {
   const pathname = usePathname();

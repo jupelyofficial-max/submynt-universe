@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Rocket, Search, Upload, User, X } from "lucide-react";
+import { Rocket, Search, Upload, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,11 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ViewSwitcher } from "@/components/views/ViewSwitcher";
-import { cn } from "@/lib/utils";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
-
-const NAV_LINKS = [{ href: "/explore", label: "Explore" }];
 
 export function TopNav() {
   const pathname = usePathname();
@@ -22,7 +19,6 @@ export function TopNav() {
   const ownedCount = useMySubscriptionsStore((s) => s.owned.length);
   const setBoostModalOpen = useUniverseStore((s) => s.setBoostModalOpen);
   const setSubmitModalOpen = useUniverseStore((s) => s.setSubmitModalOpen);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -40,24 +36,6 @@ export function TopNav() {
             SUBMYNT
           </span>
         </Link>
-
-        <nav className="hidden lg:flex items-center gap-1 ml-4">
-          {NAV_LINKS.map((link) => {
-            const active = pathname === link.href || pathname?.startsWith(link.href + "/");
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "px-3.5 py-2 rounded-lg text-sm font-medium transition-colors",
-                  active ? "text-ink-0 bg-black/8" : "text-ink-300 hover:text-ink-0 hover:bg-black/5"
-                )}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
 
         {isExplore ? (
           <div className="hidden min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar md:flex">
@@ -118,7 +96,7 @@ export function TopNav() {
 
         <Link
           href="/my-subscriptions"
-          className="relative h-10 w-10 hidden lg:flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors"
+          className="relative h-10 w-10 flex shrink-0 items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors"
           aria-label="Profile"
         >
           <User size={18} />
@@ -128,60 +106,7 @@ export function TopNav() {
             </span>
           )}
         </Link>
-
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 cursor-pointer"
-          aria-label="Open menu"
-        >
-          <Menu size={20} />
-        </button>
       </div>
-
-      {/* Mobile drawer */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden"
-              onClick={() => setMobileOpen(false)}
-            />
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 z-50 h-full w-[82%] max-w-xs glass-panel lg:hidden flex flex-col"
-            >
-              <div className="flex items-center justify-between px-5 h-16 border-b border-line-soft">
-                <span className="font-display font-semibold">Menu</span>
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  aria-label="Close menu"
-                  className="h-9 w-9 flex items-center justify-center rounded-lg text-ink-300 hover:text-ink-0 hover:bg-black/5"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              <nav className="flex flex-col p-3 gap-1">
-                {NAV_LINKS.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="px-4 py-3 rounded-xl text-sm font-medium text-ink-100 hover:bg-black/5"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
 
       {/* Search overlay */}
       <AnimatePresence>

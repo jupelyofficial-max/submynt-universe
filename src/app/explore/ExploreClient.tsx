@@ -72,7 +72,7 @@ export function ExploreClient() {
       <div className="relative z-10 flex flex-1 flex-col min-h-0">
         {viewMode === "universe" ? (
           <>
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex justify-center p-4 lg:p-6">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex justify-center p-4 md:hidden">
               <div className="pointer-events-auto flex justify-center">{toolbar}</div>
             </div>
             <div className="flex flex-1 min-h-0">
@@ -89,7 +89,7 @@ export function ExploreClient() {
           </>
         ) : (
           <div className="flex flex-1 min-h-0 flex-col">
-            <div className="flex justify-center border-b border-line-soft p-4 lg:p-6">{toolbar}</div>
+            <div className="flex justify-center border-b border-line-soft p-4 md:hidden">{toolbar}</div>
             <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
               <ListView />
             </div>

@@ -1,13 +1,17 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Search, User, X } from "lucide-react";
+import { Menu, Rocket, Search, Upload, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { FilterBar } from "@/components/filters/FilterBar";
+import { SearchBar } from "@/components/search/SearchBar";
+import { ViewSwitcher } from "@/components/views/ViewSwitcher";
 import { cn } from "@/lib/utils";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
+import { useUniverseStore } from "@/store/useUniverseStore";
 
 const NAV_LINKS = [{ href: "/explore", label: "Explore" }];
 
@@ -16,6 +20,8 @@ export function TopNav() {
   const isExplore = pathname === "/explore" || pathname?.startsWith("/explore/");
   const router = useRouter();
   const ownedCount = useMySubscriptionsStore((s) => s.owned.length);
+  const setBoostModalOpen = useUniverseStore((s) => s.setBoostModalOpen);
+  const setSubmitModalOpen = useUniverseStore((s) => s.setSubmitModalOpen);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -53,7 +59,42 @@ export function TopNav() {
           })}
         </nav>
 
-        <div className="flex-1" />
+        {isExplore ? (
+          <div className="hidden min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar md:flex">
+            <div className="w-44 shrink-0 lg:w-56">
+              <SearchBar compact />
+            </div>
+            <FilterBar className="flex-nowrap shrink-0" />
+            <div className="shrink-0">
+              <ViewSwitcher />
+            </div>
+            <Button
+              variant="ghost"
+              size="md"
+              className="glass-panel shrink-0 rounded-full"
+              onClick={() => setBoostModalOpen(true)}
+            >
+              <Rocket size={14} />
+              Boost
+            </Button>
+            <Button size="md" className="shrink-0 rounded-full" onClick={() => setSubmitModalOpen(true)}>
+              <Upload size={14} />
+              Submit
+            </Button>
+          </div>
+        ) : (
+          <div className="flex-1" />
+        )}
+
+        {isExplore && (
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 cursor-pointer"
+            aria-label="Search subscriptions"
+          >
+            <Search size={18} />
+          </button>
+        )}
 
         {!isExplore && (
           <>

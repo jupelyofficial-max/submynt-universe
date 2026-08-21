@@ -2,7 +2,6 @@
 
 import { Canvas } from "@react-three/fiber";
 import { useMemo } from "react";
-import { StarField } from "./StarField";
 import { WorldMapBackground } from "./WorldMapBackground";
 import { SubscriptionField } from "./SubscriptionField";
 import { CameraController, DEFAULT_ZOOM } from "./CameraController";
@@ -23,7 +22,6 @@ export function UniverseScene() {
       dpr={[1, 2]}
     >
       <ambientLight intensity={0.7} />
-      <StarField />
       <WorldMapBackground />
       <SubscriptionField nodes={nodes} ownedIds={ownedIds} />
       <CameraController nodes={nodes} ownedIds={ownedIds} />

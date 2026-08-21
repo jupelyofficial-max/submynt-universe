@@ -7,10 +7,11 @@
      ratings + savings. The -400 accent tiers are tuned specifically for
      text/icon contrast on light surfaces; -500/-600 stay close to the
      original tone since they're mostly used as translucent background
-     tints, where exact lightness matters less. The 3D "Universe" scene
-     (starfield, nebula, world map, node glow) is intentionally NOT driven
-     by these tokens — it stays dark regardless of theme, see
-     NebulaBackdrop/StarField/WorldMapBackground. */
+     tints, where exact lightness matters less. The 3D "Universe" map
+     (world map, node glow) is drawn with its own hardcoded canvas/WebGL
+     colors rather than reading these CSS vars directly — see
+     worldMapTexture.ts/SubscriptionNode.tsx — but is kept visually in
+     sync with this light palette by hand. */
   --void-950: #ffffff;
   --void-900: #f5f0e6;
   --void-800: #ece4d2;
@@ -98,16 +99,6 @@ body {
 
 .text-gradient-aurora {
   background: linear-gradient(120deg, var(--aurora-400), var(--nebula-400));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* Same gradient tuned for the dark hero backdrop, where --aurora-400 /
-   --nebula-400 (now darkened for light-surface contrast) would read
-   almost black-on-black. */
-.text-gradient-aurora-night {
-  background: linear-gradient(120deg, #f2a06a, #7fd9c4);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

@@ -20,7 +20,7 @@ const UniverseScene = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex flex-1 items-center justify-center text-sm text-white/60">
+      <div className="flex flex-1 items-center justify-center text-sm text-ink-500">
         Charting the universe…
       </div>
     ),

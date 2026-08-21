@@ -3,7 +3,6 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
-import { StarField } from "@/components/universe/StarField";
 import { getLogoTexture } from "@/components/universe/logoTexture";
 import { buildUniverse } from "@/lib/universeLayout";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
@@ -62,7 +61,6 @@ export function HomePreviewScene() {
   return (
     <Canvas camera={{ position: [0, 4, 70], fov: 50 }} gl={{ alpha: true }} dpr={[1, 1.6]}>
       <ambientLight intensity={0.8} />
-      <StarField />
       <DriftingNodes />
     </Canvas>
   );

@@ -67,6 +67,18 @@ export interface UniverseNode {
   cluster: number;
 }
 
+export interface ListingSubmission {
+  id: string;
+  name: string;
+  website: string;
+  category: Category;
+  tagline: string;
+  priceMonthly: number;
+  region: Region;
+  contactEmail: string;
+  submittedAt: string;
+}
+
 export interface OwnedSubscription {
   ownedId: string;
   subscriptionId: string;

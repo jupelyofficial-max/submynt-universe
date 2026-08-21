@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  BILLING_LABELS,
-  BILLING_OPTIONS,
-  CATEGORIES,
-  PRICE_BANDS,
-  REGION_OPTIONS,
-  SORT_LABELS,
-  SORT_OPTIONS,
-  USER_STATUS_LABELS,
-} from "@/data/categories";
+import { PRICE_BANDS, SORT_LABELS, SORT_OPTIONS } from "@/data/categories";
 import { cn } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
-import type { UserStatusFilter } from "@/types/subscription";
 
 function Chip({
   active,
@@ -47,15 +37,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-const USER_STATUS_OPTIONS = Object.keys(USER_STATUS_LABELS) as UserStatusFilter[];
-
 export function FilterControls() {
   const filters = useUniverseStore((s) => s.filters);
-  const toggleCategory = useUniverseStore((s) => s.toggleCategory);
-  const toggleBilling = useUniverseStore((s) => s.toggleBilling);
   const togglePriceBand = useUniverseStore((s) => s.togglePriceBand);
-  const toggleUserStatus = useUniverseStore((s) => s.toggleUserStatus);
-  const toggleRegion = useUniverseStore((s) => s.toggleRegion);
   const setSort = useUniverseStore((s) => s.setSort);
 
   return (
@@ -67,38 +51,10 @@ export function FilterControls() {
           </Chip>
         ))}
       </Section>
-      <Section title="User status">
-        {USER_STATUS_OPTIONS.map((opt) => (
-          <Chip key={opt} active={filters.userStatus.includes(opt)} onClick={() => toggleUserStatus(opt)}>
-            {USER_STATUS_LABELS[opt]}
-          </Chip>
-        ))}
-      </Section>
-      <Section title="Category">
-        {CATEGORIES.map((cat) => (
-          <Chip key={cat} active={filters.categories.includes(cat)} onClick={() => toggleCategory(cat)}>
-            {cat}
-          </Chip>
-        ))}
-      </Section>
-      <Section title="Billing">
-        {BILLING_OPTIONS.map((opt) => (
-          <Chip key={opt} active={filters.billing.includes(opt)} onClick={() => toggleBilling(opt)}>
-            {BILLING_LABELS[opt]}
-          </Chip>
-        ))}
-      </Section>
       <Section title="Price">
         {PRICE_BANDS.map((band) => (
           <Chip key={band.id} active={filters.priceBands.includes(band.id)} onClick={() => togglePriceBand(band.id)}>
             {band.label}
-          </Chip>
-        ))}
-      </Section>
-      <Section title="Region">
-        {REGION_OPTIONS.map((region) => (
-          <Chip key={region} active={filters.regions.includes(region)} onClick={() => toggleRegion(region)}>
-            {region}
           </Chip>
         ))}
       </Section>

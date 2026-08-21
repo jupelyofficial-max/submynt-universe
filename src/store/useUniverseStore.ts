@@ -43,12 +43,22 @@ interface UniverseUIState {
   togglePriceBand: (id: string) => void;
   toggleUserStatus: (u: UserStatusFilter) => void;
   toggleRegion: (r: Region) => void;
+  setCategories: (c: Category[]) => void;
+  setBilling: (b: BillingCycle[]) => void;
+  setUserStatus: (u: UserStatusFilter[]) => void;
+  setRegions: (r: Region[]) => void;
   setSort: (s: SortOption) => void;
   clearFilters: () => void;
   activeFilterCount: () => number;
 
   isFilterSheetOpen: boolean;
   setFilterSheetOpen: (v: boolean) => void;
+
+  isSubmitModalOpen: boolean;
+  setSubmitModalOpen: (v: boolean) => void;
+
+  isBoostModalOpen: boolean;
+  setBoostModalOpen: (v: boolean) => void;
 
   selectedId: string | null;
   select: (id: string | null) => void;
@@ -90,6 +100,10 @@ export const useUniverseStore = create<UniverseUIState>()((set, get) => ({
     set((s) => ({ filters: { ...s.filters, userStatus: toggleInArray(s.filters.userStatus, u) } })),
   toggleRegion: (r) =>
     set((s) => ({ filters: { ...s.filters, regions: toggleInArray(s.filters.regions, r) } })),
+  setCategories: (categories) => set((s) => ({ filters: { ...s.filters, categories } })),
+  setBilling: (billing) => set((s) => ({ filters: { ...s.filters, billing } })),
+  setUserStatus: (userStatus) => set((s) => ({ filters: { ...s.filters, userStatus } })),
+  setRegions: (regions) => set((s) => ({ filters: { ...s.filters, regions } })),
   setSort: (sort) => set((s) => ({ filters: { ...s.filters, sort } })),
   clearFilters: () => set({ filters: EMPTY_FILTERS }),
   activeFilterCount: () => {
@@ -99,6 +113,12 @@ export const useUniverseStore = create<UniverseUIState>()((set, get) => ({
 
   isFilterSheetOpen: false,
   setFilterSheetOpen: (v) => set({ isFilterSheetOpen: v }),
+
+  isSubmitModalOpen: false,
+  setSubmitModalOpen: (v) => set({ isSubmitModalOpen: v }),
+
+  isBoostModalOpen: false,
+  setBoostModalOpen: (v) => set({ isBoostModalOpen: v }),
 
   selectedId: null,
   select: (id) => set({ selectedId: id }),

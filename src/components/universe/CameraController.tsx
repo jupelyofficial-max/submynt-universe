@@ -6,7 +6,7 @@ import * as THREE from "three";
 import type { UniverseNode } from "@/types/subscription";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { trackDown, trackMove } from "@/lib/dragTracker";
-import { WORLD_MAP_WORLD_HEIGHT, WORLD_MAP_WORLD_WIDTH } from "@/lib/geo";
+import { UNIVERSE_WORLD_HEIGHT, UNIVERSE_WORLD_WIDTH } from "@/lib/universeLayout";
 
 export const MIN_ZOOM = 20;
 // Absolute ceiling — the actual per-session cap is computed per aspect ratio
@@ -18,44 +18,44 @@ export const MAX_ZOOM = 130;
 // whole world map. Users can still scroll out to computeMaxZoom's ceiling.
 export const DEFAULT_ZOOM = 34;
 
-// Must match WorldMapBackground's mesh position and UniverseScene's camera fov.
-const MAP_PLANE_Z = -18;
+// Must match UniverseCanvasBackground's mesh position and UniverseScene's camera fov.
+const CANVAS_PLANE_Z = -18;
 const CAMERA_FOV_DEG = 45;
 
-/** Zoom (camera z) at which the map plane exactly covers the viewport — like
- * CSS `background-size: cover` — for the given canvas aspect ratio. Used as
- * the zoom-OUT ceiling, not the default: it guarantees there's never empty
- * background showing beyond the map, without forcing the initial view to be
- * a huge, sparse whole-world shot. */
+/** Zoom (camera z) at which the abstract canvas plane exactly covers the
+ * viewport — like CSS `background-size: cover` — for the given aspect
+ * ratio. Used as the zoom-OUT ceiling, not the default: it guarantees
+ * there's never empty background showing beyond the canvas, without
+ * forcing the initial view to be a huge, sparse whole-universe shot. */
 function computeMaxZoom(width: number, height: number): number {
   if (!width || !height) return MAX_ZOOM;
   const aspect = width / height;
   const fovRad = (CAMERA_FOV_DEG * Math.PI) / 180;
-  const targetHeight = Math.min(WORLD_MAP_WORLD_HEIGHT, WORLD_MAP_WORLD_WIDTH / aspect);
+  const targetHeight = Math.min(UNIVERSE_WORLD_HEIGHT, UNIVERSE_WORLD_WIDTH / aspect);
   const distance = targetHeight / (2 * Math.tan(fovRad / 2));
-  return THREE.MathUtils.clamp(distance + MAP_PLANE_Z, MIN_ZOOM, MAX_ZOOM);
+  return THREE.MathUtils.clamp(distance + CANVAS_PLANE_Z, MIN_ZOOM, MAX_ZOOM);
 }
 
-/** Keeps the camera's look-at point far enough from the map plane's edges
- * that the visible frustum never spills past them — otherwise panning close
- * to an edge cluster (or being centered on one by default) reveals empty
- * background beyond the finite map plane. */
-function clampPanToMap(x: number, y: number, zoomZ: number, aspect: number) {
-  const distance = zoomZ - MAP_PLANE_Z;
+/** Keeps the camera's look-at point far enough from the canvas plane's
+ * edges that the visible frustum never spills past them — otherwise
+ * panning close to an edge cluster (or being centered on one by default)
+ * reveals empty background beyond the finite plane. */
+function clampPanToCanvas(x: number, y: number, zoomZ: number, aspect: number) {
+  const distance = zoomZ - CANVAS_PLANE_Z;
   const fovRad = (CAMERA_FOV_DEG * Math.PI) / 180;
   const halfHeight = distance * Math.tan(fovRad / 2);
   const halfWidth = halfHeight * aspect;
-  const maxX = Math.max(0, WORLD_MAP_WORLD_WIDTH / 2 - halfWidth);
-  const maxY = Math.max(0, WORLD_MAP_WORLD_HEIGHT / 2 - halfHeight);
+  const maxX = Math.max(0, UNIVERSE_WORLD_WIDTH / 2 - halfWidth);
+  const maxY = Math.max(0, UNIVERSE_WORLD_HEIGHT / 2 - halfHeight);
   return {
     x: THREE.MathUtils.clamp(x, -maxX, maxX),
     y: THREE.MathUtils.clamp(y, -maxY, maxY),
   };
 }
 
-/** Centroid of the single largest origin-country cluster — where the map
+/** Centroid of the single largest category cluster — where the universe
  * opens by default, so the busiest, most recognizable logos are on screen
- * immediately instead of a global view dominated by empty ocean. */
+ * immediately instead of a view dominated by empty canvas. */
 function computeDefaultFocus(nodes: UniverseNode[]): { x: number; y: number } {
   const byCluster = new Map<number, { sumX: number; sumY: number; count: number }>();
   for (const n of nodes) {
@@ -232,7 +232,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
       desired.current.x = defaultFocus.x + Math.sin(idleT.current) * 9;
       desired.current.y = defaultFocus.y + Math.cos(idleT.current * 0.7) * 6;
     }
-    const clamped = clampPanToMap(desired.current.x, desired.current.y, desired.current.zoom, size.width / size.height);
+    const clamped = clampPanToCanvas(desired.current.x, desired.current.y, desired.current.zoom, size.width / size.height);
     desired.current.x = clamped.x;
     desired.current.y = clamped.y;
 

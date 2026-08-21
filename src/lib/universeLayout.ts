@@ -1,5 +1,10 @@
-import { COUNTRY_COORDS, projectLatLngToWorld } from "@/lib/geo";
 import type { Subscription, UniverseNode, Vec3 } from "@/types/subscription";
+
+/** World-space size of the abstract universe canvas — generous enough to
+ * hold every category cluster (see buildUniverse) with margin, at whatever
+ * aspect the camera ends up needing to cover. */
+export const UNIVERSE_WORLD_WIDTH = 120;
+export const UNIVERSE_WORLD_HEIGHT = 110;
 
 /** Deterministic PRNG so node placement is stable across renders/sessions. */
 function mulberry32(seed: number) {
@@ -14,39 +19,45 @@ function mulberry32(seed: number) {
 }
 
 const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point
+const CATEGORY_SPACING = 9; // world units per sqrt(rank) step between category centers
 
-/** Places every subscription at its origin country's coordinates on the world
- * map, fanning same-country services out around that point (golden-angle
- * spiral, most popular closest to the exact coordinate) so they don't stack. */
+/** Places every subscription within its category's cluster rather than by
+ * any real-world geography — categories themselves fan out from the center
+ * (golden-angle spiral, biggest category closest in) so the busiest,
+ * densest part of the universe is the default view, and same-category
+ * services fan out around their category's center the same way, most
+ * popular closest to the middle so clusters read as organic, overlapping
+ * blobs rather than a grid. */
 export function buildUniverse(subs: Subscription[]): UniverseNode[] {
   const rand = mulberry32(1337);
-  const byCountry = new Map<string, Subscription[]>();
+  const byCategory = new Map<string, Subscription[]>();
   subs.forEach((s) => {
-    const arr = byCountry.get(s.originCountry) ?? [];
+    const arr = byCategory.get(s.category) ?? [];
     arr.push(s);
-    byCountry.set(s.originCountry, arr);
+    byCategory.set(s.category, arr);
   });
 
-  const nodes: UniverseNode[] = [];
-  let clusterIndex = 0;
+  const categoriesByCount = [...byCategory.entries()].sort((a, b) => b[1].length - a[1].length);
 
-  byCountry.forEach((items, country) => {
-    const coord = COUNTRY_COORDS[country];
-    if (!coord) return;
-    const center = projectLatLngToWorld(coord);
+  const nodes: UniverseNode[] = [];
+
+  categoriesByCount.forEach(([, items], catIndex) => {
+    const angle = catIndex * GOLDEN_ANGLE;
+    const catRadius = Math.sqrt(catIndex) * CATEGORY_SPACING;
+    const centerX = Math.cos(angle) * catRadius;
+    const centerY = Math.sin(angle) * catRadius;
+
     const sorted = items.slice().sort((a, b) => b.popularity - a.popularity);
 
     sorted.forEach((sub, i) => {
-      const angle = i * GOLDEN_ANGLE;
+      const itemAngle = i * GOLDEN_ANGLE;
       const spreadRadius = Math.sqrt(i) * 1.5 + rand() * 0.5;
-      const x = center.x + Math.cos(angle) * spreadRadius;
-      const y = center.y + Math.sin(angle) * spreadRadius;
+      const x = centerX + Math.cos(itemAngle) * spreadRadius;
+      const y = centerY + Math.sin(itemAngle) * spreadRadius;
       const z = (rand() - 0.5) * 8 + 2;
       const size = 0.5 + (sub.popularity / 100) * 0.6;
-      nodes.push({ subscription: sub, position: { x, y, z }, radius: size, cluster: clusterIndex });
+      nodes.push({ subscription: sub, position: { x, y, z }, radius: size, cluster: catIndex });
     });
-
-    clusterIndex += 1;
   });
 
   return nodes;
@@ -62,7 +73,7 @@ function dist(a: Vec3, b: Vec3) {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2 + (a.z - b.z) ** 2);
 }
 
-/** Faint links between nearby nodes within the same origin-country cluster. */
+/** Faint links between nearby nodes within the same category cluster. */
 export function buildConstellationLinks(
   nodes: UniverseNode[],
   maxPerNode = 2,

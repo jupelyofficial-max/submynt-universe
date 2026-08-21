@@ -1,8 +1,9 @@
 # SUBMYNT V2 — Subscription Universe
 
-An interactive world map for discovering, comparing and optimizing digital
-subscriptions. Every subscription is a floating logo positioned at its
-company's home country — search, filter, pan, zoom, click through to detail,
+An interactive discovery canvas for finding, comparing and optimizing digital
+subscriptions. Every subscription is a large, recognizable floating logo,
+organized into dense clusters by category and popularity rather than any
+real-world geography — search, filter, pan, zoom, click through to detail,
 compare alternatives, and track savings. Standalone project; separate from
 the main Submynt marketing site.
 
@@ -43,21 +44,27 @@ Open [http://localhost:3000](http://localhost:3000). Routes:
   brand. Swapping in a real catalogue/API means replacing `SUBSCRIPTIONS`
   only; everything downstream (nodes, list, compare, optimize) already reads
   the generic shape.
-- **World map**: `src/data/worldMapPath.ts` is pre-generated (see
-  `scripts/gen-worldmap.mjs`, run once with `world-atlas` + `d3-geo`, not a
-  runtime dependency) — real country outlines projected equirectangular into
-  a 2048x1024 texture, drawn CARTO-dark-style by
-  `src/components/universe/worldMapTexture.ts`.
-- **Universe layout**: `src/lib/universeLayout.ts` places each subscription
-  at its `originCountry`'s coordinates (`src/lib/geo.ts`), fanning
-  same-country services out in a golden-angle spiral (most popular closest
-  to the exact point) and drawing faint "constellation" links between nearby
-  nodes in the same country cluster. Pure function of the catalogue, so it's
-  stable across sessions.
-- **Logos**: subscriptions render as canvas-generated lettermark circles
-  (`src/components/universe/logoTexture.ts`) rather than fetched brand
-  assets — no external logo licensing/availability concerns, still reads as
-  "every subscription is a circular floating logo."
+- **Universe canvas**: `src/components/universe/universeCanvasTexture.ts`
+  draws the abstract backdrop — a warm cream surface with a faint
+  cartographic grid and a few soft radial washes, no real geography. There
+  is deliberately nothing to recognize as a "map" here; it's environment,
+  not content.
+- **Universe layout**: `src/lib/universeLayout.ts` groups subscriptions by
+  `category`, fans the categories themselves out from the center in a
+  golden-angle spiral (biggest category closest in, so the default view
+  opens on the densest, most recognizable cluster), and fans same-category
+  services out around their category's center the same way (most popular
+  closest to the center). Faint "constellation" links are drawn between
+  nearby nodes within the same category cluster. Pure function of the
+  catalogue, so it's stable across sessions — positioning does not depend
+  on any real-world geography.
+- **Logos**: `scripts/fetch-logos.mjs` is a one-time script (not a runtime
+  dependency) that fetches each mock subscription's real logo from a public
+  favicon service into `public/logos/`, with a manifest at
+  `src/data/logoManifest.json`. `SubscriptionLogo.tsx` (2D UI) and
+  `src/components/universe/logoTexture.ts` (3D nodes) both render the real
+  logo when available, falling back to a canvas-generated colored
+  lettermark circle for the handful that don't resolve.
 - **Camera**: `CameraController.tsx` is a custom pan/zoom/parallax rig (not
   drei's `OrbitControls`) so the map behaves like a real map you fly over,
   not a freely-orbiting 3D object.

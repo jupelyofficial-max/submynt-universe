@@ -49,8 +49,6 @@ export interface Subscription {
   popularity: number;
   rating: number;
   region: Region;
-  /** Country the service originates from — drives its position on the world map. */
-  originCountry: string;
   tags: string[];
   isNew?: boolean;
   /** Length of the free trial in days, if this plan offers one. */

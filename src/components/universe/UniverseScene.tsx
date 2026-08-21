@@ -2,7 +2,7 @@
 
 import { Canvas } from "@react-three/fiber";
 import { useMemo } from "react";
-import { WorldMapBackground } from "./WorldMapBackground";
+import { UniverseCanvasBackground } from "./UniverseCanvasBackground";
 import { SubscriptionField } from "./SubscriptionField";
 import { CameraController, DEFAULT_ZOOM } from "./CameraController";
 import { buildUniverse } from "@/lib/universeLayout";
@@ -22,7 +22,7 @@ export function UniverseScene() {
       dpr={[1, 2]}
     >
       <ambientLight intensity={0.7} />
-      <WorldMapBackground />
+      <UniverseCanvasBackground />
       <SubscriptionField nodes={nodes} ownedIds={ownedIds} />
       <CameraController nodes={nodes} ownedIds={ownedIds} />
     </Canvas>

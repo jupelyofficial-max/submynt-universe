@@ -26,9 +26,9 @@ export default function HomePage() {
             {SUBSCRIPTIONS.length}+ subscriptions charted across {CATEGORIES.length} categories
           </span>
           <h1 className="font-display text-4xl font-semibold leading-[1.08] text-ink-0 sm:text-5xl lg:text-6xl">
-            Your subscriptions
+            Stop paying Subscriptions
             <br />
-            have a <span className="text-gradient-aurora">universe.</span>
+            that you <span className="text-gradient-aurora">forgot about.</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base text-ink-300 sm:text-lg">
             Discover everything you pay for — every service, one map, no bank login required.

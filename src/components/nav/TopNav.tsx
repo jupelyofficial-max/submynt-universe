@@ -13,8 +13,6 @@ import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 const NAV_LINKS = [
   { href: "/explore", label: "Explore" },
   { href: "/my-subscriptions", label: "My Subscriptions" },
-  { href: "/compare", label: "Compare" },
-  { href: "/optimize", label: "Optimize" },
 ];
 
 export function TopNav() {

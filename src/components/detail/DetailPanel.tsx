@@ -1,8 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Check, Heart, Repeat, Scale, Share2, Sparkles, Trash2 } from "lucide-react";
+import { Check, Heart, Repeat, Share2, Sparkles, Trash2 } from "lucide-react";
 import { ResponsiveSheet } from "@/components/ui/ResponsiveSheet";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -27,10 +26,7 @@ export function DetailPanel() {
 
 function DetailContent({ subscriptionId }: { subscriptionId: string }) {
   const sub = SUBSCRIPTIONS_BY_ID[subscriptionId];
-  const router = useRouter();
   const select = useUniverseStore((s) => s.select);
-  const addToCompare = useUniverseStore((s) => s.addToCompare);
-  const compareIds = useUniverseStore((s) => s.compareIds);
   const openAddModal = useUniverseStore((s) => s.openAddModal);
   const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
 
@@ -46,12 +42,6 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
   const alternatives = getAlternatives(sub, 5);
   const savingsAlt = bestSavingsAlternative(sub);
   const savings = potentialSavingsMonthly(sub);
-
-  function handleCompare() {
-    const ids = Array.from(new Set([...compareIds, sub.id])).slice(0, 3);
-    addToCompare(sub.id);
-    router.push(`/compare?ids=${ids.join(",")}`);
-  }
 
   function handleShare() {
     const url = `${window.location.origin}/explore?focus=${sub.id}`;
@@ -115,16 +105,8 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
           ) : (
             <Button onClick={() => openAddModal(sub.id)}>Add to My Subscriptions</Button>
           )}
-          <Button variant="secondary" onClick={handleCompare}>
-            <Scale size={16} />
-            Compare
-          </Button>
           <Button variant="outline" onClick={() => document.getElementById("alt-section")?.scrollIntoView({ behavior: "smooth" })}>
             Explore Alternatives
-          </Button>
-          <Button variant="outline" onClick={() => router.push("/optimize")}>
-            <Sparkles size={16} />
-            Optimize
           </Button>
         </div>
         <div className="mt-2 flex gap-2">

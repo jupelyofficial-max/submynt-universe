@@ -1,4 +1,5 @@
 import type { Subscription, UniverseNode, Vec3 } from "@/types/subscription";
+import { CATEGORY_META } from "@/data/categories";
 
 /** World-space size of the abstract universe canvas — generous enough to
  * hold every category cluster (see buildUniverse) with margin, at whatever
@@ -21,6 +22,19 @@ function mulberry32(seed: number) {
 const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point
 const CATEGORY_SPACING = 9; // world units per sqrt(rank) step between category centers
 
+export interface CategoryCluster {
+  name: string;
+  center: { x: number; y: number };
+  radius: number;
+  count: number;
+  color: string;
+}
+
+export interface UniverseLayout {
+  nodes: UniverseNode[];
+  clusters: CategoryCluster[];
+}
+
 /** Places every subscription within its category's cluster rather than by
  * any real-world geography — categories themselves fan out from the center
  * (golden-angle spiral, biggest category closest in) so the busiest,
@@ -28,7 +42,7 @@ const CATEGORY_SPACING = 9; // world units per sqrt(rank) step between category 
  * services fan out around their category's center the same way, most
  * popular closest to the middle so clusters read as organic, overlapping
  * blobs rather than a grid. */
-export function buildUniverse(subs: Subscription[]): UniverseNode[] {
+export function buildUniverse(subs: Subscription[]): UniverseLayout {
   const rand = mulberry32(1337);
   const byCategory = new Map<string, Subscription[]>();
   subs.forEach((s) => {
@@ -40,8 +54,9 @@ export function buildUniverse(subs: Subscription[]): UniverseNode[] {
   const categoriesByCount = [...byCategory.entries()].sort((a, b) => b[1].length - a[1].length);
 
   const nodes: UniverseNode[] = [];
+  const clusters: CategoryCluster[] = [];
 
-  categoriesByCount.forEach(([, items], catIndex) => {
+  categoriesByCount.forEach(([category, items], catIndex) => {
     const angle = catIndex * GOLDEN_ANGLE;
     const catRadius = Math.sqrt(catIndex) * CATEGORY_SPACING;
     const centerX = Math.cos(angle) * catRadius;
@@ -58,9 +73,19 @@ export function buildUniverse(subs: Subscription[]): UniverseNode[] {
       const size = 0.5 + (sub.popularity / 100) * 0.6;
       nodes.push({ subscription: sub, position: { x, y, z }, radius: size, cluster: catIndex });
     });
+
+    clusters.push({
+      name: category,
+      center: { x: centerX, y: centerY },
+      // Comfortably wraps the item farthest from the cluster center (the
+      // last, least-popular item's spreadRadius) plus its own bubble size.
+      radius: Math.sqrt(Math.max(items.length - 1, 0)) * 1.5 + 2.5,
+      count: items.length,
+      color: CATEGORY_META[category as keyof typeof CATEGORY_META]?.color ?? "#A99C87",
+    });
   });
 
-  return nodes;
+  return { nodes, clusters };
 }
 
 export interface ConstellationLink {

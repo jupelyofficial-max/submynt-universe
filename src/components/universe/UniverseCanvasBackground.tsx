@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { UNIVERSE_WORLD_HEIGHT, UNIVERSE_WORLD_WIDTH } from "@/lib/universeLayout";
+import { UNIVERSE_WORLD_HEIGHT, UNIVERSE_WORLD_WIDTH, type CategoryCluster } from "@/lib/universeLayout";
 import { getUniverseCanvasTexture } from "./universeCanvasTexture";
 
-export function UniverseCanvasBackground() {
-  const texture = useMemo(() => getUniverseCanvasTexture(), []);
+export function UniverseCanvasBackground({ clusters }: { clusters: CategoryCluster[] }) {
+  const texture = useMemo(() => getUniverseCanvasTexture(clusters), [clusters]);
 
   return (
     <mesh position={[0, 0, -18]}>

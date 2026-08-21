@@ -4,13 +4,14 @@ import { Canvas } from "@react-three/fiber";
 import { useMemo } from "react";
 import { UniverseCanvasBackground } from "./UniverseCanvasBackground";
 import { SubscriptionField } from "./SubscriptionField";
+import { CategoryLabels } from "./CategoryLabels";
 import { CameraController, DEFAULT_ZOOM } from "./CameraController";
 import { buildUniverse } from "@/lib/universeLayout";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 
 export function UniverseScene() {
-  const nodes = useMemo(() => buildUniverse(SUBSCRIPTIONS), []);
+  const { nodes, clusters } = useMemo(() => buildUniverse(SUBSCRIPTIONS), []);
   const owned = useMySubscriptionsStore((s) => s.owned);
   const ownedIds = useMemo(() => new Set(owned.map((o) => o.subscriptionId)), [owned]);
 
@@ -22,7 +23,8 @@ export function UniverseScene() {
       dpr={[1, 2]}
     >
       <ambientLight intensity={0.7} />
-      <UniverseCanvasBackground />
+      <UniverseCanvasBackground clusters={clusters} />
+      <CategoryLabels clusters={clusters} />
       <SubscriptionField nodes={nodes} ownedIds={ownedIds} />
       <CameraController nodes={nodes} ownedIds={ownedIds} />
     </Canvas>

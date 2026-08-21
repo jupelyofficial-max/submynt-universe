@@ -6,10 +6,27 @@ import * as THREE from "three";
 import type { UniverseNode } from "@/types/subscription";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { trackDown, trackMove } from "@/lib/dragTracker";
+import { WORLD_MAP_WORLD_HEIGHT, WORLD_MAP_WORLD_WIDTH } from "@/lib/geo";
 
 export const MIN_ZOOM = 20;
 export const MAX_ZOOM = 130;
 export const DEFAULT_ZOOM = 92;
+
+// Must match WorldMapBackground's mesh position and UniverseScene's camera fov.
+const MAP_PLANE_Z = -18;
+const CAMERA_FOV_DEG = 45;
+
+/** Zoom (camera z) at which the map plane exactly covers the viewport — like
+ * CSS `background-size: cover` — for the given canvas aspect ratio, so there's
+ * no empty background showing around the map regardless of window shape. */
+function computeFitZoom(width: number, height: number): number {
+  if (!width || !height) return DEFAULT_ZOOM;
+  const aspect = width / height;
+  const fovRad = (CAMERA_FOV_DEG * Math.PI) / 180;
+  const targetHeight = Math.min(WORLD_MAP_WORLD_HEIGHT, WORLD_MAP_WORLD_WIDTH / aspect);
+  const distance = targetHeight / (2 * Math.tan(fovRad / 2));
+  return THREE.MathUtils.clamp(distance + MAP_PLANE_Z, MIN_ZOOM, MAX_ZOOM);
+}
 
 interface Props {
   nodes: UniverseNode[];
@@ -18,12 +35,18 @@ interface Props {
 
 export function CameraController({ nodes, ownedIds }: Props) {
   const { camera, gl, size } = useThree();
-  const desired = useRef({ x: 0, y: 0, zoom: DEFAULT_ZOOM });
+  const initialFitZoom = computeFitZoom(size.width, size.height);
+  const fitZoom = useRef(initialFitZoom);
+  const desired = useRef({ x: 0, y: 0, zoom: initialFitZoom });
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
   const pinchDist = useRef<number | null>(null);
   const pointerNorm = useRef({ x: 0, y: 0 });
   const idleT = useRef(0);
+
+  useEffect(() => {
+    fitZoom.current = computeFitZoom(size.width, size.height);
+  }, [size.width, size.height]);
 
   const cameraCommand = useUniverseStore((s) => s.cameraCommand);
   const discoverMode = useUniverseStore((s) => s.discoverMode);
@@ -131,7 +154,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
         desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom + cameraCommand.delta, MIN_ZOOM, MAX_ZOOM);
         break;
       case "reset":
-        desired.current = { x: 0, y: 0, zoom: DEFAULT_ZOOM };
+        desired.current = { x: 0, y: 0, zoom: fitZoom.current };
         break;
       case "focus-node": {
         const node = nodes.find((n) => n.subscription.id === cameraCommand.id);

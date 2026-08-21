@@ -41,6 +41,8 @@ export interface Subscription {
   tagline: string;
   color: string;
   initials: string;
+  /** Company domain used to look up a real logo image; empty falls back to the initials badge. */
+  domain: string;
   priceMonthly: number;
   billing: BillingCycle[];
   plans: SubscriptionPlan[];

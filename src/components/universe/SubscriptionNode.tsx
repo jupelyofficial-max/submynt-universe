@@ -31,7 +31,7 @@ export function SubscriptionNode({ node, isOwned, dimmed, hasSavings, seed }: Pr
   const select = useUniverseStore((s) => s.select);
   const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
 
-  const baseScale = node.radius * 2.4;
+  const baseScale = node.radius * 2.8;
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;

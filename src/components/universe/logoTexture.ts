@@ -1,21 +1,15 @@
 import * as THREE from "three";
 import type { Subscription } from "@/types/subscription";
+import { getLogoPath } from "@/lib/logos";
 
 const cache = new Map<string, THREE.CanvasTexture>();
 
-export function getLogoTexture(sub: Pick<Subscription, "id" | "color" | "initials">): THREE.CanvasTexture {
-  const cached = cache.get(sub.id);
-  if (cached) return cached;
-
-  const size = 128;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d")!;
-
+function drawLettermark(ctx: CanvasRenderingContext2D, size: number, sub: Pick<Subscription, "color" | "initials">) {
   const cx = size / 2;
   const cy = size / 2;
   const r = size / 2 - 3;
+
+  ctx.clearRect(0, 0, size, size);
 
   const gradient = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, r * 0.08, cx, cy, r);
   gradient.addColorStop(0, `${sub.color}f5`);
@@ -35,12 +29,56 @@ export function getLogoTexture(sub: Pick<Subscription, "id" | "color" | "initial
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(sub.initials, cx, cy + 2);
+}
+
+export function getLogoTexture(
+  sub: Pick<Subscription, "id" | "color" | "initials">
+): THREE.CanvasTexture {
+  const cached = cache.get(sub.id);
+  if (cached) return cached;
+
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+
+  drawLettermark(ctx, size, sub);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 4;
   texture.needsUpdate = true;
   cache.set(sub.id, texture);
+
+  // Upgrade to the real logo once it loads, redrawn over the same colored
+  // circle backdrop so a transparent-background logo still reads as a
+  // filled node; falls back to the lettermark already drawn if there's no
+  // saved logo for this subscription (or the local file somehow 404s).
+  const logoPath = getLogoPath(sub.id);
+  if (logoPath) {
+    const img = new Image();
+    img.onload = () => {
+      const cx = size / 2;
+      const cy = size / 2;
+      const r = size / 2 - 3;
+      drawLettermark(ctx, size, { color: sub.color, initials: "" });
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.clip();
+      const inset = r * 2 * 0.2;
+      const target = r * 2 - inset * 2;
+      const scale = Math.min(target / img.width, target / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
+      ctx.restore();
+      texture.needsUpdate = true;
+    };
+    img.src = logoPath;
+  }
+
   return texture;
 }
 

@@ -18,7 +18,7 @@ function DriftSprite({ node }: { node: UniverseNode }) {
   const ref = useRef<THREE.Sprite>(null);
   const texture = useMemo(() => getLogoTexture(node.subscription), [node.subscription]);
   const seed = useMemo(() => seedFromId(node.subscription.id), [node.subscription.id]);
-  const scale = node.radius * 2.2;
+  const scale = node.radius * 2.5;
 
   useFrame((state) => {
     if (!ref.current) return;

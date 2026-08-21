@@ -20,7 +20,7 @@ const UniverseScene = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex flex-1 items-center justify-center text-sm text-ink-400">
+      <div className="flex flex-1 items-center justify-center text-sm text-white/60">
         Charting the universe…
       </div>
     ),
@@ -53,7 +53,7 @@ export function ExploreClient() {
       <div className="shrink-0">
         <ViewSwitcher />
       </div>
-      <Button variant="outline" size="md" className="shrink-0 rounded-full" onClick={() => setBoostModalOpen(true)}>
+      <Button variant="ghost" size="md" className="glass-panel shrink-0 rounded-full" onClick={() => setBoostModalOpen(true)}>
         <Rocket size={14} />
         Boost
       </Button>

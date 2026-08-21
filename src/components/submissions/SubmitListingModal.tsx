@@ -60,7 +60,7 @@ function SubmitListingForm({ onClose }: { onClose: () => void }) {
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Linear"
           required
-          className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
+          className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
         />
       </div>
 
@@ -72,7 +72,7 @@ function SubmitListingForm({ onClose }: { onClose: () => void }) {
           onChange={(e) => setWebsite(e.target.value)}
           placeholder="https://"
           required
-          className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
+          className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
         />
       </div>
 
@@ -83,7 +83,7 @@ function SubmitListingForm({ onClose }: { onClose: () => void }) {
           onChange={(e) => setTagline(e.target.value)}
           placeholder="One line describing what it does"
           required
-          className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
+          className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
         />
       </div>
 
@@ -93,7 +93,7 @@ function SubmitListingForm({ onClose }: { onClose: () => void }) {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as Category)}
-            className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
+            className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -107,7 +107,7 @@ function SubmitListingForm({ onClose }: { onClose: () => void }) {
           <select
             value={region}
             onChange={(e) => setRegion(e.target.value as Region)}
-            className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
+            className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
           >
             {REGION_OPTIONS.map((r) => (
               <option key={r} value={r}>
@@ -126,7 +126,7 @@ function SubmitListingForm({ onClose }: { onClose: () => void }) {
             min={0}
             value={priceMonthly}
             onChange={(e) => setPriceMonthly(Number(e.target.value))}
-            className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
+            className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
           />
         </div>
         <div>
@@ -137,7 +137,7 @@ function SubmitListingForm({ onClose }: { onClose: () => void }) {
             onChange={(e) => setContactEmail(e.target.value)}
             placeholder="you@company.com"
             required
-            className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
+            className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
           />
         </div>
       </div>

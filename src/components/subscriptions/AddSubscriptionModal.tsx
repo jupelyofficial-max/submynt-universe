@@ -100,18 +100,18 @@ function AddSubscriptionForm({ prefillId, onClose }: { prefillId: string | null;
               setChosen(null);
             }}
             placeholder="Search Netflix, Spotify, ChatGPT..."
-            className="w-full rounded-xl border border-white/10 bg-void-900/70 py-2.5 pl-9 pr-3 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
+            className="w-full rounded-xl border border-black/10 bg-void-900/70 py-2.5 pl-9 pr-3 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
             required
           />
         </div>
         {results.length > 0 && (
-          <div className="mt-1.5 max-h-52 overflow-y-auto no-scrollbar rounded-xl border border-white/10 bg-void-900">
+          <div className="mt-1.5 max-h-52 overflow-y-auto no-scrollbar rounded-xl border border-black/10 bg-void-900">
             {results.map((s) => (
               <button
                 type="button"
                 key={s.id}
                 onClick={() => pick(s)}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-white/5 cursor-pointer"
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-black/5 cursor-pointer"
               >
                 <SubscriptionLogo subscription={s} size="xs" />
                 <span className="text-sm text-ink-0">{s.name}</span>
@@ -136,7 +136,7 @@ function AddSubscriptionForm({ prefillId, onClose }: { prefillId: string | null;
                   setBilling(p.billing);
                 }
               }}
-              className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
+              className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
             >
               {chosen.plans.map((p) => (
                 <option key={p.name} value={p.name}>
@@ -154,7 +154,7 @@ function AddSubscriptionForm({ prefillId, onClose }: { prefillId: string | null;
                 min={0}
                 value={price}
                 onChange={(e) => setPrice(Number(e.target.value))}
-                className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
+                className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
               />
             </div>
             <div>
@@ -162,7 +162,7 @@ function AddSubscriptionForm({ prefillId, onClose }: { prefillId: string | null;
               <select
                 value={billing}
                 onChange={(e) => setBilling(e.target.value as BillingCycle)}
-                className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
+                className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
               >
                 {chosen.billing.map((b) => (
                   <option key={b} value={b}>
@@ -180,7 +180,7 @@ function AddSubscriptionForm({ prefillId, onClose }: { prefillId: string | null;
                 type="date"
                 value={renewal}
                 onChange={(e) => setRenewal(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
+                className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
               />
             </div>
             <div>
@@ -188,7 +188,7 @@ function AddSubscriptionForm({ prefillId, onClose }: { prefillId: string | null;
               <input
                 disabled
                 value={chosen.category}
-                className="w-full rounded-xl border border-white/10 bg-void-900/40 px-3 py-2.5 text-sm text-ink-500"
+                className="w-full rounded-xl border border-black/10 bg-void-900/40 px-3 py-2.5 text-sm text-ink-500"
               />
             </div>
           </div>

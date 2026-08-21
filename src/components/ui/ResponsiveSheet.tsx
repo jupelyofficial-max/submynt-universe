@@ -55,7 +55,7 @@ export function ResponsiveSheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-void-950/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={onClose}
           />
           <div className={placementClasses}>
@@ -78,7 +78,7 @@ export function ResponsiveSheet({
                 <div className="text-sm font-semibold text-ink-0 font-display tracking-wide">{title}</div>
                 <button
                   onClick={onClose}
-                  className="h-8 w-8 rounded-lg flex items-center justify-center text-ink-300 hover:text-ink-0 hover:bg-white/5 transition-colors cursor-pointer"
+                  className="h-8 w-8 rounded-lg flex items-center justify-center text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors cursor-pointer"
                   aria-label="Close"
                 >
                   <X size={18} />

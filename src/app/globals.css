@@ -1,27 +1,34 @@
 @import "tailwindcss";
 
 :root {
-  /* Warm observatory palette — deep espresso backdrop, copper as the primary
-     accent (deliberately not violet), muted jade for secondary/positive
-     states, amber reserved for ratings + savings. */
-  --void-950: #0b0906;
-  --void-900: #14100b;
-  --void-800: #1d1710;
-  --void-700: #292018;
-  --void-600: #3b2e20;
-  --ink-0: #f6f1e7;
-  --ink-100: #e1d6c3;
-  --ink-300: #afa184;
-  --ink-500: #85795f;
-  --aurora-400: #f2a06a;
+  /* Warm observatory palette, daylight variant — warm white/cream surfaces,
+     espresso-brown ink, copper as the primary accent (deliberately not
+     violet), muted jade for secondary/positive states, amber reserved for
+     ratings + savings. The -400 accent tiers are tuned specifically for
+     text/icon contrast on light surfaces; -500/-600 stay close to the
+     original tone since they're mostly used as translucent background
+     tints, where exact lightness matters less. The 3D "Universe" scene
+     (starfield, nebula, world map, node glow) is intentionally NOT driven
+     by these tokens — it stays dark regardless of theme, see
+     NebulaBackdrop/StarField/WorldMapBackground. */
+  --void-950: #ffffff;
+  --void-900: #f5f0e6;
+  --void-800: #ece4d2;
+  --void-700: #ddd0b3;
+  --void-600: #c2b190;
+  --ink-0: #1c150d;
+  --ink-100: #3d3120;
+  --ink-300: #6f6046;
+  --ink-500: #9c8f75;
+  --aurora-400: #b8551d;
   --aurora-500: #e37d3d;
   --aurora-600: #c05f26;
-  --nebula-400: #7fd9c4;
+  --nebula-400: #0f8a6c;
   --nebula-500: #45b79e;
-  --gold-400: #ffd37a;
+  --gold-400: #9c6b12;
   --gold-500: #e8a83c;
-  --line-soft: rgba(246, 241, 231, 0.08);
-  --line-strong: rgba(246, 241, 231, 0.16);
+  --line-soft: rgba(28, 21, 13, 0.08);
+  --line-strong: rgba(28, 21, 13, 0.14);
 }
 
 @theme inline {
@@ -50,7 +57,7 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -83,7 +90,7 @@ body {
 }
 
 .glass-panel {
-  background: linear-gradient(180deg, rgba(41, 32, 24, 0.72), rgba(20, 16, 11, 0.86));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(247, 242, 231, 0.92));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--line-soft);
@@ -91,6 +98,16 @@ body {
 
 .text-gradient-aurora {
   background: linear-gradient(120deg, var(--aurora-400), var(--nebula-400));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Same gradient tuned for the dark hero backdrop, where --aurora-400 /
+   --nebula-400 (now darkened for light-surface contrast) would read
+   almost black-on-black. */
+.text-gradient-aurora-night {
+  background: linear-gradient(120deg, #f2a06a, #7fd9c4);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

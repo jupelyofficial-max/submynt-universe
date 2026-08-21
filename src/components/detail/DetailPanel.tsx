@@ -130,7 +130,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
       </div>
 
       {switchingPlan && isOwned && owned && (
-        <div className="px-5 py-4 border-b border-line-soft bg-white/[0.02]">
+        <div className="px-5 py-4 border-b border-line-soft bg-black/[0.02]">
           <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-500">Choose a plan</h4>
           <div className="flex flex-col gap-2">
             {sub.plans.map((plan) => (
@@ -146,7 +146,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
                   });
                   setSwitchingPlan(false);
                 }}
-                className="flex items-center justify-between rounded-xl border border-white/10 bg-void-900/60 px-3.5 py-2.5 text-left hover:border-aurora-500/40 transition-colors cursor-pointer"
+                className="flex items-center justify-between rounded-xl border border-black/10 bg-void-900/60 px-3.5 py-2.5 text-left hover:border-aurora-500/40 transition-colors cursor-pointer"
               >
                 <span className="text-sm text-ink-0">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
                 <span className="text-sm font-semibold text-ink-0">{formatINR(plan.priceMonthly)}</span>
@@ -192,7 +192,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
         <h4 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Available plans</h4>
         <div className="flex flex-col gap-2">
           {sub.plans.map((plan) => (
-            <div key={plan.name} className="flex items-center justify-between rounded-xl bg-white/[0.03] px-3.5 py-2.5">
+            <div key={plan.name} className="flex items-center justify-between rounded-xl bg-black/[0.03] px-3.5 py-2.5">
               <span className="text-sm text-ink-100">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
               <span className="text-sm font-semibold text-ink-0">{formatINR(plan.priceMonthly)}</span>
             </div>
@@ -209,7 +209,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
             <button
               key={alt.id}
               onClick={() => openAlternative(alt.id)}
-              className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-white/5 transition-colors text-left cursor-pointer"
+              className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-black/5 transition-colors text-left cursor-pointer"
             >
               <SubscriptionLogo subscription={alt} size="sm" />
               <div className="min-w-0 flex-1">

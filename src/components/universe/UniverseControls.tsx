@@ -29,7 +29,7 @@ function ControlButton({
         "h-10 w-10 flex items-center justify-center rounded-xl border transition-colors cursor-pointer disabled:opacity-30 disabled:pointer-events-none",
         active
           ? "bg-aurora-500/20 border-aurora-500/40 text-aurora-400"
-          : "bg-void-900/70 border-white/10 text-ink-200 hover:text-ink-0 hover:bg-white/8"
+          : "bg-void-900/70 border-black/10 text-ink-200 hover:text-ink-0 hover:bg-black/8"
       )}
     >
       {children}
@@ -67,7 +67,7 @@ export function UniverseControls({ containerRef }: { containerRef: RefObject<HTM
       <ControlButton label="Zoom out" onClick={() => sendCameraCommand({ type: "zoom", delta: 14 })}>
         <Minus size={17} />
       </ControlButton>
-      <div className="h-px bg-white/10 mx-1" />
+      <div className="h-px bg-black/10 mx-1" />
       <ControlButton label="Reset universe" onClick={() => sendCameraCommand({ type: "reset" })}>
         <Compass size={17} />
       </ControlButton>
@@ -85,7 +85,7 @@ export function UniverseControls({ containerRef }: { containerRef: RefObject<HTM
       >
         <span className="text-base leading-none">✦</span>
       </ControlButton>
-      <div className="h-px bg-white/10 mx-1" />
+      <div className="h-px bg-black/10 mx-1" />
       <ControlButton label="Fullscreen" onClick={toggleFullscreen}>
         {isFullscreen ? <Minimize size={17} /> : <Expand size={17} />}
       </ControlButton>

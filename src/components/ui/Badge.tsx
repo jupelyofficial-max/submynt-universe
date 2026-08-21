@@ -6,7 +6,7 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const TONES: Record<NonNullable<BadgeProps["tone"]>, string> = {
-  neutral: "bg-white/8 text-ink-100 border-white/10",
+  neutral: "bg-black/8 text-ink-100 border-black/10",
   aurora: "bg-aurora-500/15 text-aurora-400 border-aurora-500/30",
   gold: "bg-gold-500/15 text-gold-400 border-gold-500/30",
   nebula: "bg-nebula-500/15 text-nebula-400 border-nebula-500/30",

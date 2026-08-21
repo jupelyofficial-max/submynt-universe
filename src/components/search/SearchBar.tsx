@@ -35,7 +35,7 @@ export function SearchBar({ compact }: { compact?: boolean }) {
             <button
               key={ex}
               onClick={() => setSearchQuery(ex)}
-              className="rounded-full border border-white/10 bg-void-900/50 px-2.5 py-1 text-[11px] text-ink-300 hover:text-ink-0 hover:border-white/20 transition-colors cursor-pointer"
+              className="rounded-full border border-black/10 bg-void-900/50 px-2.5 py-1 text-[11px] text-ink-300 hover:text-ink-0 hover:border-black/20 transition-colors cursor-pointer"
             >
               {ex}
             </button>

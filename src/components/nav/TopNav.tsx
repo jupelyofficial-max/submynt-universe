@@ -49,7 +49,7 @@ export function TopNav() {
                 href={link.href}
                 className={cn(
                   "px-3.5 py-2 rounded-lg text-sm font-medium transition-colors",
-                  active ? "text-ink-0 bg-white/8" : "text-ink-300 hover:text-ink-0 hover:bg-white/5"
+                  active ? "text-ink-0 bg-black/8" : "text-ink-300 hover:text-ink-0 hover:bg-black/5"
                 )}
               >
                 {link.label}
@@ -64,7 +64,7 @@ export function TopNav() {
           <>
             <button
               onClick={() => setSearchOpen(true)}
-              className="hidden sm:flex items-center gap-2 h-10 px-3.5 rounded-xl border border-white/10 text-ink-300 hover:text-ink-0 hover:border-white/20 transition-colors cursor-pointer"
+              className="hidden sm:flex items-center gap-2 h-10 px-3.5 rounded-xl border border-black/10 text-ink-300 hover:text-ink-0 hover:border-black/20 transition-colors cursor-pointer"
               aria-label="Search subscriptions"
             >
               <Search size={16} />
@@ -72,7 +72,7 @@ export function TopNav() {
             </button>
             <button
               onClick={() => setSearchOpen(true)}
-              className="sm:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-white/5 cursor-pointer"
+              className="sm:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 cursor-pointer"
               aria-label="Search subscriptions"
             >
               <Search size={18} />
@@ -87,7 +87,7 @@ export function TopNav() {
 
         <Link
           href="/my-subscriptions"
-          className="relative h-10 w-10 hidden lg:flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-white/5 transition-colors"
+          className="relative h-10 w-10 hidden lg:flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors"
           aria-label="Profile"
         >
           <User size={18} />
@@ -100,7 +100,7 @@ export function TopNav() {
 
         <button
           onClick={() => setMobileOpen(true)}
-          className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-white/5 cursor-pointer"
+          className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 cursor-pointer"
           aria-label="Open menu"
         >
           <Menu size={20} />
@@ -115,7 +115,7 @@ export function TopNav() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-void-950/80 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden"
               onClick={() => setMobileOpen(false)}
             />
             <motion.div
@@ -130,7 +130,7 @@ export function TopNav() {
                 <button
                   onClick={() => setMobileOpen(false)}
                   aria-label="Close menu"
-                  className="h-9 w-9 flex items-center justify-center rounded-lg text-ink-300 hover:text-ink-0 hover:bg-white/5"
+                  className="h-9 w-9 flex items-center justify-center rounded-lg text-ink-300 hover:text-ink-0 hover:bg-black/5"
                 >
                   <X size={18} />
                 </button>
@@ -141,7 +141,7 @@ export function TopNav() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className="px-4 py-3 rounded-xl text-sm font-medium text-ink-100 hover:bg-white/5"
+                    className="px-4 py-3 rounded-xl text-sm font-medium text-ink-100 hover:bg-black/5"
                   >
                     {link.label}
                   </Link>
@@ -172,7 +172,7 @@ export function TopNav() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-void-950/80 backdrop-blur-sm"
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
               onClick={() => setSearchOpen(false)}
             />
             <motion.div

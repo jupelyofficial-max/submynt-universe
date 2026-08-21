@@ -19,22 +19,22 @@ export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
       <section className="relative flex flex-1 flex-col overflow-hidden">
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[#0b0906]">
           <HomePreviewScene />
         </div>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_58%_46%_at_center,rgba(11,9,6,0.82)_0%,rgba(11,9,6,0.45)_60%,rgba(11,9,6,0.4)_75%,rgba(11,9,6,0.98)_100%)]" />
 
         <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-4 text-center">
-          <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-ink-200">
-            <Telescope size={13} className="text-aurora-400" />
+          <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-white/90">
+            <Telescope size={13} className="text-[#f2a06a]" />
             {SUBSCRIPTIONS.length}+ subscriptions charted across {CATEGORIES.length} categories
           </span>
-          <h1 className="font-display text-4xl font-semibold leading-[1.08] text-ink-0 sm:text-5xl lg:text-6xl">
+          <h1 className="font-display text-4xl font-semibold leading-[1.08] text-white sm:text-5xl lg:text-6xl">
             Your subscriptions
             <br />
-            have a <span className="text-gradient-aurora">universe.</span>
+            have a <span className="text-gradient-aurora-night">universe.</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base text-ink-300 sm:text-lg">
+          <p className="mx-auto mt-5 max-w-xl text-base text-white/70 sm:text-lg">
             Discover everything you pay for — every service, one map, no bank login required.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -62,7 +62,7 @@ export default function HomePage() {
             <Link
               key={cat}
               href={`/explore?q=${encodeURIComponent(cat)}`}
-              className="shrink-0 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-xs whitespace-nowrap text-ink-300 transition-colors hover:border-white/20 hover:text-ink-0"
+              className="shrink-0 rounded-full border border-black/10 bg-black/[0.03] px-3.5 py-1.5 text-xs whitespace-nowrap text-ink-300 transition-colors hover:border-black/20 hover:text-ink-0"
             >
               {cat}
             </Link>

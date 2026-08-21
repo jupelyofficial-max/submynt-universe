@@ -161,7 +161,7 @@ export default function OptimizePage() {
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-500">Already optimized</h2>
           <div className="flex flex-col gap-2">
             {optimized.map(({ owned: o, sub }) => (
-              <div key={o.ownedId} className="flex items-center gap-3 rounded-xl bg-white/[0.03] px-4 py-3">
+              <div key={o.ownedId} className="flex items-center gap-3 rounded-xl bg-black/[0.03] px-4 py-3">
                 <SubscriptionLogo subscription={sub} size="sm" />
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-ink-0">{sub.name}</div>

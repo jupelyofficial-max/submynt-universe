@@ -43,7 +43,7 @@ export function ListView() {
         return (
           <div
             key={sub.id}
-            className="glass-panel group flex flex-col gap-3 rounded-2xl p-4 transition-colors hover:border-white/20 cursor-pointer"
+            className="glass-panel group flex flex-col gap-3 rounded-2xl p-4 transition-colors hover:border-black/20 cursor-pointer"
             onClick={() => select(sub.id)}
           >
             <div className="flex items-start gap-3">

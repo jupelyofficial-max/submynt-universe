@@ -142,7 +142,7 @@ export function CompareClient() {
 
           {subs.length < 3 && (
             <div className="glass-panel flex flex-col items-center justify-center gap-3 rounded-2xl border-dashed p-5 text-center">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-ink-300">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 text-ink-300">
                 <Plus size={18} />
               </span>
               <p className="text-sm text-ink-400">Add another to compare</p>
@@ -159,7 +159,7 @@ export function CompareClient() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search a subscription to add to comparison…"
-              className="w-full rounded-xl border border-white/10 bg-void-900/70 py-2.5 pl-9 pr-3 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
+              className="w-full rounded-xl border border-black/10 bg-void-900/70 py-2.5 pl-9 pr-3 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
             />
           </div>
           {results.length > 0 && (
@@ -171,7 +171,7 @@ export function CompareClient() {
                     setIds([...ids, s.id]);
                     setQuery("");
                   }}
-                  className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-left hover:bg-white/5 cursor-pointer"
+                  className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-left hover:bg-black/5 cursor-pointer"
                 >
                   <SubscriptionLogo subscription={s} size="xs" />
                   <span className="text-sm text-ink-0">{s.name}</span>

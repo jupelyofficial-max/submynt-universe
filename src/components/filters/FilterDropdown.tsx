@@ -45,7 +45,7 @@ export function FilterDropdown<T extends string>({
           "flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-xs font-medium transition-colors cursor-pointer",
           selected.length > 0
             ? "border border-aurora-500/50 bg-aurora-500/15 text-aurora-400"
-            : "glass-panel text-ink-300 hover:text-ink-0 hover:border-white/20"
+            : "glass-panel text-ink-300 hover:text-ink-0 hover:border-black/20"
         )}
       >
         {buttonLabel}
@@ -53,12 +53,12 @@ export function FilterDropdown<T extends string>({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-[calc(100%+6px)] z-30 max-h-72 w-56 overflow-y-auto no-scrollbar rounded-xl border border-white/10 bg-void-900 p-1.5 shadow-xl shadow-black/40">
+        <div className="absolute left-0 top-[calc(100%+6px)] z-30 max-h-72 w-56 overflow-y-auto no-scrollbar rounded-xl border border-black/10 bg-void-900 p-1.5 shadow-xl shadow-black/40">
           {selected.length > 0 && onClear && (
             <button
               type="button"
               onClick={onClear}
-              className="w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-ink-500 hover:bg-white/5 hover:text-ink-0 cursor-pointer"
+              className="w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-ink-500 hover:bg-black/5 hover:text-ink-0 cursor-pointer"
             >
               Clear
             </button>
@@ -72,7 +72,7 @@ export function FilterDropdown<T extends string>({
                 onClick={() => onToggle(opt.value)}
                 className={cn(
                   "flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs cursor-pointer",
-                  active ? "bg-aurora-500/10 text-aurora-400" : "text-ink-200 hover:bg-white/5"
+                  active ? "bg-aurora-500/10 text-aurora-400" : "text-ink-200 hover:bg-black/5"
                 )}
               >
                 {opt.label}

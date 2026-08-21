@@ -8,8 +8,8 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
     "bg-gradient-to-br from-aurora-500 to-aurora-600 text-white shadow-[0_0_0_1px_rgba(227,125,61,0.4),0_8px_24px_-8px_rgba(227,125,61,0.6)] hover:brightness-110 active:brightness-95",
   secondary: "bg-void-700 text-ink-0 border border-line-soft hover:bg-void-600",
-  ghost: "text-ink-100 hover:bg-white/5",
-  outline: "border border-white/15 text-ink-0 hover:bg-white/5",
+  ghost: "text-ink-100 hover:bg-black/5",
+  outline: "border border-black/15 text-ink-0 hover:bg-black/5",
   danger: "bg-red-500/10 text-red-300 border border-red-500/25 hover:bg-red-500/20",
 };
 

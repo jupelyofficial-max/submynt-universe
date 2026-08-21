@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Category, FilterState, Region, SortOption, UserStatusFilter } from "@/types/subscription";
+import type { Category, FilterState, SortOption, UserStatusFilter } from "@/types/subscription";
 
 export type ViewMode = "universe" | "list";
 
@@ -34,11 +34,9 @@ interface UniverseUIState {
   toggleCategory: (c: Category) => void;
   togglePriceBand: (id: string) => void;
   toggleUserStatus: (u: UserStatusFilter) => void;
-  toggleRegion: (r: Region) => void;
   setCategories: (c: Category[]) => void;
   setPriceBands: (p: string[]) => void;
   setUserStatus: (u: UserStatusFilter[]) => void;
-  setRegions: (r: Region[]) => void;
   setSort: (s: SortOption) => void;
 
   isSubmitModalOpen: boolean;
@@ -82,12 +80,9 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
     set((s) => ({ filters: { ...s.filters, priceBands: toggleInArray(s.filters.priceBands, id) } })),
   toggleUserStatus: (u) =>
     set((s) => ({ filters: { ...s.filters, userStatus: toggleInArray(s.filters.userStatus, u) } })),
-  toggleRegion: (r) =>
-    set((s) => ({ filters: { ...s.filters, regions: toggleInArray(s.filters.regions, r) } })),
   setCategories: (categories) => set((s) => ({ filters: { ...s.filters, categories } })),
   setPriceBands: (priceBands) => set((s) => ({ filters: { ...s.filters, priceBands } })),
   setUserStatus: (userStatus) => set((s) => ({ filters: { ...s.filters, userStatus } })),
-  setRegions: (regions) => set((s) => ({ filters: { ...s.filters, regions } })),
   setSort: (sort) => set((s) => ({ filters: { ...s.filters, sort } })),
 
   isSubmitModalOpen: false,

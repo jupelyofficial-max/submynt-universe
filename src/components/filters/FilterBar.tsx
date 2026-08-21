@@ -1,14 +1,7 @@
 "use client";
 
 import { FilterDropdown } from "./FilterDropdown";
-import {
-  CATEGORIES,
-  PRICE_BANDS,
-  REGION_OPTIONS,
-  SORT_LABELS,
-  SORT_OPTIONS,
-  USER_STATUS_LABELS,
-} from "@/data/categories";
+import { CATEGORIES, PRICE_BANDS, SORT_LABELS, SORT_OPTIONS, USER_STATUS_LABELS } from "@/data/categories";
 import { cn } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import type { UserStatusFilter } from "@/types/subscription";
@@ -18,11 +11,9 @@ const USER_STATUS_OPTIONS = Object.keys(USER_STATUS_LABELS) as UserStatusFilter[
 export function FilterBar({ className }: { className?: string }) {
   const filters = useUniverseStore((s) => s.filters);
   const toggleCategory = useUniverseStore((s) => s.toggleCategory);
-  const toggleRegion = useUniverseStore((s) => s.toggleRegion);
   const togglePriceBand = useUniverseStore((s) => s.togglePriceBand);
   const toggleUserStatus = useUniverseStore((s) => s.toggleUserStatus);
   const setCategories = useUniverseStore((s) => s.setCategories);
-  const setRegions = useUniverseStore((s) => s.setRegions);
   const setPriceBands = useUniverseStore((s) => s.setPriceBands);
   const setUserStatus = useUniverseStore((s) => s.setUserStatus);
   const setSort = useUniverseStore((s) => s.setSort);
@@ -35,13 +26,6 @@ export function FilterBar({ className }: { className?: string }) {
         selected={filters.categories}
         onToggle={toggleCategory}
         onClear={() => setCategories([])}
-      />
-      <FilterDropdown
-        label="Regions"
-        options={REGION_OPTIONS.map((r) => ({ value: r, label: r }))}
-        selected={filters.regions}
-        onToggle={toggleRegion}
-        onClear={() => setRegions([])}
       />
       <FilterDropdown
         label="Price"

@@ -86,7 +86,6 @@ export function CameraController({ nodes, ownedIds }: Props) {
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
   const pinchDist = useRef<number | null>(null);
-  const pointerNorm = useRef({ x: 0, y: 0 });
   const idleT = useRef(0);
 
   useEffect(() => {
@@ -112,11 +111,6 @@ export function CameraController({ nodes, ownedIds }: Props) {
       if (discoverMode) setDiscoverMode(false);
     }
     function onPointerMove(e: PointerEvent) {
-      const rect = el.getBoundingClientRect();
-      pointerNorm.current = {
-        x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        y: ((e.clientY - rect.top) / rect.height) * 2 - 1,
-      };
       if (!dragging.current) return;
       trackMove(e.clientX, e.clientY);
       const dxPx = e.clientX - last.current.x;
@@ -237,13 +231,11 @@ export function CameraController({ nodes, ownedIds }: Props) {
     desired.current.y = clamped.y;
 
     const damp = 1 - Math.pow(0.0015, delta);
-    const parallaxX = dragging.current ? 0 : pointerNorm.current.x * 2.4;
-    const parallaxY = dragging.current ? 0 : -pointerNorm.current.y * 1.6;
 
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, desired.current.x + parallaxX, damp);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, desired.current.y + parallaxY, damp);
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, desired.current.x, damp);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, desired.current.y, damp);
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, desired.current.zoom, damp);
-    camera.lookAt(camera.position.x - parallaxX, camera.position.y - parallaxY, 0);
+    camera.lookAt(camera.position.x, camera.position.y, 0);
   });
   /* eslint-enable react-hooks/immutability */
 

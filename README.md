@@ -30,7 +30,7 @@ Open [http://localhost:3000](http://localhost:3000). Routes:
 
 | Route | Purpose |
 |---|---|
-| `/` | Landing page, ambient universe preview, intro CTAs |
+| `/` | Redirects straight to `/explore` — there's no separate landing page |
 | `/explore` | The Subscription Universe — search, filter, Universe/List views |
 | `/my-subscriptions` | Manually tracked subscriptions |
 | `/compare` | Side-by-side comparison (`?ids=a,b,c`) |
@@ -65,9 +65,12 @@ Open [http://localhost:3000](http://localhost:3000). Routes:
   `src/components/universe/logoTexture.ts` (3D nodes) both render the real
   logo when available, falling back to a canvas-generated colored
   lettermark circle for the handful that don't resolve.
-- **Camera**: `CameraController.tsx` is a custom pan/zoom/parallax rig (not
-  drei's `OrbitControls`) so the map behaves like a real map you fly over,
-  not a freely-orbiting 3D object.
+- **Camera**: `CameraController.tsx` is a custom pan/zoom rig (not drei's
+  `OrbitControls`) so the canvas behaves like a real map you fly over, not a
+  freely-orbiting 3D object. It only moves on deliberate input — drag,
+  wheel/pinch zoom, a camera command (reset/focus/search), or "Discover
+  mode" — never passively from mouse position, so the background stays
+  still while you're just reading the page.
 - **State**: `useUniverseStore` holds search/filter/view/selection/camera-
   command state; `useMySubscriptionsStore` persists what the user has added,
   hydrated client-side post-mount to avoid SSR/localStorage mismatches.

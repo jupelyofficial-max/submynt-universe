@@ -35,7 +35,7 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-line-soft bg-void-950/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-4 px-4 lg:px-8">
-        <Link href="/" className="flex items-center shrink-0 group">
+        <Link href="/explore" className="flex items-center shrink-0 group">
           <span className="font-display text-xl font-semibold tracking-tight text-ink-0 group-hover:text-gradient-aurora transition-colors">
             SUBMYNT
           </span>

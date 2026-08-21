@@ -1,12 +1,5 @@
 import { create } from "zustand";
-import type {
-  BillingCycle,
-  Category,
-  FilterState,
-  Region,
-  SortOption,
-  UserStatusFilter,
-} from "@/types/subscription";
+import type { Category, FilterState, Region, SortOption, UserStatusFilter } from "@/types/subscription";
 
 export type ViewMode = "universe" | "list";
 
@@ -39,20 +32,14 @@ interface UniverseUIState {
 
   filters: FilterState;
   toggleCategory: (c: Category) => void;
-  toggleBilling: (b: BillingCycle) => void;
   togglePriceBand: (id: string) => void;
   toggleUserStatus: (u: UserStatusFilter) => void;
   toggleRegion: (r: Region) => void;
   setCategories: (c: Category[]) => void;
-  setBilling: (b: BillingCycle[]) => void;
+  setPriceBands: (p: string[]) => void;
   setUserStatus: (u: UserStatusFilter[]) => void;
   setRegions: (r: Region[]) => void;
   setSort: (s: SortOption) => void;
-  clearFilters: () => void;
-  activeFilterCount: () => number;
-
-  isFilterSheetOpen: boolean;
-  setFilterSheetOpen: (v: boolean) => void;
 
   isSubmitModalOpen: boolean;
   setSubmitModalOpen: (v: boolean) => void;
@@ -82,7 +69,7 @@ interface UniverseUIState {
   sendCameraCommand: (cmd: CameraCommand) => void;
 }
 
-export const useUniverseStore = create<UniverseUIState>()((set, get) => ({
+export const useUniverseStore = create<UniverseUIState>()((set) => ({
   searchQuery: "",
   setSearchQuery: (q) => set({ searchQuery: q }),
 
@@ -92,8 +79,6 @@ export const useUniverseStore = create<UniverseUIState>()((set, get) => ({
   filters: EMPTY_FILTERS,
   toggleCategory: (c) =>
     set((s) => ({ filters: { ...s.filters, categories: toggleInArray(s.filters.categories, c) } })),
-  toggleBilling: (b) =>
-    set((s) => ({ filters: { ...s.filters, billing: toggleInArray(s.filters.billing, b) } })),
   togglePriceBand: (id) =>
     set((s) => ({ filters: { ...s.filters, priceBands: toggleInArray(s.filters.priceBands, id) } })),
   toggleUserStatus: (u) =>
@@ -101,18 +86,10 @@ export const useUniverseStore = create<UniverseUIState>()((set, get) => ({
   toggleRegion: (r) =>
     set((s) => ({ filters: { ...s.filters, regions: toggleInArray(s.filters.regions, r) } })),
   setCategories: (categories) => set((s) => ({ filters: { ...s.filters, categories } })),
-  setBilling: (billing) => set((s) => ({ filters: { ...s.filters, billing } })),
+  setPriceBands: (priceBands) => set((s) => ({ filters: { ...s.filters, priceBands } })),
   setUserStatus: (userStatus) => set((s) => ({ filters: { ...s.filters, userStatus } })),
   setRegions: (regions) => set((s) => ({ filters: { ...s.filters, regions } })),
   setSort: (sort) => set((s) => ({ filters: { ...s.filters, sort } })),
-  clearFilters: () => set({ filters: EMPTY_FILTERS }),
-  activeFilterCount: () => {
-    const f = get().filters;
-    return f.categories.length + f.billing.length + f.priceBands.length + f.userStatus.length + f.regions.length;
-  },
-
-  isFilterSheetOpen: false,
-  setFilterSheetOpen: (v) => set({ isFilterSheetOpen: v }),
 
   isSubmitModalOpen: false,
   setSubmitModalOpen: (v) => set({ isSubmitModalOpen: v }),

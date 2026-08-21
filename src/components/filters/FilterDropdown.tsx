@@ -15,7 +15,7 @@ interface FilterDropdownProps<T extends string> {
   options: Option<T>[];
   selected: T[];
   onToggle: (value: T) => void;
-  onClear: () => void;
+  onClear?: () => void;
 }
 
 export function FilterDropdown<T extends string>({
@@ -54,7 +54,7 @@ export function FilterDropdown<T extends string>({
 
       {open && (
         <div className="absolute left-0 top-[calc(100%+6px)] z-30 max-h-72 w-56 overflow-y-auto no-scrollbar rounded-xl border border-white/10 bg-void-900 p-1.5 shadow-xl shadow-black/40">
-          {selected.length > 0 && (
+          {selected.length > 0 && onClear && (
             <button
               type="button"
               onClick={onClear}

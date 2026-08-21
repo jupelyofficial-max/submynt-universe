@@ -1,6 +1,5 @@
 "use client";
 
-import { LayoutList, Telescope } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
 
@@ -13,21 +12,19 @@ export function ViewSwitcher() {
       <button
         onClick={() => setViewMode("universe")}
         className={cn(
-          "flex items-center gap-1.5 rounded-lg px-3 h-9 text-xs font-semibold transition-colors cursor-pointer",
+          "rounded-lg px-3 h-9 text-xs font-semibold transition-colors cursor-pointer",
           viewMode === "universe" ? "bg-aurora-500 text-white" : "text-ink-300 hover:text-ink-0"
         )}
       >
-        <Telescope size={14} />
         Universe
       </button>
       <button
         onClick={() => setViewMode("list")}
         className={cn(
-          "flex items-center gap-1.5 rounded-lg px-3 h-9 text-xs font-semibold transition-colors cursor-pointer",
+          "rounded-lg px-3 h-9 text-xs font-semibold transition-colors cursor-pointer",
           viewMode === "list" ? "bg-aurora-500 text-white" : "text-ink-300 hover:text-ink-0"
         )}
       >
-        <LayoutList size={14} />
         List
       </button>
     </div>

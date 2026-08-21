@@ -1,9 +1,14 @@
 "use client";
 
-import { SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { FilterDropdown } from "./FilterDropdown";
-import { BILLING_LABELS, BILLING_OPTIONS, CATEGORIES, REGION_OPTIONS, USER_STATUS_LABELS } from "@/data/categories";
+import {
+  CATEGORIES,
+  PRICE_BANDS,
+  REGION_OPTIONS,
+  SORT_LABELS,
+  SORT_OPTIONS,
+  USER_STATUS_LABELS,
+} from "@/data/categories";
 import { cn } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import type { UserStatusFilter } from "@/types/subscription";
@@ -13,15 +18,14 @@ const USER_STATUS_OPTIONS = Object.keys(USER_STATUS_LABELS) as UserStatusFilter[
 export function FilterBar({ className }: { className?: string }) {
   const filters = useUniverseStore((s) => s.filters);
   const toggleCategory = useUniverseStore((s) => s.toggleCategory);
-  const toggleBilling = useUniverseStore((s) => s.toggleBilling);
   const toggleRegion = useUniverseStore((s) => s.toggleRegion);
+  const togglePriceBand = useUniverseStore((s) => s.togglePriceBand);
   const toggleUserStatus = useUniverseStore((s) => s.toggleUserStatus);
   const setCategories = useUniverseStore((s) => s.setCategories);
-  const setBilling = useUniverseStore((s) => s.setBilling);
   const setRegions = useUniverseStore((s) => s.setRegions);
+  const setPriceBands = useUniverseStore((s) => s.setPriceBands);
   const setUserStatus = useUniverseStore((s) => s.setUserStatus);
-  const setFilterSheetOpen = useUniverseStore((s) => s.setFilterSheetOpen);
-  const moreCount = filters.priceBands.length;
+  const setSort = useUniverseStore((s) => s.setSort);
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
@@ -40,11 +44,17 @@ export function FilterBar({ className }: { className?: string }) {
         onClear={() => setRegions([])}
       />
       <FilterDropdown
-        label="Cost type"
-        options={BILLING_OPTIONS.map((b) => ({ value: b, label: BILLING_LABELS[b] }))}
-        selected={filters.billing}
-        onToggle={toggleBilling}
-        onClear={() => setBilling([])}
+        label="Price"
+        options={PRICE_BANDS.map((band) => ({ value: band.id, label: band.label }))}
+        selected={filters.priceBands}
+        onToggle={togglePriceBand}
+        onClear={() => setPriceBands([])}
+      />
+      <FilterDropdown
+        label="Sort"
+        options={SORT_OPTIONS.map((opt) => ({ value: opt, label: SORT_LABELS[opt] }))}
+        selected={[filters.sort]}
+        onToggle={setSort}
       />
       <FilterDropdown
         label="Status"
@@ -53,15 +63,6 @@ export function FilterBar({ className }: { className?: string }) {
         onToggle={toggleUserStatus}
         onClear={() => setUserStatus([])}
       />
-      <Button variant="secondary" size="md" className="relative rounded-full" onClick={() => setFilterSheetOpen(true)}>
-        <SlidersHorizontal size={14} />
-        More
-        {moreCount > 0 && (
-          <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-aurora-500 px-1 text-[10px] font-bold text-white">
-            {moreCount}
-          </span>
-        )}
-      </Button>
     </div>
   );
 }

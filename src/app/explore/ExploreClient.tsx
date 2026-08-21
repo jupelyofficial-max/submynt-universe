@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterBar } from "@/components/filters/FilterBar";
-import { FilterSheet } from "@/components/filters/FilterSheet";
 import { BoostModal } from "@/components/submissions/BoostModal";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
@@ -92,7 +91,6 @@ export function ExploreClient() {
         )}
       </div>
 
-      <FilterSheet />
       <BoostModal />
       <SubmitListingModal />
     </div>

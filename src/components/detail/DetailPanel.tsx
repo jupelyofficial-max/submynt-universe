@@ -69,6 +69,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               <Badge tone="aurora">{sub.category}</Badge>
               <Badge tone="neutral">{sub.region}</Badge>
+              {sub.trialDays && <Badge tone="nebula">{sub.trialDays}-day free trial</Badge>}
               {sub.isNew && <Badge tone="nebula">New</Badge>}
               {isOwned && <Badge tone="nebula">In your universe</Badge>}
             </div>

@@ -437,6 +437,17 @@ function defaultPlans(name: string, priceMonthly: number, billing: BillingCycle[
   return plans;
 }
 
+const TRIAL_OPTIONS = [7, 14, 30];
+
+/** Illustrative free-trial length, same spirit as the rest of this mock
+ * catalogue — deterministic per name, skipped for already-free plans. */
+function deriveTrialDays(name: string, priceMonthly: number): number | undefined {
+  if (priceMonthly === 0) return undefined;
+  const hash = hashString(name);
+  if (hash % 5 === 0) return undefined; // ~20% have no trial
+  return TRIAL_OPTIONS[hash % TRIAL_OPTIONS.length];
+}
+
 function mkSub(raw: RawSub): Subscription {
   const billing = defaultBilling(raw.priceMonthly);
   return {
@@ -457,6 +468,7 @@ function mkSub(raw: RawSub): Subscription {
     originCountry: ORIGIN_BY_NAME[raw.name] ?? "United States",
     tags: [raw.category],
     isNew: raw.isNew,
+    trialDays: deriveTrialDays(raw.name, raw.priceMonthly),
   };
 }
 

@@ -53,6 +53,8 @@ export interface Subscription {
   originCountry: string;
   tags: string[];
   isNew?: boolean;
+  /** Length of the free trial in days, if this plan offers one. */
+  trialDays?: number;
 }
 
 export interface Vec3 {

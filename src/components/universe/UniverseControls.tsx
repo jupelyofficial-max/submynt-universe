@@ -1,6 +1,6 @@
 "use client";
 
-import { Compass, Expand, Minimize, Minus, Plus, Target } from "lucide-react";
+import { Compass, Expand, Layers, Minimize, Minus, Plus, Target } from "lucide-react";
 import { useEffect, useState, type RefObject } from "react";
 import { cn } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
@@ -41,6 +41,8 @@ export function UniverseControls({ containerRef }: { containerRef: RefObject<HTM
   const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
   const discoverMode = useUniverseStore((s) => s.discoverMode);
   const setDiscoverMode = useUniverseStore((s) => s.setDiscoverMode);
+  const showConnections = useUniverseStore((s) => s.showConnections);
+  const toggleShowConnections = useUniverseStore((s) => s.toggleShowConnections);
   const ownedCount = useMySubscriptionsStore((s) => s.owned.length);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -84,6 +86,9 @@ export function UniverseControls({ containerRef }: { containerRef: RefObject<HTM
         onClick={() => setDiscoverMode(!discoverMode)}
       >
         <span className="text-base leading-none">✦</span>
+      </ControlButton>
+      <ControlButton label="Toggle connection lines" active={showConnections} onClick={toggleShowConnections}>
+        <Layers size={17} />
       </ControlButton>
       <div className="h-px bg-black/10 mx-1" />
       <ControlButton label="Fullscreen" onClick={toggleFullscreen}>

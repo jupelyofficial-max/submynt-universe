@@ -51,6 +51,7 @@ export function ListView() {
                 <div className="flex items-center gap-1.5">
                   <h3 className="truncate text-sm font-semibold text-ink-0">{sub.name}</h3>
                   {sub.isNew && <Badge tone="nebula">New</Badge>}
+                  {sub.trialDays && <Badge tone="nebula">{sub.trialDays}d trial</Badge>}
                 </div>
                 <p className="mt-0.5 truncate text-xs text-ink-400">{sub.category}</p>
               </div>

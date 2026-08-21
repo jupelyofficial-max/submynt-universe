@@ -26,6 +26,7 @@ export function SubscriptionField({ nodes, ownedIds }: Props) {
   const searchQuery = useUniverseStore((s) => s.searchQuery);
   const filters = useUniverseStore((s) => s.filters);
   const hoveredId = useUniverseStore((s) => s.hoveredId);
+  const showConnections = useUniverseStore((s) => s.showConnections);
 
   const hasQuery = searchQuery.trim().length > 0;
   const hasFilters =
@@ -41,7 +42,7 @@ export function SubscriptionField({ nodes, ownedIds }: Props) {
 
   return (
     <group>
-      <ConstellationLines links={links} />
+      {showConnections && <ConstellationLines links={links} />}
       {nodes.map((node) => {
         const owned = ownedIds.has(node.subscription.id);
         const matches =

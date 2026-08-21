@@ -9,6 +9,7 @@ import { FilterBar } from "@/components/filters/FilterBar";
 import { BoostModal } from "@/components/submissions/BoostModal";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
+import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
 import { UniverseControls } from "@/components/universe/UniverseControls";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ListView } from "@/components/views/ListView";
@@ -79,6 +80,11 @@ export function ExploreClient() {
             </div>
             <div className="pointer-events-none absolute bottom-4 right-4 z-30 lg:bottom-6 lg:right-6">
               <UniverseControls containerRef={containerRef} />
+            </div>
+            <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex justify-center lg:bottom-6">
+              <div className="pointer-events-auto">
+                <SponsoredStrip />
+              </div>
             </div>
           </>
         ) : (

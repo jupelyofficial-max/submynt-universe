@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Compass, Telescope } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CATEGORIES } from "@/data/categories";
-import { SUBSCRIPTIONS } from "@/data/subscriptions";
 
 const HomePreviewScene = dynamic(
   () => import("@/components/home/HomePreviewScene").then((m) => m.HomePreviewScene),
@@ -21,10 +20,6 @@ export default function HomePage() {
         </div>
 
         <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-4 text-center">
-          <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/5 px-3.5 py-1.5 text-xs font-medium text-ink-300">
-            <Telescope size={13} className="text-aurora-400" />
-            {SUBSCRIPTIONS.length}+ subscriptions charted across {CATEGORIES.length} categories
-          </span>
           <h1 className="font-display text-4xl font-semibold leading-[1.08] text-ink-0 sm:text-5xl lg:text-6xl">
             Stop paying Subscriptions
             <br />

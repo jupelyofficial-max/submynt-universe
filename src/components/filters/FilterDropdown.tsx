@@ -66,14 +66,14 @@ export function FilterDropdown<T extends string>({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex h-11 items-center gap-2 whitespace-nowrap rounded-full border-[1.5px] px-4 text-sm font-medium transition-colors cursor-pointer",
+          "flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] px-3.5 text-xs font-medium transition-colors cursor-pointer",
           selected.length > 0
             ? "border-aurora-500 bg-aurora-500/10 text-aurora-500"
             : "border-black/15 bg-void-950 text-ink-0 hover:border-ink-0"
         )}
       >
         {buttonLabel}
-        <ChevronsUpDown size={14} className="shrink-0 text-ink-300" />
+        <ChevronsUpDown size={12} className="shrink-0 text-ink-300" />
       </button>
 
       {open &&

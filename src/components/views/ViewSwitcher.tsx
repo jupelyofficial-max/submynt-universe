@@ -8,11 +8,11 @@ export function ViewSwitcher() {
   const setViewMode = useUniverseStore((s) => s.setViewMode);
 
   return (
-    <div className="flex h-11 items-center rounded-full bg-ink-0 p-1 gap-1">
+    <div className="flex h-9 items-center rounded-full bg-ink-0 p-1 gap-1">
       <button
         onClick={() => setViewMode("universe")}
         className={cn(
-          "rounded-full px-4 h-full text-sm font-semibold transition-colors cursor-pointer",
+          "rounded-full px-3.5 h-full text-xs font-semibold transition-colors cursor-pointer",
           viewMode === "universe" ? "bg-white/15 text-white" : "text-white/50 hover:text-white/80"
         )}
       >
@@ -21,7 +21,7 @@ export function ViewSwitcher() {
       <button
         onClick={() => setViewMode("list")}
         className={cn(
-          "rounded-full px-4 h-full text-sm font-semibold transition-colors cursor-pointer",
+          "rounded-full px-3.5 h-full text-xs font-semibold transition-colors cursor-pointer",
           viewMode === "list" ? "bg-white/15 text-white" : "text-white/50 hover:text-white/80"
         )}
       >

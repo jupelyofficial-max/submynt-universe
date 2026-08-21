@@ -11,13 +11,13 @@ export function SearchBar({ compact }: { compact?: boolean }) {
 
   return (
     <div className="w-full">
-      <div className="flex h-11 items-center gap-2.5 rounded-full border-[1.5px] border-ink-0 bg-void-950 px-4 transition-colors focus-within:border-aurora-500">
-        <Search size={17} className="text-ink-300 shrink-0" />
+      <div className="flex h-9 items-center gap-2 rounded-full border-[1.5px] border-ink-0 bg-void-950 px-3.5 transition-colors focus-within:border-aurora-500">
+        <Search size={14} className="text-ink-300 shrink-0" />
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search subscriptions, categories, services..."
-          className="flex-1 min-w-0 bg-transparent text-sm text-ink-0 placeholder:text-ink-500 outline-none"
+          className="flex-1 min-w-0 bg-transparent text-xs text-ink-0 placeholder:text-ink-500 outline-none"
         />
         {searchQuery && (
           <button
@@ -25,7 +25,7 @@ export function SearchBar({ compact }: { compact?: boolean }) {
             className="text-ink-300 hover:text-ink-0 shrink-0 cursor-pointer"
             aria-label="Clear search"
           >
-            <X size={16} />
+            <X size={14} />
           </button>
         )}
       </div>

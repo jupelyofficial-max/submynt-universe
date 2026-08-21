@@ -1,21 +1,16 @@
 "use client";
 
 import { FilterDropdown } from "./FilterDropdown";
-import { CATEGORIES, PRICE_BANDS, SORT_LABELS, SORT_OPTIONS, USER_STATUS_LABELS } from "@/data/categories";
+import { CATEGORIES, PRICE_BANDS, SORT_LABELS, SORT_OPTIONS } from "@/data/categories";
 import { cn } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
-import type { UserStatusFilter } from "@/types/subscription";
-
-const USER_STATUS_OPTIONS = Object.keys(USER_STATUS_LABELS) as UserStatusFilter[];
 
 export function FilterBar({ className }: { className?: string }) {
   const filters = useUniverseStore((s) => s.filters);
   const toggleCategory = useUniverseStore((s) => s.toggleCategory);
   const togglePriceBand = useUniverseStore((s) => s.togglePriceBand);
-  const toggleUserStatus = useUniverseStore((s) => s.toggleUserStatus);
   const setCategories = useUniverseStore((s) => s.setCategories);
   const setPriceBands = useUniverseStore((s) => s.setPriceBands);
-  const setUserStatus = useUniverseStore((s) => s.setUserStatus);
   const setSort = useUniverseStore((s) => s.setSort);
 
   return (
@@ -39,13 +34,6 @@ export function FilterBar({ className }: { className?: string }) {
         options={SORT_OPTIONS.map((opt) => ({ value: opt, label: SORT_LABELS[opt] }))}
         selected={[filters.sort]}
         onToggle={setSort}
-      />
-      <FilterDropdown
-        label="Status"
-        options={USER_STATUS_OPTIONS.map((u) => ({ value: u, label: USER_STATUS_LABELS[u] }))}
-        selected={filters.userStatus}
-        onToggle={toggleUserStatus}
-        onClear={() => setUserStatus([])}
       />
     </div>
   );

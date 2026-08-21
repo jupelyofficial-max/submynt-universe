@@ -36,7 +36,6 @@ interface UniverseUIState {
   toggleUserStatus: (u: UserStatusFilter) => void;
   setCategories: (c: Category[]) => void;
   setPriceBands: (p: string[]) => void;
-  setUserStatus: (u: UserStatusFilter[]) => void;
   setSort: (s: SortOption) => void;
 
   isSubmitModalOpen: boolean;
@@ -82,7 +81,6 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
     set((s) => ({ filters: { ...s.filters, userStatus: toggleInArray(s.filters.userStatus, u) } })),
   setCategories: (categories) => set((s) => ({ filters: { ...s.filters, categories } })),
   setPriceBands: (priceBands) => set((s) => ({ filters: { ...s.filters, priceBands } })),
-  setUserStatus: (userStatus) => set((s) => ({ filters: { ...s.filters, userStatus } })),
   setSort: (sort) => set((s) => ({ filters: { ...s.filters, sort } })),
 
   isSubmitModalOpen: false,

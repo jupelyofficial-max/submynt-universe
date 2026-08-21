@@ -19,6 +19,7 @@ const NAV_LINKS = [
 
 export function TopNav() {
   const pathname = usePathname();
+  const isExplore = pathname === "/explore" || pathname?.startsWith("/explore/");
   const router = useRouter();
   const openAddModal = useUniverseStore((s) => s.openAddModal);
   const ownedCount = useMySubscriptionsStore((s) => s.owned.length);
@@ -61,21 +62,25 @@ export function TopNav() {
 
         <div className="flex-1" />
 
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="hidden sm:flex items-center gap-2 h-10 px-3.5 rounded-xl border border-white/10 text-ink-300 hover:text-ink-0 hover:border-white/20 transition-colors cursor-pointer"
-          aria-label="Search subscriptions"
-        >
-          <Search size={16} />
-          <span className="text-sm">Search the universe</span>
-        </button>
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="sm:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-white/5 cursor-pointer"
-          aria-label="Search subscriptions"
-        >
-          <Search size={18} />
-        </button>
+        {!isExplore && (
+          <>
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden sm:flex items-center gap-2 h-10 px-3.5 rounded-xl border border-white/10 text-ink-300 hover:text-ink-0 hover:border-white/20 transition-colors cursor-pointer"
+              aria-label="Search subscriptions"
+            >
+              <Search size={16} />
+              <span className="text-sm">Search the universe</span>
+            </button>
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="sm:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-white/5 cursor-pointer"
+              aria-label="Search subscriptions"
+            >
+              <Search size={18} />
+            </button>
+          </>
+        )}
 
         <Button size="md" className="hidden md:inline-flex" onClick={() => openAddModal()}>
           <Plus size={16} />

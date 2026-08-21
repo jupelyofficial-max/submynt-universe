@@ -46,20 +46,22 @@ export function ExploreClient() {
   }, []);
 
   const toolbar = (
-    <div className="flex w-full max-w-3xl flex-col items-center gap-3">
-      <SearchBar compact={viewMode === "list"} />
-      <div className="flex w-full flex-wrap items-center justify-center gap-2">
-        <FilterBar />
-        <ViewSwitcher />
-        <Button variant="outline" size="md" className="rounded-full" onClick={() => setBoostModalOpen(true)}>
-          <Rocket size={14} />
-          Boost
-        </Button>
-        <Button size="md" className="rounded-full" onClick={() => setSubmitModalOpen(true)}>
-          <Upload size={14} />
-          Submit
-        </Button>
+    <div className="flex w-full max-w-[1500px] flex-wrap items-center justify-center gap-2 xl:flex-nowrap">
+      <div className="w-full shrink-0 xl:w-64">
+        <SearchBar compact />
       </div>
+      <FilterBar className="flex-wrap xl:flex-nowrap" />
+      <div className="shrink-0">
+        <ViewSwitcher />
+      </div>
+      <Button variant="outline" size="md" className="shrink-0 rounded-full" onClick={() => setBoostModalOpen(true)}>
+        <Rocket size={14} />
+        Boost
+      </Button>
+      <Button size="md" className="shrink-0 rounded-full" onClick={() => setSubmitModalOpen(true)}>
+        <Upload size={14} />
+        Submit
+      </Button>
     </div>
   );
 

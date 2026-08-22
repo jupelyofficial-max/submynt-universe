@@ -40,17 +40,37 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
   ctx.fillRect(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
   // A soft colored glow under each category's real cluster position —
-  // reads as a "galaxy" atmosphere behind its logo bubbles.
+  // reads as a "galaxy" atmosphere behind its logo bubbles — plus a pair of
+  // hairline orbit rings and a few faint radial spokes per cluster, standing
+  // in for real orbital geometry without ever competing with the logos.
   const pxPerWorldUnit = TEXTURE_WIDTH / UNIVERSE_WORLD_WIDTH;
   for (const cluster of clusters) {
     const { px, py } = worldToPixel(cluster.center.x, cluster.center.y);
     const r = cluster.radius * pxPerWorldUnit * 2.1;
     const gradient = ctx.createRadialGradient(px, py, 0, px, py, r);
-    gradient.addColorStop(0, hexToRgba(cluster.color, 0.22));
-    gradient.addColorStop(0.5, hexToRgba(cluster.color, 0.1));
+    gradient.addColorStop(0, hexToRgba(cluster.color, 0.16));
+    gradient.addColorStop(0.5, hexToRgba(cluster.color, 0.07));
     gradient.addColorStop(1, hexToRgba(cluster.color, 0));
     ctx.fillStyle = gradient;
     ctx.fillRect(px - r, py - r, r * 2, r * 2);
+
+    const orbitR = cluster.radius * pxPerWorldUnit;
+    ctx.strokeStyle = hexToRgba(cluster.color, 0.14);
+    ctx.lineWidth = 1;
+    for (const frac of [0.52, 0.9]) {
+      ctx.beginPath();
+      ctx.arc(px, py, orbitR * frac, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = hexToRgba(cluster.color, 0.08);
+    for (let s = 0; s < 6; s++) {
+      const spokeAngle = (s / 6) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + Math.cos(spokeAngle) * orbitR * 0.92, py + Math.sin(spokeAngle) * orbitR * 0.92);
+      ctx.stroke();
+    }
   }
 
   // Faint fine grid — cartographic texture without being a literal map.
@@ -70,19 +90,8 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
     ctx.stroke();
   }
 
-  // Faint concentric rings from center — a quiet nod to the spiral layout,
-  // reads as abstract cartography (radar/orbit chart) rather than terrain.
   const cx = TEXTURE_WIDTH / 2;
   const cy = TEXTURE_HEIGHT / 2;
-  ctx.strokeStyle = "rgba(28,21,13,0.05)";
-  ctx.lineWidth = 1.4;
-  const ringCount = 5;
-  const maxRing = Math.min(TEXTURE_WIDTH, TEXTURE_HEIGHT) * 0.48;
-  for (let i = 1; i <= ringCount; i++) {
-    ctx.beginPath();
-    ctx.arc(cx, cy, (maxRing / ringCount) * i, 0, Math.PI * 2);
-    ctx.stroke();
-  }
 
   // Soft vignette so edges recede.
   const vignette = ctx.createRadialGradient(cx, cy, TEXTURE_HEIGHT * 0.25, cx, cy, TEXTURE_WIDTH * 0.62);

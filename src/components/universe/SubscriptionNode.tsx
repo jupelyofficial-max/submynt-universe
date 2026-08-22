@@ -12,11 +12,12 @@ interface Props {
   node: UniverseNode;
   isOwned: boolean;
   dimmed: boolean;
+  categoryDimmed?: boolean;
   hasSavings: boolean;
   seed: number;
 }
 
-export function SubscriptionNode({ node, isOwned, dimmed, hasSavings, seed }: Props) {
+export function SubscriptionNode({ node, isOwned, dimmed, categoryDimmed, hasSavings, seed }: Props) {
   const spriteRef = useRef<THREE.Sprite>(null);
   const glowRef = useRef<THREE.Sprite>(null);
   const badgeRef = useRef<THREE.Sprite>(null);
@@ -45,13 +46,14 @@ export function SubscriptionNode({ node, isOwned, dimmed, hasSavings, seed }: Pr
       const s = THREE.MathUtils.lerp(spriteRef.current.scale.x || baseScale, targetScale, 0.15);
       spriteRef.current.scale.set(s, s, 1);
       const mat = spriteRef.current.material as THREE.SpriteMaterial;
-      mat.opacity = THREE.MathUtils.lerp(mat.opacity, dimmed ? 0.25 : 1, 0.12);
+      const opacityTarget = dimmed ? 0.25 : categoryDimmed ? 0.5 : 1;
+      mat.opacity = THREE.MathUtils.lerp(mat.opacity, opacityTarget, 0.12);
     }
     if (glowRef.current) {
       const glowScale = targetScale * (hovered || isOwned ? 2.7 : 2.0);
       glowRef.current.scale.set(glowScale, glowScale, 1);
       const gmat = glowRef.current.material as THREE.SpriteMaterial;
-      const targetOpacity = dimmed ? 0.03 : hovered ? 0.55 : isOwned ? 0.3 : 0.13;
+      const targetOpacity = dimmed ? 0.03 : categoryDimmed ? 0.06 : hovered ? 0.55 : isOwned ? 0.3 : 0.13;
       gmat.opacity = THREE.MathUtils.lerp(gmat.opacity, targetOpacity, 0.12);
     }
     if (badgeRef.current) {

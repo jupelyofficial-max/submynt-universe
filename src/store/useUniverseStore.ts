@@ -49,6 +49,11 @@ interface UniverseUIState {
   hoveredId: string | null;
   setHovered: (id: string | null) => void;
 
+  /** Category currently under the pointer (via a category label) — used to
+   * illuminate its constellation and dim unrelated ones in the universe. */
+  hoveredCategory: string | null;
+  setHoveredCategory: (c: string | null) => void;
+
   compareIds: string[];
   addToCompare: (id: string) => void;
   removeFromCompare: (id: string) => void;
@@ -93,6 +98,9 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
   select: (id) => set({ selectedId: id }),
   hoveredId: null,
   setHovered: (id) => set({ hoveredId: id }),
+
+  hoveredCategory: null,
+  setHoveredCategory: (c) => set({ hoveredCategory: c }),
 
   compareIds: [],
   addToCompare: (id) => set((s) => (s.compareIds.includes(id) || s.compareIds.length >= 3 ? s : { compareIds: [...s.compareIds, id] })),

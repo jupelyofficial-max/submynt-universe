@@ -26,6 +26,7 @@ export function SubscriptionField({ nodes, ownedIds }: Props) {
   const searchQuery = useUniverseStore((s) => s.searchQuery);
   const filters = useUniverseStore((s) => s.filters);
   const hoveredId = useUniverseStore((s) => s.hoveredId);
+  const hoveredCategory = useUniverseStore((s) => s.hoveredCategory);
   const showConnections = useUniverseStore((s) => s.showConnections);
 
   const hasQuery = searchQuery.trim().length > 0;
@@ -49,6 +50,7 @@ export function SubscriptionField({ nodes, ownedIds }: Props) {
           (!hasQuery || matchesSearch(node.subscription, searchQuery)) &&
           (!hasFilters || matchesFilters(node.subscription, filters, ownedIds));
         const dimmed = (hasQuery || hasFilters) && !matches;
+        const categoryDimmed = Boolean(hoveredCategory) && node.subscription.category !== hoveredCategory;
         const hasSavings = owned && potentialSavingsMonthly(node.subscription) > 0;
         return (
           <SubscriptionNode
@@ -56,6 +58,7 @@ export function SubscriptionField({ nodes, ownedIds }: Props) {
             node={node}
             isOwned={owned}
             dimmed={dimmed}
+            categoryDimmed={categoryDimmed}
             hasSavings={hasSavings}
             seed={hashSeed(node.subscription.id)}
           />

@@ -30,6 +30,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  // Lets fixed/sticky mobile chrome (header, floating controls, sponsored
+  // bar) read real env(safe-area-inset-*) values instead of always 0, so
+  // they can pad themselves clear of the notch/Dynamic Island and home
+  // indicator instead of rendering underneath them.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

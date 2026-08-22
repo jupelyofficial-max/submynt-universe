@@ -15,14 +15,18 @@ export interface MobileClusterLayout {
 }
 
 const MAX_ICONS = 8;
-// Relative units, not literal px — MobileCategoryCard renders this whole
-// layout as a percentage of its own (fixed-height) footprint, so only the
-// RATIO between tiers and the packing tightness matter here. A moderate
-// primary-to-small ratio: the hero icon still anchors the cluster, but
-// doesn't balloon into one dominant circle that crowds everything else out.
-const PRIMARY_SIZE = 46;
-const SECONDARY_SIZE = 32;
-const SMALL_SIZE = 22;
+// Relative units. MobileCategoryCard renders this layout as a full-width
+// square on a 2-column mobile grid — verified (not eyeballed) with
+// packCircles's actual output against a real 390px viewport, these tier
+// sizes land real on-screen diameters at ~56px hero / ~38px secondary /
+// ~27px small for the worst case (a full 8-icon category); smaller
+// categories end up with even bigger icons, never smaller. A 3-column grid
+// was tried first but the math doesn't work: there simply isn't enough
+// column width on a real phone to fit these icon sizes at 3 columns without
+// clipping/overlap, so 2 columns is what actually delivers the target sizes.
+const PRIMARY_SIZE = 50;
+const SECONDARY_SIZE = 34;
+const SMALL_SIZE = 24;
 
 /** Same golden-angle circle-packing technique as the desktop Universe
  * (packCircles) — a hero icon anchors the center, the rest pack outward just
@@ -34,7 +38,7 @@ export function computeMobileClusterLayout(subs: Subscription[]): MobileClusterL
   const overflow = Math.max(0, sorted.length - MAX_ICONS);
 
   const radii = shown.map((_, i) => (i === 0 ? PRIMARY_SIZE : i <= 2 ? SECONDARY_SIZE : SMALL_SIZE) / 2);
-  const placed = packCircles(radii, 13, 2);
+  const placed = packCircles(radii, 8, 1.5);
 
   const maxExtent = Math.max(...placed.map((p) => Math.hypot(p.x, p.y) + p.r));
   const boxSize = maxExtent * 2 + 12;

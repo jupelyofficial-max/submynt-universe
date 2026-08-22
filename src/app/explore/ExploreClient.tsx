@@ -82,7 +82,7 @@ export function ExploreClient() {
   // filter chips, then Universe/List next to Boost/Submit — each its own row
   // instead of one row's worth of controls squeezed to illegible size.
   const mobileToolbar = (
-    <div className="flex flex-col gap-2.5 border-b border-line-soft bg-void-950 p-3 md:hidden">
+    <div className="flex flex-col gap-2 border-b border-line-soft bg-void-950 p-2.5 md:hidden">
       <SearchBar size="lg" compact />
       <div className="overflow-x-auto no-scrollbar">
         <FilterBar className="flex-nowrap" />

@@ -1,12 +1,12 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import type { UniverseNode } from "@/types/subscription";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { trackDown, trackMove } from "@/lib/dragTracker";
-import { UNIVERSE_WORLD_HEIGHT, UNIVERSE_WORLD_WIDTH } from "@/lib/universeLayout";
+import { UNIVERSE_WORLD_HEIGHT, UNIVERSE_WORLD_WIDTH, type UniverseBounds } from "@/lib/universeLayout";
 
 export const MIN_ZOOM = 20;
 // Absolute ceiling — the actual per-session cap is computed per aspect ratio
@@ -14,21 +14,22 @@ export const MIN_ZOOM = 20;
 // beyond the map plane's edges, but this bounds it in case that computation
 // ever produces something unreasonable.
 export const MAX_ZOOM = 130;
-// Framed to fill the viewport with the primary central-category mass (the
-// five core categories packed near the origin), not just a single cluster —
-// the compact v3 layout is dense enough that this default already shows a
-// rich composition. Users can still scroll out to computeMaxZoom's ceiling.
-export const DEFAULT_ZOOM = 39;
 
 // Must match UniverseCanvasBackground's mesh position and UniverseScene's camera fov.
 const CANVAS_PLANE_Z = -18;
 const CAMERA_FOV_DEG = 45;
+// Subscription nodes sit near z ≈ 0–4 (see buildUniverse's position.z), not
+// at the background plane's z — computeFitZoom needs its own reference
+// depth so "fit the content" isn't measured from the wrong plane.
+const CONTENT_Z = 2;
+// Breathing room around the packed composition so no cluster sits flush
+// against the viewport edge.
+const FIT_PADDING = 1.18;
 
 /** Zoom (camera z) at which the abstract canvas plane exactly covers the
  * viewport — like CSS `background-size: cover` — for the given aspect
- * ratio. Used as the zoom-OUT ceiling, not the default: it guarantees
- * there's never empty background showing beyond the canvas, without
- * forcing the initial view to be a huge, sparse whole-universe shot. */
+ * ratio. Used as the zoom-OUT ceiling: panning/scrolling out never reveals
+ * background beyond the canvas's finite plane. */
 function computeMaxZoom(width: number, height: number): number {
   if (!width || !height) return MAX_ZOOM;
   const aspect = width / height;
@@ -36,6 +37,24 @@ function computeMaxZoom(width: number, height: number): number {
   const targetHeight = Math.min(UNIVERSE_WORLD_HEIGHT, UNIVERSE_WORLD_WIDTH / aspect);
   const distance = targetHeight / (2 * Math.tan(fovRad / 2));
   return THREE.MathUtils.clamp(distance + CANVAS_PLANE_Z, MIN_ZOOM, MAX_ZOOM);
+}
+
+/** Zoom (camera z) at which the ENTIRE packed universe — every category
+ * cluster, not just the biggest one — fits inside the viewport with a
+ * comfortable margin, for the given aspect ratio. This is what the default
+ * view and "reset" now use, computed from the actual composition's bounds
+ * rather than a hand-tuned constant, so it re-fits correctly however many
+ * categories/subscriptions the catalogue holds and on every resize. */
+export function computeFitZoom(bounds: UniverseBounds, width: number, height: number): number {
+  if (!width || !height) return MAX_ZOOM;
+  const aspect = width / height;
+  const fovRad = (CAMERA_FOV_DEG * Math.PI) / 180;
+  const targetWidth = bounds.width * FIT_PADDING;
+  const targetHeight = bounds.height * FIT_PADDING;
+  const distanceForHeight = targetHeight / (2 * Math.tan(fovRad / 2));
+  const distanceForWidth = targetWidth / aspect / (2 * Math.tan(fovRad / 2));
+  const distance = Math.max(distanceForHeight, distanceForWidth);
+  return THREE.MathUtils.clamp(distance + CONTENT_Z, MIN_ZOOM, MAX_ZOOM);
 }
 
 /** Keeps the camera's look-at point far enough from the canvas plane's
@@ -55,36 +74,23 @@ function clampPanToCanvas(x: number, y: number, zoomZ: number, aspect: number) {
   };
 }
 
-/** Centroid of the single largest category cluster — where the universe
- * opens by default, so the busiest, most recognizable logos are on screen
- * immediately instead of a view dominated by empty canvas. */
-function computeDefaultFocus(nodes: UniverseNode[]): { x: number; y: number } {
-  const byCluster = new Map<number, { sumX: number; sumY: number; count: number }>();
-  for (const n of nodes) {
-    const c = byCluster.get(n.cluster) ?? { sumX: 0, sumY: 0, count: 0 };
-    c.sumX += n.position.x;
-    c.sumY += n.position.y;
-    c.count += 1;
-    byCluster.set(n.cluster, c);
-  }
-  let biggest: { sumX: number; sumY: number; count: number } | null = null;
-  for (const c of byCluster.values()) {
-    if (!biggest || c.count > biggest.count) biggest = c;
-  }
-  if (!biggest) return { x: 0, y: 0 };
-  return { x: biggest.sumX / biggest.count, y: biggest.sumY / biggest.count };
-}
-
 interface Props {
   nodes: UniverseNode[];
   ownedIds: Set<string>;
+  bounds: UniverseBounds;
 }
 
-export function CameraController({ nodes, ownedIds }: Props) {
+export function CameraController({ nodes, ownedIds, bounds }: Props) {
   const { camera, gl, size } = useThree();
-  const defaultFocus = useMemo(() => computeDefaultFocus(nodes), [nodes]);
+  const initialFitZoom = computeFitZoom(bounds, size.width, size.height);
   const maxZoom = useRef(computeMaxZoom(size.width, size.height));
-  const desired = useRef({ x: defaultFocus.x, y: defaultFocus.y, zoom: DEFAULT_ZOOM });
+  const fitZoom = useRef(initialFitZoom);
+  const desired = useRef({ x: bounds.centerX, y: bounds.centerY, zoom: initialFitZoom });
+  // Once the visitor drags/zooms/issues a camera command, a resize should no
+  // longer yank their view back to the fitted default — it should just keep
+  // the pan/zoom bounds in step with the new viewport. "Reset universe"
+  // clears this, so resizing after a reset re-fits again.
+  const hasInteracted = useRef(false);
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
   const pinchDist = useRef<number | null>(null);
@@ -92,7 +98,14 @@ export function CameraController({ nodes, ownedIds }: Props) {
 
   useEffect(() => {
     maxZoom.current = computeMaxZoom(size.width, size.height);
-  }, [size.width, size.height]);
+    fitZoom.current = computeFitZoom(bounds, size.width, size.height);
+    // Responsive fit-to-view: as long as the visitor hasn't taken control of
+    // the camera yet, keep the default framing exactly fitted to the current
+    // viewport (covers both the very first mount and later window resizes).
+    if (!hasInteracted.current) {
+      desired.current = { x: bounds.centerX, y: bounds.centerY, zoom: fitZoom.current };
+    }
+  }, [size.width, size.height, bounds]);
 
   const cameraCommand = useUniverseStore((s) => s.cameraCommand);
   const discoverMode = useUniverseStore((s) => s.discoverMode);
@@ -107,6 +120,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
     }
 
     function onPointerDown(e: PointerEvent) {
+      hasInteracted.current = true;
       dragging.current = true;
       last.current = { x: e.clientX, y: e.clientY };
       trackDown(e.clientX, e.clientY);
@@ -127,6 +141,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
     }
     function onWheel(e: WheelEvent) {
       e.preventDefault();
+      hasInteracted.current = true;
       if (discoverMode) setDiscoverMode(false);
       desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom + e.deltaY * 0.06, MIN_ZOOM, maxZoom.current);
     }
@@ -134,6 +149,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
       return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     }
     function onTouchStart(e: TouchEvent) {
+      hasInteracted.current = true;
       if (discoverMode) setDiscoverMode(false);
       if (e.touches.length === 2) {
         pinchDist.current = touchDist(e.touches);
@@ -164,6 +180,7 @@ export function CameraController({ nodes, ownedIds }: Props) {
       if (e.touches.length === 0) dragging.current = false;
     }
     function onDoubleClick() {
+      hasInteracted.current = true;
       desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom * 0.55, MIN_ZOOM, maxZoom.current);
     }
 
@@ -192,17 +209,23 @@ export function CameraController({ nodes, ownedIds }: Props) {
     if (!cameraCommand) return;
     switch (cameraCommand.type) {
       case "zoom":
+        hasInteracted.current = true;
         desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom + cameraCommand.delta, MIN_ZOOM, maxZoom.current);
         break;
       case "reset":
-        desired.current = { x: defaultFocus.x, y: defaultFocus.y, zoom: DEFAULT_ZOOM };
+        // Clears hasInteracted too, so a later window resize re-fits again
+        // instead of leaving the camera pinned to this reset position.
+        hasInteracted.current = false;
+        desired.current = { x: bounds.centerX, y: bounds.centerY, zoom: fitZoom.current };
         break;
       case "focus-node": {
+        hasInteracted.current = true;
         const node = nodes.find((n) => n.subscription.id === cameraCommand.id);
         if (node) desired.current = { x: node.position.x, y: node.position.y, zoom: MIN_ZOOM + 6 };
         break;
       }
       case "focus-mine": {
+        hasInteracted.current = true;
         const mine = nodes.filter((n) => ownedIds.has(n.subscription.id));
         if (mine.length) {
           const cx = mine.reduce((sum, n) => sum + n.position.x, 0) / mine.length;
@@ -225,8 +248,8 @@ export function CameraController({ nodes, ownedIds }: Props) {
   useFrame((_, delta) => {
     if (discoverMode && !dragging.current) {
       idleT.current += delta * 0.045;
-      desired.current.x = defaultFocus.x + Math.sin(idleT.current) * 6;
-      desired.current.y = defaultFocus.y + Math.cos(idleT.current * 0.7) * 4;
+      desired.current.x = bounds.centerX + Math.sin(idleT.current) * 6;
+      desired.current.y = bounds.centerY + Math.cos(idleT.current * 0.7) * 4;
     }
     const clamped = clampPanToCanvas(desired.current.x, desired.current.y, desired.current.zoom, size.width / size.height);
     desired.current.x = clamped.x;

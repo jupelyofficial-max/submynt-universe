@@ -53,32 +53,62 @@ export interface UniverseLayout {
   clusters: CategoryCluster[];
 }
 
-/** Rank-based icon-size tiers within a category — a hero, a handful of
- * "important" services, a supporting tier, then long-tail — so a category
- * reads as a gravitational center with major services anchoring it, rather
- * than a field of same-sized bubbles. This is the LAYOUT radius: it drives
- * spacing/packing/composition only, and is deliberately left unchanged by
- * icon-only visual passes (see renderTierRadius below) so retuning how big
- * icons look on screen never reflows category positions. */
+export interface UniverseBounds {
+  centerX: number;
+  centerY: number;
+  width: number;
+  height: number;
+}
+
+/** Bounding box of the whole packed composition — the union of every
+ * category cluster's circle (center ± its own radius). Used to fit the
+ * camera to the actual content instead of a fixed zoom constant, so the
+ * default view always shows the complete universe regardless of how many
+ * categories/subscriptions the catalogue ends up with. */
+export function computeUniverseBounds(clusters: CategoryCluster[]): UniverseBounds {
+  if (clusters.length === 0) return { centerX: 0, centerY: 0, width: 1, height: 1 };
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const c of clusters) {
+    minX = Math.min(minX, c.center.x - c.radius);
+    maxX = Math.max(maxX, c.center.x + c.radius);
+    minY = Math.min(minY, c.center.y - c.radius);
+    maxY = Math.max(maxY, c.center.y + c.radius);
+  }
+  return {
+    centerX: (minX + maxX) / 2,
+    centerY: (minY + maxY) / 2,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+}
+
+/** Rank-based icon-size tiers within a category — a primary anchor, a
+ * handful of secondary services, then a supporting tier — so a category
+ * reads as a gravitational center with its major service anchoring it,
+ * rather than a field of same-sized icons. This is the LAYOUT radius: it
+ * drives spacing/packing/composition only, and is deliberately left
+ * unchanged by icon-only visual passes (see renderTierRadius below) so
+ * retuning how big icons look on screen never reflows category positions. */
 function tierRadius(rankInCategory: number, popularity: number): number {
   const base =
     rankInCategory === 0 ? 0.98 : rankInCategory <= 2 ? 0.74 : rankInCategory <= 5 ? 0.56 : 0.42;
   return base * (0.94 + (popularity / 100) * 0.12);
 }
 
-/** The RENDER radius — what actually determines each sprite's on-screen
- * size (see SubscriptionNode's baseScale) — kept separate from the layout
- * radius above so shrinking/growing icons is a purely visual change with
- * zero effect on cluster composition. Calibrated against the default camera
- * framing (DEFAULT_ZOOM in CameraController) to land each tier's rendered
- * diameter near a target on-screen size: hero ≈66px, important ≈51px,
- * supporting ≈36px, long-tail ≈28px — so even the busiest category's hero
- * (e.g. Netflix, YouTube) reads as prominent without dominating the frame.
- * Popularity only nudges size within a tier, it never moves an item between
- * tiers. */
+/** The RENDER radius — what actually determines each icon's on-screen size
+ * (see SubscriptionNode's baseScale) — kept separate from the layout radius
+ * above so retuning how big icons look is a purely visual change with zero
+ * effect on cluster composition. Three tiers, as large as the layout's own
+ * packing margins safely allow without icons touching: a Primary anchor per
+ * category, a Secondary tier for its next few services, and a Supporting
+ * tier for the rest — so even the busiest category's anchor (e.g. Netflix,
+ * YouTube) reads as prominent without dominating the frame. Popularity only
+ * nudges size within a tier, it never moves an item between tiers. */
 function renderTierRadius(rankInCategory: number, popularity: number): number {
-  const base =
-    rankInCategory === 0 ? 0.83 : rankInCategory <= 2 ? 0.64 : rankInCategory <= 5 ? 0.45 : 0.35;
+  const base = rankInCategory === 0 ? 1.0 : rankInCategory <= 2 ? 0.76 : 0.48;
   return base * (0.95 + (popularity / 100) * 0.1);
 }
 

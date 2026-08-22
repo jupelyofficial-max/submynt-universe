@@ -6,7 +6,7 @@ const cache = new Map<string, THREE.CanvasTexture>();
 
 /** Soft drop shadow + hairline border shared by every tile, real logo or
  * lettermark — the "premium app icon on a tray" feel (tactile depth,
- * restrained) rather than a flat colored bubble. Must run before anything
+ * restrained) rather than a flat colored circle. Must run before anything
  * else is drawn on top; caller resets shadowBlur to 0 immediately after. */
 function paintTile(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, fill: string | CanvasGradient) {
   ctx.save();
@@ -66,7 +66,7 @@ export function getLogoTexture(
   cache.set(sub.id, texture);
 
   // Upgrade to the real logo once it loads — a clean near-white tile (like
-  // a real app icon), not the saturated brand-color bubble the lettermark
+  // a real app icon), not the saturated brand-color fill the lettermark
   // uses, so the actual logo artwork reads as the product itself rather
   // than a colored blob with a picture floating in it. A faint brand-color
   // wash keeps just enough identity to tint neighboring icons apart. Falls
@@ -90,7 +90,7 @@ export function getLogoTexture(
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.clip();
-      const inset = r * 2 * 0.16;
+      const inset = r * 2 * 0.11; // small margin only — the logo itself is the primary visual object, not its container
       const target = r * 2 - inset * 2;
       const scale = Math.min(target / img.width, target / img.height);
       const w = img.width * scale;

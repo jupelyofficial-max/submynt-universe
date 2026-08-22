@@ -40,7 +40,7 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
   ctx.fillRect(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
   // A soft colored glow under each category's real cluster position —
-  // reads as a "galaxy" atmosphere behind its logo bubbles — plus a pair of
+  // reads as a "galaxy" atmosphere behind its subscription icons — plus a pair of
   // hairline orbit rings and a few faint radial spokes per cluster, standing
   // in for real orbital geometry without ever competing with the logos.
   const pxPerWorldUnit = TEXTURE_WIDTH / UNIVERSE_WORLD_WIDTH;

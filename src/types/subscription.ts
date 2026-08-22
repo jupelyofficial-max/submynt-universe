@@ -10,7 +10,6 @@ export type Category =
   | "AI Tools"
   | "Entertainment"
   | "Music"
-  | "Streaming"
   | "Cloud"
   | "Creative"
   | "Education"

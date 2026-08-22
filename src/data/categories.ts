@@ -2,9 +2,8 @@ import type { BillingCycle, Category, Region, SortOption } from "@/types/subscri
 
 export const CATEGORY_META: Record<Category, { blurb: string; color: string }> = {
   "AI Tools": { blurb: "Assistants and tools that think alongside you", color: "#5B84E0" },
-  Entertainment: { blurb: "Films, series and shows on demand", color: "#E0566E" },
+  Entertainment: { blurb: "Films, series, live TV and video on demand", color: "#E0566E" },
   Music: { blurb: "Streaming sound, everywhere you go", color: "#4AACD6" },
-  Streaming: { blurb: "Long-form video beyond entertainment", color: "#C97A46" },
   Cloud: { blurb: "Your files, synced across every device", color: "#46C08A" },
   Creative: { blurb: "Design, edit and build professionally", color: "#3FB0B0" },
   Education: { blurb: "Courses, languages and lifelong learning", color: "#5B9BD9" },

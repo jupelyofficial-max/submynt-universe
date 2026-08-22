@@ -361,14 +361,14 @@ const RAW: RawSub[] = [
   { name: "Amazon Music Unlimited", category: "Music", priceMonthly: 129, popularity: 48, rating: 4.1, region: "Available in India" },
   { name: "Tidal", category: "Music", priceMonthly: 700, popularity: 18, rating: 4.3, region: "Global" },
 
-  // Streaming
-  { name: "YouTube Premium", category: "Streaming", priceMonthly: 149, popularity: 80, rating: 4.4, region: "Available in India", tagline: "Ad-free video, background play and YT Music" },
-  { name: "Apple TV+", category: "Streaming", priceMonthly: 99, popularity: 40, rating: 4.4, region: "Available in India" },
-  { name: "MX Player Pro", category: "Streaming", priceMonthly: 49, popularity: 20, rating: 3.6, region: "India" },
-  { name: "Discovery+", category: "Streaming", priceMonthly: 299, popularity: 22, rating: 3.8, region: "Available in India" },
-  { name: "Sun NXT", category: "Streaming", priceMonthly: 99, popularity: 25, rating: 3.6, region: "India" },
-  { name: "Hulu", category: "Streaming", priceMonthly: 650, popularity: 15, rating: 4.1, region: "Global" },
-  { name: "Crunchyroll", category: "Streaming", priceMonthly: 280, popularity: 33, rating: 4.5, region: "Available in India" },
+  // Entertainment (video streaming — merged with the block above)
+  { name: "YouTube Premium", category: "Entertainment", priceMonthly: 149, popularity: 80, rating: 4.4, region: "Available in India", tagline: "Ad-free video, background play and YT Music" },
+  { name: "Apple TV+", category: "Entertainment", priceMonthly: 99, popularity: 40, rating: 4.4, region: "Available in India" },
+  { name: "MX Player Pro", category: "Entertainment", priceMonthly: 49, popularity: 20, rating: 3.6, region: "India" },
+  { name: "Discovery+", category: "Entertainment", priceMonthly: 299, popularity: 22, rating: 3.8, region: "Available in India" },
+  { name: "Sun NXT", category: "Entertainment", priceMonthly: 99, popularity: 25, rating: 3.6, region: "India" },
+  { name: "Hulu", category: "Entertainment", priceMonthly: 650, popularity: 15, rating: 4.1, region: "Global" },
+  { name: "Crunchyroll", category: "Entertainment", priceMonthly: 280, popularity: 33, rating: 4.5, region: "Available in India" },
 
   // Cloud
   { name: "Google One", category: "Cloud", priceMonthly: 130, popularity: 78, rating: 4.4, region: "Available in India", tagline: "Extra storage across Gmail, Photos and Drive" },

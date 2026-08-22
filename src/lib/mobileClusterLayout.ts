@@ -14,7 +14,7 @@ export interface MobileClusterLayout {
   boxSize: number;
 }
 
-const MAX_ICONS = 6;
+const MAX_ICONS = 8;
 // Relative units, not literal px — MobileCategoryCard renders this whole
 // layout as a percentage of its own (responsive, grid-column-driven) width,
 // so only the RATIO between tiers and the packing tightness matter here.

@@ -6,17 +6,6 @@ import { useUniverseStore } from "@/store/useUniverseStore";
 import type { CategoryCluster } from "@/lib/universeLayout";
 import type { Subscription } from "@/types/subscription";
 
-// Real logo artwork, on a clean near-white tile with a hairline shadow —
-// not the saturated color-gradient "orb" SubscriptionLogo defaults to
-// elsewhere in the app. The logo itself is the hero; the tile just gives it
-// enough depth to read as a real icon. Left as an explicit override (rather
-// than changing SubscriptionLogo's default) so desktop's List/Detail views,
-// which use the same component, are untouched.
-const LOGO_STYLE: React.CSSProperties = {
-  background: "#fdfbf7",
-  boxShadow: "0 1px 2px rgba(20,15,8,0.14), 0 0 0 1px rgba(20,15,8,0.06)",
-};
-
 export function MobileCategoryCard({ cluster, subs }: { cluster: CategoryCluster; subs: Subscription[] }) {
   const select = useUniverseStore((s) => s.select);
   const { icons, overflow, boxSize } = computeMobileClusterLayout(subs);
@@ -29,17 +18,17 @@ export function MobileCategoryCard({ cluster, subs }: { cluster: CategoryCluster
         backgroundImage: `radial-gradient(85% 75% at 50% 30%, ${cluster.color}1c, transparent 70%)`,
       }}
     >
-      <div className="mb-0.5 flex items-start gap-1">
-        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: cluster.color }} />
+      <div className="mb-1 flex items-start gap-1.5">
+        <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: cluster.color }} />
         <div className="min-w-0 leading-tight">
-          <div className="truncate text-[11px] font-semibold text-ink-0">{cluster.name}</div>
-          <div className="text-[9px] text-ink-500">{subs.length} services</div>
+          <div className="truncate text-[15px] font-semibold text-ink-0">{cluster.name}</div>
+          <div className="text-[11px] text-ink-500">{subs.length} services</div>
         </div>
       </div>
 
       {/* Full-width square, driven by the card's own (2-column) width — the
           tier sizes in mobileClusterLayout are calibrated so this naturally
-          lands real icon diameters in the ~56/38/27px range at a typical
+          lands real icon diameters in the ~63/44/31px range at a typical
           390px phone width. A fixed height derived independently of the
           actual column width was what caused icons to overflow/clip their
           card at 3 columns; deriving from width instead means it always
@@ -53,7 +42,10 @@ export function MobileCategoryCard({ cluster, subs }: { cluster: CategoryCluster
             style={{ left: pct(x), top: pct(y), width: pct(size), height: pct(size) }}
             aria-label={subscription.name}
           >
-            <SubscriptionLogo subscription={subscription} size={size >= 48 ? "md" : "xs"} className="h-full w-full" style={LOGO_STYLE} />
+            {/* bare: real logo artwork with just a drop-shadow, no circular
+                colored backing — the logo is the object, not a bubble
+                containing it. */}
+            <SubscriptionLogo subscription={subscription} size={size >= 48 ? "md" : "xs"} className="h-full w-full" bare />
           </button>
         ))}
         {overflow > 0 && (

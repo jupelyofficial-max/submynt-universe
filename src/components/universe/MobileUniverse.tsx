@@ -99,7 +99,7 @@ export function MobileUniverse() {
           scroll position, safe-area aware for the home indicator. */}
       <div
         className="pointer-events-none fixed right-3 z-20 flex flex-col gap-2"
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 100px)" }}
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}
       >
         {owned.length > 0 && (
           <button
@@ -131,7 +131,7 @@ export function MobileUniverse() {
             visible/scrollable width). Left-aligned + overflow-x-auto is the
             one layout that's actually reachable end-to-end by scrolling. */}
         <div className="pointer-events-auto w-full overflow-x-auto no-scrollbar">
-          <SponsoredStrip />
+          <SponsoredStrip compact />
         </div>
       </div>
     </div>

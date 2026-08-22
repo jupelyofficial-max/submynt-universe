@@ -22,12 +22,37 @@ interface SubscriptionLogoProps {
    * exact pixel dimensions where a fixed size preset isn't granular enough
    * (e.g. the mobile category cards' continuously-scaled icon layout). */
   style?: React.CSSProperties;
+  /** Drops the circular colored backing entirely when a real logo is
+   * available — just the logo artwork with a subtle drop-shadow, no "bubble"
+   * ring around it. Falls back to the normal colored-circle+initials
+   * treatment if the image is missing/fails to load, since at that point
+   * the color IS the identity signal and needs a backing to sit on. */
+  bare?: boolean;
 }
 
-export function SubscriptionLogo({ subscription, size = "md", ring, className, style }: SubscriptionLogoProps) {
+export function SubscriptionLogo({ subscription, size = "md", ring, className, style, bare }: SubscriptionLogoProps) {
   const [failed, setFailed] = useState(false);
   const logoPath = getLogoPath(subscription.id);
   const showImage = Boolean(logoPath) && !failed;
+
+  if (bare && showImage) {
+    return (
+      <div
+        className={cn("relative shrink-0 flex items-center justify-center select-none", SIZES[size], className)}
+        style={style}
+        title={subscription.name}
+      >
+        <img
+          src={logoPath!}
+          alt=""
+          draggable={false}
+          className="h-full w-full object-contain"
+          style={{ filter: "drop-shadow(0 1px 2px rgba(20,15,8,0.22))" }}
+          onError={() => setFailed(true)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div

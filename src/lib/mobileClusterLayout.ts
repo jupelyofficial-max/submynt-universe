@@ -16,14 +16,13 @@ export interface MobileClusterLayout {
 
 const MAX_ICONS = 8;
 // Relative units, not literal px — MobileCategoryCard renders this whole
-// layout as a percentage of its own (responsive, grid-column-driven) width,
-// so only the RATIO between tiers and the packing tightness matter here.
-// A wide primary-to-small ratio so the hero icon stays clearly the star of
-// the card even at a narrow 3-column width, rather than every icon shrinking
-// toward the same illegible size.
-const PRIMARY_SIZE = 62;
-const SECONDARY_SIZE = 38;
-const SMALL_SIZE = 26;
+// layout as a percentage of its own (fixed-height) footprint, so only the
+// RATIO between tiers and the packing tightness matter here. A moderate
+// primary-to-small ratio: the hero icon still anchors the cluster, but
+// doesn't balloon into one dominant circle that crowds everything else out.
+const PRIMARY_SIZE = 46;
+const SECONDARY_SIZE = 32;
+const SMALL_SIZE = 22;
 
 /** Same golden-angle circle-packing technique as the desktop Universe
  * (packCircles) — a hero icon anchors the center, the rest pack outward just
@@ -35,7 +34,7 @@ export function computeMobileClusterLayout(subs: Subscription[]): MobileClusterL
   const overflow = Math.max(0, sorted.length - MAX_ICONS);
 
   const radii = shown.map((_, i) => (i === 0 ? PRIMARY_SIZE : i <= 2 ? SECONDARY_SIZE : SMALL_SIZE) / 2);
-  const placed = packCircles(radii, 16, 3);
+  const placed = packCircles(radii, 13, 2);
 
   const maxExtent = Math.max(...placed.map((p) => Math.hypot(p.x, p.y) + p.r));
   const boxSize = maxExtent * 2 + 12;

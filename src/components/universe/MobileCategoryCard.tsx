@@ -13,12 +13,12 @@ export function MobileCategoryCard({ cluster, subs }: { cluster: CategoryCluster
 
   return (
     <div
-      className="relative overflow-hidden rounded-xl border border-black/10 bg-void-950 p-2"
+      className="relative overflow-hidden rounded-xl border border-black/10 bg-void-950 p-1.5"
       style={{
         backgroundImage: `radial-gradient(120% 100% at 50% 0%, ${cluster.color}14, transparent 65%)`,
       }}
     >
-      <div className="mb-1 flex items-start gap-1">
+      <div className="mb-0.5 flex items-start gap-1">
         <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: cluster.color }} />
         <div className="min-w-0 leading-tight">
           <div className="truncate text-[11px] font-semibold text-ink-0">{cluster.name}</div>
@@ -26,10 +26,12 @@ export function MobileCategoryCard({ cluster, subs }: { cluster: CategoryCluster
         </div>
       </div>
 
-      {/* Square, purely percentage-positioned — scales correctly with the
-          card's actual rendered width (driven by the grid's column count),
-          instead of a fixed pixel box computed for one specific layout. */}
-      <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+      {/* A fixed, compact height (not driven by the card's width) — a
+          full-width square on a narrow 3-column card is needlessly tall,
+          which is what made every card way taller than the reference's
+          dense, uniform grid. Square width is derived from that height via
+          aspect-ratio and centered, comfortably narrower than the column. */}
+      <div className="relative mx-auto" style={{ height: 108, aspectRatio: "1 / 1" }}>
         {icons.map(({ subscription, x, y, size }) => (
           <button
             key={subscription.id}

@@ -2,14 +2,14 @@ import type { Subscription, UniverseNode, Vec3 } from "@/types/subscription";
 import { CATEGORY_META } from "@/data/categories";
 
 /** World-space size of the abstract universe canvas. Kept generous relative
- * to the compact packed composition (~31 world-unit radius across all 17
- * categories) — not to leave empty space at the DEFAULT zoom (that's what
- * DEFAULT_ZOOM in CameraController controls), but so the zoom-OUT ceiling
- * (computeMaxZoom) sits well above the default, leaving room to scroll out
- * and see the whole universe instead of the ceiling clamping almost
- * immediately against the default framing. */
-export const UNIVERSE_WORLD_WIDTH = 120;
-export const UNIVERSE_WORLD_HEIGHT = 110;
+ * to the packed composition's own extent — not to leave empty space at the
+ * default view (that's computeFitZoom's job, driven by the real bounds), but
+ * so the zoom-OUT ceiling (computeMaxZoom) sits well above the default,
+ * leaving room to scroll out and see the whole universe instead of the
+ * ceiling clamping almost immediately against the default framing. Wider
+ * than tall to match the row-based composition below (see packCategoryRows). */
+export const UNIVERSE_WORLD_WIDTH = 130;
+export const UNIVERSE_WORLD_HEIGHT = 78;
 
 /** Deterministic PRNG so node placement is stable across renders/sessions. */
 function mulberry32(seed: number) {
@@ -23,22 +23,13 @@ function mulberry32(seed: number) {
   };
 }
 
-const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point
-const CATEGORY_SPACING = 2.3; // base world-unit step used while walking the packing spiral — tight, so neighboring clusters sit close rather than scattered across the canvas
-const CLUSTER_MARGIN = 0.3; // minimum gap between cluster circles — small enough that atmospheres visibly overlap, still enough that icons from different categories never touch
-
-/** The categories that form the universe's primary visual mass — placed
- * first in the packing order (see buildUniverse), which puts the biggest of
- * them dead center and the rest immediately around it, so the eye lands on
- * one dense, connected core before discovering the smaller categories that
- * orbit it. */
-const CENTRAL_CATEGORIES = new Set([
-  "AI & Productivity",
-  "Entertainment",
-  "Software & Creative",
-  "Music",
-  "Video & Streaming",
-]);
+const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point, used for item-level packing within a category
+const ROW_GAP = 0.55; // gap kept between category footprints, both across a row and between rows
+// A browser viewport reads roughly this wide relative to its height — the
+// row layout below picks whatever row count makes the composition's own
+// intrinsic width:height ratio land near this, so the categories spread
+// across the screen's width instead of stacking into a tall column.
+const TARGET_ROW_ASPECT = 1.85;
 
 export interface CategoryCluster {
   name: string;
@@ -149,14 +140,93 @@ function packCircles(radii: number[], spacing: number, margin: number): PackedCi
   return placed;
 }
 
+interface RowBin<T> {
+  items: T[];
+  width: number;
+}
+
+/** Arranges category footprints into a compact, horizontally-balanced grid
+ * of rows instead of a circular spiral — a spiral spreads roughly equally in
+ * every direction, which on a wide browser viewport leaves the composition
+ * needlessly tall (lots of unused width, categories stacking from the top
+ * of the screen to the bottom). A shelf layout fixes that at the source.
+ *
+ * Row count is chosen dynamically: it tries every plausible row count and
+ * keeps whichever one makes the composition's own width:height ratio land
+ * closest to TARGET_ROW_ASPECT, so it stays balanced regardless of how many
+ * categories the catalogue has. Within that row count, categories are
+ * distributed with a longest-first greedy balance (each category goes into
+ * whichever row is currently narrowest) rather than filled row-by-row, so
+ * every row ends up a similar width instead of a sparse, lopsided last row —
+ * and each row itself is then sorted largest-to-smallest, left to right, so
+ * every category still reads by size within its row. */
+function packCategoryRows<T extends { footprint: number }>(
+  categories: T[],
+  targetAspect: number,
+  gap: number
+): RowBin<T>[] {
+  const bySize = categories.slice().sort((a, b) => b.footprint - a.footprint);
+  const maxRows = Math.max(1, Math.min(categories.length, 6));
+
+  let best: RowBin<T>[] = [{ items: bySize, width: 0 }];
+  let bestDiff = Infinity;
+
+  for (let numRows = 1; numRows <= maxRows; numRows++) {
+    const rows: RowBin<T>[] = Array.from({ length: numRows }, () => ({ items: [], width: 0 }));
+    for (const cat of bySize) {
+      const span = cat.footprint * 2 + gap;
+      const narrowest = rows.reduce((min, r) => (r.width < min.width ? r : min), rows[0]);
+      narrowest.items.push(cat);
+      narrowest.width += span;
+    }
+    const rowHeights = rows.map((r) => Math.max(...r.items.map((c) => c.footprint)) * 2 + gap);
+    const totalHeight = rowHeights.reduce((sum, h) => sum + h, 0);
+    const totalWidth = Math.max(...rows.map((r) => r.width - gap));
+    const diff = Math.abs(totalWidth / totalHeight - targetAspect);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      best = rows;
+    }
+  }
+
+  best.forEach((row) => row.items.sort((a, b) => b.footprint - a.footprint));
+  return best;
+}
+
+/** Lays out rows returned by packCategoryRows into world positions, stacked
+ * top to bottom and centered as a whole, each row itself centered
+ * horizontally so shorter rows don't hug the left edge. */
+function positionCategoryRows<T extends { category: string; footprint: number }>(
+  rows: RowBin<T>[],
+  gap: number
+): Map<string, { x: number; y: number }> {
+  const rowHeights = rows.map((r) => Math.max(...r.items.map((c) => c.footprint)) * 2 + gap);
+  const totalHeight = rowHeights.reduce((sum, h) => sum + h, 0);
+
+  const positions = new Map<string, { x: number; y: number }>();
+  let y = totalHeight / 2;
+  rows.forEach((row, i) => {
+    y -= rowHeights[i] / 2;
+    const rowWidth = row.items.reduce((sum, c) => sum + c.footprint * 2 + gap, 0) - gap;
+    let x = -rowWidth / 2;
+    row.items.forEach((c) => {
+      x += c.footprint;
+      positions.set(c.category, { x, y });
+      x += c.footprint + gap;
+    });
+    y -= rowHeights[i] / 2;
+  });
+  return positions;
+}
+
 /** Places every subscription within its category's cluster rather than by
  * any real-world geography. Within a category, items are circle-packed
  * around a shared center — the popularity-ranked hero sits dead center,
  * everything else packs outward just far enough to clear it and each other,
  * so a much bigger hero never collides with its neighbors. Category centers
- * are then circle-packed the same way at the universe scale — biggest
- * category near the middle, every category keeping its own clear territory,
- * no two constellations touching. */
+ * are then arranged into a compact, horizontally-balanced row grid (see
+ * packCategoryRows) so the whole composition spreads across the viewport's
+ * width instead of stretching from top to bottom. */
 export function buildUniverse(subs: Subscription[]): UniverseLayout {
   const rand = mulberry32(1337);
   const byCategory = new Map<string, Subscription[]>();
@@ -166,33 +236,24 @@ export function buildUniverse(subs: Subscription[]): UniverseLayout {
     byCategory.set(s.category, arr);
   });
 
-  const categoriesByCount = [...byCategory.entries()]
-    .map(([category, items]) => {
-      const sorted = items.slice().sort((a, b) => b.popularity - a.popularity);
-      const itemRadii = sorted.map((sub, i) => tierRadius(i, sub.popularity));
-      // Tight item spacing/margin — a category should read as one dense
-      // ecosystem, not a loose scatter of icons.
-      const localItems = packCircles(itemRadii, 0.72, 0.1);
-      const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 0.75;
-      return { category, items: sorted, localItems, footprint };
-    })
-    .sort((a, b) => {
-      const aCentral = CENTRAL_CATEGORIES.has(a.category) ? 1 : 0;
-      const bCentral = CENTRAL_CATEGORIES.has(b.category) ? 1 : 0;
-      return bCentral - aCentral || b.items.length - a.items.length;
-    });
+  const categoriesByCount = [...byCategory.entries()].map(([category, items]) => {
+    const sorted = items.slice().sort((a, b) => b.popularity - a.popularity);
+    const itemRadii = sorted.map((sub, i) => tierRadius(i, sub.popularity));
+    // Tight item spacing/margin — a category should read as one dense
+    // ecosystem, not a loose scatter of icons.
+    const localItems = packCircles(itemRadii, 0.72, 0.1);
+    const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 0.75;
+    return { category, items: sorted, localItems, footprint };
+  });
 
-  const packedClusters = packCircles(
-    categoriesByCount.map((c) => c.footprint),
-    CATEGORY_SPACING,
-    CLUSTER_MARGIN
-  );
+  const rows = packCategoryRows(categoriesByCount, TARGET_ROW_ASPECT, ROW_GAP);
+  const centers = positionCategoryRows(rows, ROW_GAP);
 
   const clusters: CategoryCluster[] = [];
   const nodes: UniverseNode[] = [];
 
   categoriesByCount.forEach(({ category, items, localItems, footprint }, catIndex) => {
-    const { x: centerX, y: centerY } = packedClusters[catIndex];
+    const { x: centerX, y: centerY } = centers.get(category)!;
 
     items.forEach((sub, i) => {
       const local = localItems[i];

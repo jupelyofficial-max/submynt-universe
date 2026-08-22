@@ -64,16 +64,6 @@ export function TopNav() {
           <div className="flex-1" />
         )}
 
-        {isExplore && (
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 cursor-pointer"
-            aria-label="Search subscriptions"
-          >
-            <Search size={18} />
-          </button>
-        )}
-
         {!isExplore && (
           <>
             <button

@@ -65,36 +65,31 @@ export function getLogoTexture(
   texture.needsUpdate = true;
   cache.set(sub.id, texture);
 
-  // Upgrade to the real logo once it loads — a clean near-white tile (like
-  // a real app icon), not the saturated brand-color fill the lettermark
-  // uses, so the actual logo artwork reads as the product itself rather
-  // than a colored blob with a picture floating in it. A faint brand-color
-  // wash keeps just enough identity to tint neighboring icons apart. Falls
-  // back to the lettermark already drawn if there's no saved logo for this
+  // Upgrade to the real logo once it loads — same "bare" treatment as the
+  // mobile Universe's SubscriptionLogo (bare mode): no colored tile/circle
+  // behind it at all, just the logo artwork with a drop shadow for depth.
+  // A tile silhouette was still reading as a translucent halo/bubble around
+  // every icon, especially once several overlapped — this makes the logo
+  // itself the entire visible object, exactly matching mobile. Falls back
+  // to the lettermark already drawn if there's no saved logo for this
   // subscription (or the local file somehow 404s).
   const logoPath = getLogoPath(sub.id);
   if (logoPath) {
     const img = new Image();
     img.onload = () => {
+      ctx.clearRect(0, 0, size, size);
       const cx = size / 2;
       const cy = size / 2;
-      const r = size / 2 - 16; // extra margin (vs. a tight 3-5px) so the drop shadow never clips at the canvas edge
-
-      ctx.clearRect(0, 0, size, size);
-      const tileGradient = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r);
-      tileGradient.addColorStop(0, "#ffffff");
-      tileGradient.addColorStop(1, `${sub.color}22`);
-      paintTile(ctx, cx, cy, r, tileGradient);
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.clip();
-      const inset = r * 2 * 0.11; // small margin only — the logo itself is the primary visual object, not its container
-      const target = r * 2 - inset * 2;
+      const margin = size * 0.06; // just enough that the drop shadow never clips at the canvas edge
+      const target = size - margin * 2;
       const scale = Math.min(target / img.width, target / img.height);
       const w = img.width * scale;
       const h = img.height * scale;
+
+      ctx.save();
+      ctx.shadowColor = "rgba(20,15,8,0.4)";
+      ctx.shadowBlur = size * 0.05;
+      ctx.shadowOffsetY = size * 0.018;
       ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
       ctx.restore();
       texture.needsUpdate = true;

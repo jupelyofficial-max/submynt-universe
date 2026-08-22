@@ -50,10 +50,14 @@ export function SubscriptionNode({ node, isOwned, dimmed, categoryDimmed, hasSav
       mat.opacity = THREE.MathUtils.lerp(mat.opacity, opacityTarget, 0.12);
     }
     if (glowRef.current) {
-      const glowScale = targetScale * (hovered || isOwned ? 2.7 : 2.0);
+      // Idle scale/opacity trimmed down — with categories packed this
+      // closely, every icon's own glow was overlapping its neighbors' too,
+      // compounding into the same washed-out look as the background glow.
+      // Hover/owned states stay prominent as genuine interaction feedback.
+      const glowScale = targetScale * (hovered || isOwned ? 2.4 : 1.3);
       glowRef.current.scale.set(glowScale, glowScale, 1);
       const gmat = glowRef.current.material as THREE.SpriteMaterial;
-      const targetOpacity = dimmed ? 0.03 : categoryDimmed ? 0.06 : hovered ? 0.55 : isOwned ? 0.3 : 0.13;
+      const targetOpacity = dimmed ? 0.03 : categoryDimmed ? 0.05 : hovered ? 0.5 : isOwned ? 0.28 : 0.07;
       gmat.opacity = THREE.MathUtils.lerp(gmat.opacity, targetOpacity, 0.12);
     }
     if (badgeRef.current) {

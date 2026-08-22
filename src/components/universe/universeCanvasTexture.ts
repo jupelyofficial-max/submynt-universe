@@ -46,13 +46,14 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
   const pxPerWorldUnit = TEXTURE_WIDTH / UNIVERSE_WORLD_WIDTH;
   for (const cluster of clusters) {
     const { px, py } = worldToPixel(cluster.center.x, cluster.center.y);
-    // Wide enough that neighboring clusters' atmospheres visibly overlap now
-    // that clusters themselves sit close together — the universe should
-    // read as one connected field of light, not isolated colored islands.
-    const r = cluster.radius * pxPerWorldUnit * 2.6;
+    // Kept close to each cluster's own footprint (not 2.6x it) — categories
+    // now sit much closer together than when this was tuned, and a wide
+    // radius here was stacking into a heavy wash across the whole canvas
+    // that washed out the icons sitting on top of it.
+    const r = cluster.radius * pxPerWorldUnit * 1.25;
     const gradient = ctx.createRadialGradient(px, py, 0, px, py, r);
-    gradient.addColorStop(0, hexToRgba(cluster.color, 0.14));
-    gradient.addColorStop(0.5, hexToRgba(cluster.color, 0.06));
+    gradient.addColorStop(0, hexToRgba(cluster.color, 0.08));
+    gradient.addColorStop(0.5, hexToRgba(cluster.color, 0.03));
     gradient.addColorStop(1, hexToRgba(cluster.color, 0));
     ctx.fillStyle = gradient;
     ctx.fillRect(px - r, py - r, r * 2, r * 2);

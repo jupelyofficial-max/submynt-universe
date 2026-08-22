@@ -328,18 +328,18 @@ function mkSub(raw: RawSub): Subscription {
 }
 
 const RAW: RawSub[] = [
-  // AI & Productivity
-  { name: "ChatGPT Plus", category: "AI & Productivity", priceMonthly: 1999, popularity: 96, rating: 4.7, region: "Available in India", tagline: "GPT-5 access, voice mode and advanced reasoning" },
-  { name: "Claude Pro", category: "AI & Productivity", priceMonthly: 1670, popularity: 88, rating: 4.8, region: "Available in India", tagline: "Anthropic's assistant for deep, careful work", isNew: true },
-  { name: "Gemini Advanced", category: "AI & Productivity", priceMonthly: 1950, popularity: 82, rating: 4.4, region: "Available in India", tagline: "Google's AI across Docs, Gmail and Search" },
-  { name: "Notion AI", category: "AI & Productivity", priceMonthly: 830, popularity: 74, rating: 4.5, region: "Available in India", tagline: "AI writing and Q&A inside your workspace" },
-  { name: "Perplexity Pro", category: "AI & Productivity", priceMonthly: 1670, popularity: 70, rating: 4.5, region: "Available in India" },
-  { name: "GitHub Copilot", category: "AI & Productivity", priceMonthly: 830, popularity: 79, rating: 4.6, region: "Available in India", tagline: "AI pair programmer inside your editor" },
-  { name: "Grammarly Premium", category: "AI & Productivity", priceMonthly: 1000, popularity: 68, rating: 4.3, region: "Available in India" },
-  { name: "Todoist Pro", category: "AI & Productivity", priceMonthly: 340, popularity: 45, rating: 4.4, region: "Available in India" },
-  { name: "Otter.ai Pro", category: "AI & Productivity", priceMonthly: 1400, popularity: 38, rating: 4.1, region: "Global" },
-  { name: "Microsoft Copilot Pro", category: "AI & Productivity", priceMonthly: 1700, popularity: 55, rating: 4.2, region: "Available in India" },
-  { name: "Superhuman", category: "AI & Productivity", priceMonthly: 2600, popularity: 22, rating: 4.5, region: "Global" },
+  // AI Tools
+  { name: "ChatGPT Plus", category: "AI Tools", priceMonthly: 1999, popularity: 96, rating: 4.7, region: "Available in India", tagline: "GPT-5 access, voice mode and advanced reasoning" },
+  { name: "Claude Pro", category: "AI Tools", priceMonthly: 1670, popularity: 88, rating: 4.8, region: "Available in India", tagline: "Anthropic's assistant for deep, careful work", isNew: true },
+  { name: "Gemini Advanced", category: "AI Tools", priceMonthly: 1950, popularity: 82, rating: 4.4, region: "Available in India", tagline: "Google's AI across Docs, Gmail and Search" },
+  { name: "Notion AI", category: "AI Tools", priceMonthly: 830, popularity: 74, rating: 4.5, region: "Available in India", tagline: "AI writing and Q&A inside your workspace" },
+  { name: "Perplexity Pro", category: "AI Tools", priceMonthly: 1670, popularity: 70, rating: 4.5, region: "Available in India" },
+  { name: "GitHub Copilot", category: "AI Tools", priceMonthly: 830, popularity: 79, rating: 4.6, region: "Available in India", tagline: "AI pair programmer inside your editor" },
+  { name: "Grammarly Premium", category: "AI Tools", priceMonthly: 1000, popularity: 68, rating: 4.3, region: "Available in India" },
+  { name: "Todoist Pro", category: "AI Tools", priceMonthly: 340, popularity: 45, rating: 4.4, region: "Available in India" },
+  { name: "Otter.ai Pro", category: "AI Tools", priceMonthly: 1400, popularity: 38, rating: 4.1, region: "Global" },
+  { name: "Microsoft Copilot Pro", category: "AI Tools", priceMonthly: 1700, popularity: 55, rating: 4.2, region: "Available in India" },
+  { name: "Superhuman", category: "AI Tools", priceMonthly: 2600, popularity: 22, rating: 4.5, region: "Global" },
 
   // Entertainment
   { name: "Netflix", category: "Entertainment", priceMonthly: 649, popularity: 98, rating: 4.6, region: "Available in India", tagline: "Movies, series and specials on demand" },
@@ -361,35 +361,35 @@ const RAW: RawSub[] = [
   { name: "Amazon Music Unlimited", category: "Music", priceMonthly: 129, popularity: 48, rating: 4.1, region: "Available in India" },
   { name: "Tidal", category: "Music", priceMonthly: 700, popularity: 18, rating: 4.3, region: "Global" },
 
-  // Video & Streaming
-  { name: "YouTube Premium", category: "Video & Streaming", priceMonthly: 149, popularity: 80, rating: 4.4, region: "Available in India", tagline: "Ad-free video, background play and YT Music" },
-  { name: "Apple TV+", category: "Video & Streaming", priceMonthly: 99, popularity: 40, rating: 4.4, region: "Available in India" },
-  { name: "MX Player Pro", category: "Video & Streaming", priceMonthly: 49, popularity: 20, rating: 3.6, region: "India" },
-  { name: "Discovery+", category: "Video & Streaming", priceMonthly: 299, popularity: 22, rating: 3.8, region: "Available in India" },
-  { name: "Sun NXT", category: "Video & Streaming", priceMonthly: 99, popularity: 25, rating: 3.6, region: "India" },
-  { name: "Hulu", category: "Video & Streaming", priceMonthly: 650, popularity: 15, rating: 4.1, region: "Global" },
-  { name: "Crunchyroll", category: "Video & Streaming", priceMonthly: 280, popularity: 33, rating: 4.5, region: "Available in India" },
+  // Streaming
+  { name: "YouTube Premium", category: "Streaming", priceMonthly: 149, popularity: 80, rating: 4.4, region: "Available in India", tagline: "Ad-free video, background play and YT Music" },
+  { name: "Apple TV+", category: "Streaming", priceMonthly: 99, popularity: 40, rating: 4.4, region: "Available in India" },
+  { name: "MX Player Pro", category: "Streaming", priceMonthly: 49, popularity: 20, rating: 3.6, region: "India" },
+  { name: "Discovery+", category: "Streaming", priceMonthly: 299, popularity: 22, rating: 3.8, region: "Available in India" },
+  { name: "Sun NXT", category: "Streaming", priceMonthly: 99, popularity: 25, rating: 3.6, region: "India" },
+  { name: "Hulu", category: "Streaming", priceMonthly: 650, popularity: 15, rating: 4.1, region: "Global" },
+  { name: "Crunchyroll", category: "Streaming", priceMonthly: 280, popularity: 33, rating: 4.5, region: "Available in India" },
 
-  // Cloud Storage
-  { name: "Google One", category: "Cloud Storage", priceMonthly: 130, popularity: 78, rating: 4.4, region: "Available in India", tagline: "Extra storage across Gmail, Photos and Drive" },
-  { name: "iCloud+", category: "Cloud Storage", priceMonthly: 75, popularity: 72, rating: 4.3, region: "Available in India" },
-  { name: "Dropbox Plus", category: "Cloud Storage", priceMonthly: 850, popularity: 42, rating: 4.2, region: "Available in India" },
-  { name: "Microsoft OneDrive", category: "Cloud Storage", priceMonthly: 140, popularity: 55, rating: 4.1, region: "Available in India" },
-  { name: "pCloud", category: "Cloud Storage", priceMonthly: 400, popularity: 15, rating: 4.3, region: "Global" },
-  { name: "Amazon Photos", category: "Cloud Storage", priceMonthly: 230, popularity: 20, rating: 3.9, region: "Available in India" },
-  { name: "Box", category: "Cloud Storage", priceMonthly: 950, popularity: 18, rating: 4.0, region: "Global" },
+  // Cloud
+  { name: "Google One", category: "Cloud", priceMonthly: 130, popularity: 78, rating: 4.4, region: "Available in India", tagline: "Extra storage across Gmail, Photos and Drive" },
+  { name: "iCloud+", category: "Cloud", priceMonthly: 75, popularity: 72, rating: 4.3, region: "Available in India" },
+  { name: "Dropbox Plus", category: "Cloud", priceMonthly: 850, popularity: 42, rating: 4.2, region: "Available in India" },
+  { name: "Microsoft OneDrive", category: "Cloud", priceMonthly: 140, popularity: 55, rating: 4.1, region: "Available in India" },
+  { name: "pCloud", category: "Cloud", priceMonthly: 400, popularity: 15, rating: 4.3, region: "Global" },
+  { name: "Amazon Photos", category: "Cloud", priceMonthly: 230, popularity: 20, rating: 3.9, region: "Available in India" },
+  { name: "Box", category: "Cloud", priceMonthly: 950, popularity: 18, rating: 4.0, region: "Global" },
 
-  // Software & Creative
-  { name: "Adobe Creative Cloud", category: "Software & Creative", priceMonthly: 4230, popularity: 85, rating: 4.5, region: "Available in India", tagline: "Photoshop, Premiere, Illustrator and more" },
-  { name: "Canva Pro", category: "Software & Creative", priceMonthly: 500, popularity: 88, rating: 4.6, region: "Available in India" },
-  { name: "Figma Professional", category: "Software & Creative", priceMonthly: 1000, popularity: 76, rating: 4.7, region: "Available in India" },
-  { name: "CapCut Pro", category: "Software & Creative", priceMonthly: 600, popularity: 65, rating: 4.3, region: "Available in India" },
-  { name: "Envato Elements", category: "Software & Creative", priceMonthly: 1650, popularity: 30, rating: 4.4, region: "Global" },
-  { name: "Procreate", category: "Software & Creative", priceMonthly: 0, popularity: 35, rating: 4.8, region: "Global", tagline: "One-time purchase, unlimited use" },
-  { name: "DaVinci Resolve Studio", category: "Software & Creative", priceMonthly: 0, popularity: 28, rating: 4.6, region: "Global" },
-  { name: "Sketch", category: "Software & Creative", priceMonthly: 750, popularity: 12, rating: 4.1, region: "Global" },
-  { name: "Framer", category: "Software & Creative", priceMonthly: 1250, popularity: 33, rating: 4.5, region: "Available in India", isNew: true },
-  { name: "Affinity Suite", category: "Software & Creative", priceMonthly: 0, popularity: 20, rating: 4.5, region: "Global" },
+  // Creative
+  { name: "Adobe Creative Cloud", category: "Creative", priceMonthly: 4230, popularity: 85, rating: 4.5, region: "Available in India", tagline: "Photoshop, Premiere, Illustrator and more" },
+  { name: "Canva Pro", category: "Creative", priceMonthly: 500, popularity: 88, rating: 4.6, region: "Available in India" },
+  { name: "Figma Professional", category: "Creative", priceMonthly: 1000, popularity: 76, rating: 4.7, region: "Available in India" },
+  { name: "CapCut Pro", category: "Creative", priceMonthly: 600, popularity: 65, rating: 4.3, region: "Available in India" },
+  { name: "Envato Elements", category: "Creative", priceMonthly: 1650, popularity: 30, rating: 4.4, region: "Global" },
+  { name: "Procreate", category: "Creative", priceMonthly: 0, popularity: 35, rating: 4.8, region: "Global", tagline: "One-time purchase, unlimited use" },
+  { name: "DaVinci Resolve Studio", category: "Creative", priceMonthly: 0, popularity: 28, rating: 4.6, region: "Global" },
+  { name: "Sketch", category: "Creative", priceMonthly: 750, popularity: 12, rating: 4.1, region: "Global" },
+  { name: "Framer", category: "Creative", priceMonthly: 1250, popularity: 33, rating: 4.5, region: "Available in India", isNew: true },
+  { name: "Affinity Suite", category: "Creative", priceMonthly: 0, popularity: 20, rating: 4.5, region: "Global" },
 
   // Education
   { name: "Coursera Plus", category: "Education", priceMonthly: 3500, popularity: 60, rating: 4.5, region: "Available in India", tagline: "Unlimited access to courses and certificates" },
@@ -401,24 +401,24 @@ const RAW: RawSub[] = [
   { name: "Unacademy Plus", category: "Education", priceMonthly: 900, popularity: 40, rating: 3.7, region: "India" },
   { name: "MasterClass", category: "Education", priceMonthly: 1000, popularity: 25, rating: 4.4, region: "Global" },
 
-  // Fitness & Wellness
-  { name: "Headspace", category: "Fitness & Wellness", priceMonthly: 700, popularity: 45, rating: 4.5, region: "Available in India", tagline: "Guided meditation and sleep" },
-  { name: "Calm", category: "Fitness & Wellness", priceMonthly: 750, popularity: 48, rating: 4.6, region: "Available in India" },
-  { name: "Cult.fit", category: "Fitness & Wellness", priceMonthly: 1500, popularity: 62, rating: 4.2, region: "India" },
-  { name: "MyFitnessPal Premium", category: "Fitness & Wellness", priceMonthly: 800, popularity: 40, rating: 4.1, region: "Available in India" },
-  { name: "Strava", category: "Fitness & Wellness", priceMonthly: 500, popularity: 44, rating: 4.4, region: "Available in India" },
-  { name: "Peloton App", category: "Fitness & Wellness", priceMonthly: 1000, popularity: 20, rating: 4.3, region: "Global" },
-  { name: "Fitbit Premium", category: "Fitness & Wellness", priceMonthly: 650, popularity: 22, rating: 4.0, region: "Available in India" },
-  { name: "Nike Training Club", category: "Fitness & Wellness", priceMonthly: 0, popularity: 33, rating: 4.5, region: "Global" },
+  // Wellness
+  { name: "Headspace", category: "Wellness", priceMonthly: 700, popularity: 45, rating: 4.5, region: "Available in India", tagline: "Guided meditation and sleep" },
+  { name: "Calm", category: "Wellness", priceMonthly: 750, popularity: 48, rating: 4.6, region: "Available in India" },
+  { name: "Cult.fit", category: "Wellness", priceMonthly: 1500, popularity: 62, rating: 4.2, region: "India" },
+  { name: "MyFitnessPal Premium", category: "Wellness", priceMonthly: 800, popularity: 40, rating: 4.1, region: "Available in India" },
+  { name: "Strava", category: "Wellness", priceMonthly: 500, popularity: 44, rating: 4.4, region: "Available in India" },
+  { name: "Peloton App", category: "Wellness", priceMonthly: 1000, popularity: 20, rating: 4.3, region: "Global" },
+  { name: "Fitbit Premium", category: "Wellness", priceMonthly: 650, popularity: 22, rating: 4.0, region: "Available in India" },
+  { name: "Nike Training Club", category: "Wellness", priceMonthly: 0, popularity: 33, rating: 4.5, region: "Global" },
 
-  // News & Publications
-  { name: "The New York Times", category: "News & Publications", priceMonthly: 1400, popularity: 30, rating: 4.5, region: "Global", tagline: "Independent journalism, cooking and games" },
-  { name: "The Economist", category: "News & Publications", priceMonthly: 1600, popularity: 24, rating: 4.6, region: "Global" },
-  { name: "Wall Street Journal", category: "News & Publications", priceMonthly: 1500, popularity: 18, rating: 4.4, region: "Global" },
-  { name: "Times Prime", category: "News & Publications", priceMonthly: 165, popularity: 35, rating: 3.9, region: "India" },
-  { name: "Medium Membership", category: "News & Publications", priceMonthly: 420, popularity: 32, rating: 4.1, region: "Global" },
-  { name: "Substack Pro", category: "News & Publications", priceMonthly: 0, popularity: 20, rating: 4.2, region: "Global" },
-  { name: "The Ken", category: "News & Publications", priceMonthly: 500, popularity: 15, rating: 4.3, region: "India" },
+  // News
+  { name: "The New York Times", category: "News", priceMonthly: 1400, popularity: 30, rating: 4.5, region: "Global", tagline: "Independent journalism, cooking and games" },
+  { name: "The Economist", category: "News", priceMonthly: 1600, popularity: 24, rating: 4.6, region: "Global" },
+  { name: "Wall Street Journal", category: "News", priceMonthly: 1500, popularity: 18, rating: 4.4, region: "Global" },
+  { name: "Times Prime", category: "News", priceMonthly: 165, popularity: 35, rating: 3.9, region: "India" },
+  { name: "Medium Membership", category: "News", priceMonthly: 420, popularity: 32, rating: 4.1, region: "Global" },
+  { name: "Substack Pro", category: "News", priceMonthly: 0, popularity: 20, rating: 4.2, region: "Global" },
+  { name: "The Ken", category: "News", priceMonthly: 500, popularity: 15, rating: 4.3, region: "India" },
 
   // Gaming
   { name: "PlayStation Plus", category: "Gaming", priceMonthly: 500, popularity: 55, rating: 4.4, region: "Available in India", tagline: "Online play, monthly games and cloud saves" },
@@ -436,24 +436,24 @@ const RAW: RawSub[] = [
   { name: "smallcase Premium", category: "Finance", priceMonthly: 250, popularity: 16, rating: 3.9, region: "India" },
   { name: "Value Research Premium", category: "Finance", priceMonthly: 300, popularity: 12, rating: 4.1, region: "India" },
 
-  // Shopping & Memberships
-  { name: "Amazon Prime", category: "Shopping & Memberships", priceMonthly: 300, popularity: 94, rating: 4.5, region: "Available in India", tagline: "Fast delivery, video and music bundled in" },
-  { name: "Flipkart VIP", category: "Shopping & Memberships", priceMonthly: 80, popularity: 50, rating: 4.0, region: "India" },
-  { name: "Myntra Insider", category: "Shopping & Memberships", priceMonthly: 0, popularity: 45, rating: 4.1, region: "India" },
-  { name: "Swiggy One", category: "Shopping & Memberships", priceMonthly: 150, popularity: 68, rating: 4.2, region: "India" },
-  { name: "Zomato Gold", category: "Shopping & Memberships", priceMonthly: 150, popularity: 65, rating: 4.1, region: "India" },
-  { name: "BigBasket BB Star", category: "Shopping & Memberships", priceMonthly: 60, popularity: 30, rating: 3.9, region: "India" },
-  { name: "Tata Neu", category: "Shopping & Memberships", priceMonthly: 0, popularity: 35, rating: 3.8, region: "India" },
+  // Shopping
+  { name: "Amazon Prime", category: "Shopping", priceMonthly: 300, popularity: 94, rating: 4.5, region: "Available in India", tagline: "Fast delivery, video and music bundled in" },
+  { name: "Flipkart VIP", category: "Shopping", priceMonthly: 80, popularity: 50, rating: 4.0, region: "India" },
+  { name: "Myntra Insider", category: "Shopping", priceMonthly: 0, popularity: 45, rating: 4.1, region: "India" },
+  { name: "Swiggy One", category: "Shopping", priceMonthly: 150, popularity: 68, rating: 4.2, region: "India" },
+  { name: "Zomato Gold", category: "Shopping", priceMonthly: 150, popularity: 65, rating: 4.1, region: "India" },
+  { name: "BigBasket BB Star", category: "Shopping", priceMonthly: 60, popularity: 30, rating: 3.9, region: "India" },
+  { name: "Tata Neu", category: "Shopping", priceMonthly: 0, popularity: 35, rating: 3.8, region: "India" },
 
-  // Professional & Business
-  { name: "Microsoft 365", category: "Professional & Business", priceMonthly: 580, popularity: 80, rating: 4.5, region: "Available in India", tagline: "Word, Excel, Teams and cloud storage" },
-  { name: "Google Workspace", category: "Professional & Business", priceMonthly: 630, popularity: 70, rating: 4.5, region: "Available in India" },
-  { name: "Zoom Pro", category: "Professional & Business", priceMonthly: 1400, popularity: 60, rating: 4.3, region: "Available in India" },
-  { name: "Slack Pro", category: "Professional & Business", priceMonthly: 600, popularity: 50, rating: 4.4, region: "Available in India" },
-  { name: "Asana Premium", category: "Professional & Business", priceMonthly: 1000, popularity: 32, rating: 4.3, region: "Available in India" },
-  { name: "Monday.com", category: "Professional & Business", priceMonthly: 900, popularity: 35, rating: 4.4, region: "Available in India" },
-  { name: "Trello Premium", category: "Professional & Business", priceMonthly: 500, popularity: 30, rating: 4.2, region: "Available in India" },
-  { name: "HubSpot Starter", category: "Professional & Business", priceMonthly: 1700, popularity: 20, rating: 4.1, region: "Available in India" },
+  // Business
+  { name: "Microsoft 365", category: "Business", priceMonthly: 580, popularity: 80, rating: 4.5, region: "Available in India", tagline: "Word, Excel, Teams and cloud storage" },
+  { name: "Google Workspace", category: "Business", priceMonthly: 630, popularity: 70, rating: 4.5, region: "Available in India" },
+  { name: "Zoom Pro", category: "Business", priceMonthly: 1400, popularity: 60, rating: 4.3, region: "Available in India" },
+  { name: "Slack Pro", category: "Business", priceMonthly: 600, popularity: 50, rating: 4.4, region: "Available in India" },
+  { name: "Asana Premium", category: "Business", priceMonthly: 1000, popularity: 32, rating: 4.3, region: "Available in India" },
+  { name: "Monday.com", category: "Business", priceMonthly: 900, popularity: 35, rating: 4.4, region: "Available in India" },
+  { name: "Trello Premium", category: "Business", priceMonthly: 500, popularity: 30, rating: 4.2, region: "Available in India" },
+  { name: "HubSpot Starter", category: "Business", priceMonthly: 1700, popularity: 20, rating: 4.1, region: "Available in India" },
 
   // Communication
   { name: "Discord Nitro", category: "Communication", priceMonthly: 420, popularity: 46, rating: 4.4, region: "Available in India", tagline: "Boosted servers, better video and emoji" },
@@ -470,21 +470,21 @@ const RAW: RawSub[] = [
   { name: "EaseMyTrip Prime", category: "Travel", priceMonthly: 99, popularity: 12, rating: 3.6, region: "India" },
   { name: "Yatra SmartClub", category: "Travel", priceMonthly: 0, popularity: 10, rating: 3.5, region: "India" },
 
-  // Utilities
-  { name: "NordVPN", category: "Utilities", priceMonthly: 350, popularity: 55, rating: 4.4, region: "Available in India", tagline: "Private, encrypted browsing anywhere" },
-  { name: "ExpressVPN", category: "Utilities", priceMonthly: 700, popularity: 48, rating: 4.4, region: "Available in India" },
-  { name: "1Password", category: "Utilities", priceMonthly: 250, popularity: 42, rating: 4.6, region: "Available in India" },
-  { name: "LastPass Premium", category: "Utilities", priceMonthly: 250, popularity: 20, rating: 4.0, region: "Available in India" },
-  { name: "Norton 360", category: "Utilities", priceMonthly: 450, popularity: 25, rating: 4.1, region: "Available in India" },
-  { name: "McAfee Total Protection", category: "Utilities", priceMonthly: 400, popularity: 22, rating: 3.9, region: "Available in India" },
+  // Security
+  { name: "NordVPN", category: "Security", priceMonthly: 350, popularity: 55, rating: 4.4, region: "Available in India", tagline: "Private, encrypted browsing anywhere" },
+  { name: "ExpressVPN", category: "Security", priceMonthly: 700, popularity: 48, rating: 4.4, region: "Available in India" },
+  { name: "1Password", category: "Security", priceMonthly: 250, popularity: 42, rating: 4.6, region: "Available in India" },
+  { name: "LastPass Premium", category: "Security", priceMonthly: 250, popularity: 20, rating: 4.0, region: "Available in India" },
+  { name: "Norton 360", category: "Security", priceMonthly: 450, popularity: 25, rating: 4.1, region: "Available in India" },
+  { name: "McAfee Total Protection", category: "Security", priceMonthly: 400, popularity: 22, rating: 3.9, region: "Available in India" },
 
-  // Other
-  { name: "Audible", category: "Other", priceMonthly: 199, popularity: 50, rating: 4.5, region: "Available in India", tagline: "Audiobooks and Originals, one credit a month" },
-  { name: "Kindle Unlimited", category: "Other", priceMonthly: 169, popularity: 40, rating: 4.3, region: "Available in India" },
-  { name: "Storytel", category: "Other", priceMonthly: 299, popularity: 18, rating: 4.1, region: "Available in India" },
-  { name: "Blinkist", category: "Other", priceMonthly: 700, popularity: 15, rating: 4.0, region: "Global" },
-  { name: "Scribd", category: "Other", priceMonthly: 800, popularity: 12, rating: 4.0, region: "Global" },
-  { name: "Patreon Membership", category: "Other", priceMonthly: 500, popularity: 20, rating: 4.2, region: "Global" },
+  // Reading
+  { name: "Audible", category: "Reading", priceMonthly: 199, popularity: 50, rating: 4.5, region: "Available in India", tagline: "Audiobooks and Originals, one credit a month" },
+  { name: "Kindle Unlimited", category: "Reading", priceMonthly: 169, popularity: 40, rating: 4.3, region: "Available in India" },
+  { name: "Storytel", category: "Reading", priceMonthly: 299, popularity: 18, rating: 4.1, region: "Available in India" },
+  { name: "Blinkist", category: "Reading", priceMonthly: 700, popularity: 15, rating: 4.0, region: "Global" },
+  { name: "Scribd", category: "Reading", priceMonthly: 800, popularity: 12, rating: 4.0, region: "Global" },
+  { name: "Patreon Membership", category: "Reading", priceMonthly: 500, popularity: 20, rating: 4.2, region: "Global" },
 ];
 
 export const SUBSCRIPTIONS: Subscription[] = RAW.map(mkSub);

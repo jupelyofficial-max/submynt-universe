@@ -7,23 +7,23 @@ export type BillingCycle =
   | "free";
 
 export type Category =
-  | "AI & Productivity"
+  | "AI Tools"
   | "Entertainment"
   | "Music"
-  | "Video & Streaming"
-  | "Cloud Storage"
-  | "Software & Creative"
+  | "Streaming"
+  | "Cloud"
+  | "Creative"
   | "Education"
-  | "Fitness & Wellness"
-  | "News & Publications"
+  | "Wellness"
+  | "News"
   | "Gaming"
   | "Finance"
-  | "Shopping & Memberships"
-  | "Professional & Business"
+  | "Shopping"
+  | "Business"
   | "Communication"
   | "Travel"
-  | "Utilities"
-  | "Other";
+  | "Security"
+  | "Reading";
 
 export type Region = "India" | "Global" | "Available in India";
 

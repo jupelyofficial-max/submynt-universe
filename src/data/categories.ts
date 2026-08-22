@@ -1,23 +1,23 @@
 import type { BillingCycle, Category, Region, SortOption } from "@/types/subscription";
 
 export const CATEGORY_META: Record<Category, { blurb: string; color: string }> = {
-  "AI & Productivity": { blurb: "Assistants and tools that think alongside you", color: "#5B84E0" },
+  "AI Tools": { blurb: "Assistants and tools that think alongside you", color: "#5B84E0" },
   Entertainment: { blurb: "Films, series and shows on demand", color: "#E0566E" },
   Music: { blurb: "Streaming sound, everywhere you go", color: "#4AACD6" },
-  "Video & Streaming": { blurb: "Long-form video beyond entertainment", color: "#C97A46" },
-  "Cloud Storage": { blurb: "Your files, synced across every device", color: "#46C08A" },
-  "Software & Creative": { blurb: "Design, edit and build professionally", color: "#3FB0B0" },
+  Streaming: { blurb: "Long-form video beyond entertainment", color: "#C97A46" },
+  Cloud: { blurb: "Your files, synced across every device", color: "#46C08A" },
+  Creative: { blurb: "Design, edit and build professionally", color: "#3FB0B0" },
   Education: { blurb: "Courses, languages and lifelong learning", color: "#5B9BD9" },
-  "Fitness & Wellness": { blurb: "Movement, mindfulness and recovery", color: "#3DAE7A" },
-  "News & Publications": { blurb: "Journalism and long-form writing", color: "#C24F45" },
+  Wellness: { blurb: "Movement, mindfulness and recovery", color: "#3DAE7A" },
+  News: { blurb: "Journalism and long-form writing", color: "#C24F45" },
   Gaming: { blurb: "Play libraries and cloud gaming", color: "#6B84A8" },
   Finance: { blurb: "Investing, credit and money tools", color: "#D2A83E" },
-  "Shopping & Memberships": { blurb: "Delivery, retail and loyalty perks", color: "#DD7A48" },
-  "Professional & Business": { blurb: "Work, collaboration and operations", color: "#4A82B8" },
+  Shopping: { blurb: "Delivery, retail and loyalty perks", color: "#DD7A48" },
+  Business: { blurb: "Work, collaboration and operations", color: "#4A82B8" },
   Communication: { blurb: "Calls, chat and team messaging", color: "#C07B93" },
   Travel: { blurb: "Rides, stays and trip planning", color: "#D9668F" },
-  Utilities: { blurb: "Security, privacy and everyday tools", color: "#8B94A3" },
-  Other: { blurb: "Reading, audio and everything else", color: "#A99C87" },
+  Security: { blurb: "Privacy and everyday protection", color: "#8B94A3" },
+  Reading: { blurb: "Audiobooks, ebooks and long-form writing", color: "#A99C87" },
 };
 
 export const CATEGORIES = Object.keys(CATEGORY_META) as Category[];

@@ -79,7 +79,7 @@ export function MobileUniverse() {
           <p className="text-xs text-ink-500">Try a different search term or clear your filters.</p>
         </div>
       ) : (
-        <div className="relative grid grid-cols-2 gap-2.5 p-3">
+        <div className="relative grid grid-cols-3 gap-1.5 p-2">
           {ordered.map((cluster) => (
             <div key={cluster.name} ref={(el) => { if (el) cardRefs.current.set(cluster.name, el); }}>
               <MobileCategoryCard cluster={cluster} subs={byCategory.get(cluster.name) ?? []} />

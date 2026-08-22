@@ -23,8 +23,17 @@ const CAMERA_FOV_DEG = 45;
 // depth so "fit the content" isn't measured from the wrong plane.
 const CONTENT_Z = 2;
 // Breathing room around the packed composition so no cluster sits flush
-// against the viewport edge.
-const FIT_PADDING = 1.18;
+// against the viewport edge — kept tight (8%, not the old 18%) so the
+// default view actually fills the viewport instead of floating in a
+// visible margin of empty canvas.
+const FIT_PADDING = 1.08;
+// The default/auto-fit framing looks slightly right of the composition's
+// true horizontal center, which shifts everything left on screen — giving
+// the right column of categories clearance from the fixed LiveInsights
+// panel (top-right) instead of landing right underneath it. Only applied to
+// automatic framing (mount/resize/reset); a deliberate focus-node/focus-mine
+// command still centers on the real target, unbiased.
+const DEFAULT_X_BIAS = 2.2;
 
 /** Zoom (camera z) at which the abstract canvas plane exactly covers the
  * viewport — like CSS `background-size: cover` — for the given aspect
@@ -85,7 +94,7 @@ export function CameraController({ nodes, ownedIds, bounds }: Props) {
   const initialFitZoom = computeFitZoom(bounds, size.width, size.height);
   const maxZoom = useRef(computeMaxZoom(size.width, size.height));
   const fitZoom = useRef(initialFitZoom);
-  const desired = useRef({ x: bounds.centerX, y: bounds.centerY, zoom: initialFitZoom });
+  const desired = useRef({ x: bounds.centerX + DEFAULT_X_BIAS, y: bounds.centerY, zoom: initialFitZoom });
   // Once the visitor drags/zooms/issues a camera command, a resize should no
   // longer yank their view back to the fitted default — it should just keep
   // the pan/zoom bounds in step with the new viewport. "Reset universe"
@@ -103,7 +112,7 @@ export function CameraController({ nodes, ownedIds, bounds }: Props) {
     // the camera yet, keep the default framing exactly fitted to the current
     // viewport (covers both the very first mount and later window resizes).
     if (!hasInteracted.current) {
-      desired.current = { x: bounds.centerX, y: bounds.centerY, zoom: fitZoom.current };
+      desired.current = { x: bounds.centerX + DEFAULT_X_BIAS, y: bounds.centerY, zoom: fitZoom.current };
     }
   }, [size.width, size.height, bounds]);
 
@@ -216,7 +225,7 @@ export function CameraController({ nodes, ownedIds, bounds }: Props) {
         // Clears hasInteracted too, so a later window resize re-fits again
         // instead of leaving the camera pinned to this reset position.
         hasInteracted.current = false;
-        desired.current = { x: bounds.centerX, y: bounds.centerY, zoom: fitZoom.current };
+        desired.current = { x: bounds.centerX + DEFAULT_X_BIAS, y: bounds.centerY, zoom: fitZoom.current };
         break;
       case "focus-node": {
         hasInteracted.current = true;
@@ -248,7 +257,7 @@ export function CameraController({ nodes, ownedIds, bounds }: Props) {
   useFrame((_, delta) => {
     if (discoverMode && !dragging.current) {
       idleT.current += delta * 0.045;
-      desired.current.x = bounds.centerX + Math.sin(idleT.current) * 6;
+      desired.current.x = bounds.centerX + DEFAULT_X_BIAS + Math.sin(idleT.current) * 6;
       desired.current.y = bounds.centerY + Math.cos(idleT.current * 0.7) * 4;
     }
     const clamped = clampPanToCanvas(desired.current.x, desired.current.y, desired.current.zoom, size.width / size.height);

@@ -15,8 +15,9 @@ export function CategoryLabels({ clusters }: { clusters: CategoryCluster[] }) {
           key={cluster.name}
           // Anchored right at the cluster's top edge — close enough that the
           // label visually belongs to its own icons, never floating loose in
-          // open space toward a neighboring cluster.
-          position={[cluster.center.x, cluster.center.y + cluster.radius + 0.4, 3]}
+          // open space toward a neighboring cluster. Offset kept proportional
+          // to ROW_GAP so it stays clear of the row above as that gap tightens.
+          position={[cluster.center.x, cluster.center.y + cluster.radius + 0.3, 3]}
           center
           distanceFactor={34}
           zIndexRange={[3, 0]}

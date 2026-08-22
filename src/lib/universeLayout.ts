@@ -24,7 +24,7 @@ function mulberry32(seed: number) {
 }
 
 const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point, used for item-level packing within a category
-const ROW_GAP = 0.55; // gap kept between category footprints, both across a row and between rows
+const ROW_GAP = 0.42; // gap kept between category footprints, both across a row and between rows
 // A browser viewport reads roughly this wide relative to its height — the
 // row layout below picks whatever row count makes the composition's own
 // intrinsic width:height ratio land near this, so the categories spread
@@ -51,11 +51,18 @@ export interface UniverseBounds {
   height: number;
 }
 
+// CategoryLabels sits this far above each cluster's own icon footprint
+// (0.3 offset + the label text block's own height) — computeUniverseBounds
+// has to reserve this on the top edge too, or a tight FIT_PADDING has no
+// slack left to absorb it and the top row's labels clip against the header.
+const LABEL_RESERVE = 1.4;
+
 /** Bounding box of the whole packed composition — the union of every
- * category cluster's circle (center ± its own radius). Used to fit the
- * camera to the actual content instead of a fixed zoom constant, so the
- * default view always shows the complete universe regardless of how many
- * categories/subscriptions the catalogue ends up with. */
+ * category cluster's circle (center ± its own radius, plus LABEL_RESERVE on
+ * top for the floating category label). Used to fit the camera to the
+ * actual content instead of a fixed zoom constant, so the default view
+ * always shows the complete universe — including every label — regardless
+ * of how many categories/subscriptions the catalogue ends up with. */
 export function computeUniverseBounds(clusters: CategoryCluster[]): UniverseBounds {
   if (clusters.length === 0) return { centerX: 0, centerY: 0, width: 1, height: 1 };
   let minX = Infinity;
@@ -66,7 +73,7 @@ export function computeUniverseBounds(clusters: CategoryCluster[]): UniverseBoun
     minX = Math.min(minX, c.center.x - c.radius);
     maxX = Math.max(maxX, c.center.x + c.radius);
     minY = Math.min(minY, c.center.y - c.radius);
-    maxY = Math.max(maxY, c.center.y + c.radius);
+    maxY = Math.max(maxY, c.center.y + c.radius + LABEL_RESERVE);
   }
   return {
     centerX: (minX + maxX) / 2,
@@ -240,9 +247,11 @@ export function buildUniverse(subs: Subscription[]): UniverseLayout {
     const sorted = items.slice().sort((a, b) => b.popularity - a.popularity);
     const itemRadii = sorted.map((sub, i) => tierRadius(i, sub.popularity));
     // Tight item spacing/margin — a category should read as one dense
-    // ecosystem, not a loose scatter of icons.
-    const localItems = packCircles(itemRadii, 0.72, 0.1);
-    const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 0.75;
+    // ecosystem, not a loose scatter of icons. Margin (0.18, not tighter)
+    // verified against real render sizes with an exhaustive pairwise check —
+    // anything looser than this risks two icons visibly touching.
+    const localItems = packCircles(itemRadii, 0.68, 0.18);
+    const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 0.5;
     return { category, items: sorted, localItems, footprint };
   });
 

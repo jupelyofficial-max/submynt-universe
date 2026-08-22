@@ -56,14 +56,30 @@ export interface UniverseLayout {
 /** Rank-based icon-size tiers within a category — a hero, a handful of
  * "important" services, a supporting tier, then long-tail — so a category
  * reads as a gravitational center with major services anchoring it, rather
- * than a field of same-sized bubbles. The gap between tiers is deliberately
- * moderate (~2.3x hero-to-smallest): the category itself should read as the
- * hero, not any single logo inside it. Popularity only nudges size within a
- * tier, it never moves an item between tiers. */
+ * than a field of same-sized bubbles. This is the LAYOUT radius: it drives
+ * spacing/packing/composition only, and is deliberately left unchanged by
+ * icon-only visual passes (see renderTierRadius below) so retuning how big
+ * icons look on screen never reflows category positions. */
 function tierRadius(rankInCategory: number, popularity: number): number {
   const base =
     rankInCategory === 0 ? 0.98 : rankInCategory <= 2 ? 0.74 : rankInCategory <= 5 ? 0.56 : 0.42;
   return base * (0.94 + (popularity / 100) * 0.12);
+}
+
+/** The RENDER radius — what actually determines each sprite's on-screen
+ * size (see SubscriptionNode's baseScale) — kept separate from the layout
+ * radius above so shrinking/growing icons is a purely visual change with
+ * zero effect on cluster composition. Calibrated against the default camera
+ * framing (DEFAULT_ZOOM in CameraController) to land each tier's rendered
+ * diameter near a target on-screen size: hero ≈66px, important ≈51px,
+ * supporting ≈36px, long-tail ≈28px — so even the busiest category's hero
+ * (e.g. Netflix, YouTube) reads as prominent without dominating the frame.
+ * Popularity only nudges size within a tier, it never moves an item between
+ * tiers. */
+function renderTierRadius(rankInCategory: number, popularity: number): number {
+  const base =
+    rankInCategory === 0 ? 0.83 : rankInCategory <= 2 ? 0.64 : rankInCategory <= 5 ? 0.45 : 0.35;
+  return base * (0.95 + (popularity / 100) * 0.1);
 }
 
 interface PackedCircle {
@@ -154,7 +170,7 @@ export function buildUniverse(subs: Subscription[]): UniverseLayout {
       nodes.push({
         subscription: sub,
         position: { x: centerX + local.x, y: centerY + local.y, z },
-        radius: local.r,
+        radius: renderTierRadius(i, sub.popularity),
         cluster: catIndex,
       });
     });

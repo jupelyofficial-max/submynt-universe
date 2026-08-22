@@ -14,9 +14,11 @@ export const MIN_ZOOM = 20;
 // beyond the map plane's edges, but this bounds it in case that computation
 // ever produces something unreasonable.
 export const MAX_ZOOM = 130;
-// Close, dense framing by default — the subscriptions are the hero, not the
-// whole world map. Users can still scroll out to computeMaxZoom's ceiling.
-export const DEFAULT_ZOOM = 34;
+// Framed to fill the viewport with the primary central-category mass (the
+// five core categories packed near the origin), not just a single cluster —
+// the compact v2 layout is dense enough that this default already shows a
+// rich composition. Users can still scroll out to computeMaxZoom's ceiling.
+export const DEFAULT_ZOOM = 46;
 
 // Must match UniverseCanvasBackground's mesh position and UniverseScene's camera fov.
 const CANVAS_PLANE_Z = -18;
@@ -223,8 +225,8 @@ export function CameraController({ nodes, ownedIds }: Props) {
   useFrame((_, delta) => {
     if (discoverMode && !dragging.current) {
       idleT.current += delta * 0.045;
-      desired.current.x = defaultFocus.x + Math.sin(idleT.current) * 9;
-      desired.current.y = defaultFocus.y + Math.cos(idleT.current * 0.7) * 6;
+      desired.current.x = defaultFocus.x + Math.sin(idleT.current) * 6;
+      desired.current.y = defaultFocus.y + Math.cos(idleT.current * 0.7) * 4;
     }
     const clamped = clampPanToCanvas(desired.current.x, desired.current.y, desired.current.zoom, size.width / size.height);
     desired.current.x = clamped.x;

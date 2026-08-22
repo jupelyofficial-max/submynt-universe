@@ -1,9 +1,13 @@
 import type { Subscription, UniverseNode, Vec3 } from "@/types/subscription";
 import { CATEGORY_META } from "@/data/categories";
 
-/** World-space size of the abstract universe canvas — generous enough to
- * hold every category cluster (see buildUniverse) with margin, at whatever
- * aspect the camera ends up needing to cover. */
+/** World-space size of the abstract universe canvas. Kept generous relative
+ * to the compact packed composition (~31 world-unit radius across all 17
+ * categories) — not to leave empty space at the DEFAULT zoom (that's what
+ * DEFAULT_ZOOM in CameraController controls), but so the zoom-OUT ceiling
+ * (computeMaxZoom) sits well above the default, leaving room to scroll out
+ * and see the whole universe instead of the ceiling clamping almost
+ * immediately against the default framing. */
 export const UNIVERSE_WORLD_WIDTH = 120;
 export const UNIVERSE_WORLD_HEIGHT = 110;
 
@@ -20,8 +24,21 @@ function mulberry32(seed: number) {
 }
 
 const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point
-const CATEGORY_SPACING = 6; // base world-unit step used while walking the packing spiral
-const CLUSTER_MARGIN = 2.2; // minimum gap kept between any two cluster circles
+const CATEGORY_SPACING = 3.2; // base world-unit step used while walking the packing spiral — tight, so neighboring clusters sit close rather than scattered across the canvas
+const CLUSTER_MARGIN = 0.5; // minimum gap between cluster circles — small enough that atmospheres visibly overlap, still enough that icons from different categories never touch
+
+/** The categories that form the universe's primary visual mass — placed
+ * first in the packing order (see buildUniverse), which puts the biggest of
+ * them dead center and the rest immediately around it, so the eye lands on
+ * one dense, connected core before discovering the smaller categories that
+ * orbit it. */
+const CENTRAL_CATEGORIES = new Set([
+  "AI & Productivity",
+  "Entertainment",
+  "Software & Creative",
+  "Music",
+  "Video & Streaming",
+]);
 
 export interface CategoryCluster {
   name: string;
@@ -39,12 +56,14 @@ export interface UniverseLayout {
 /** Rank-based icon-size tiers within a category — a hero, a handful of
  * "important" services, a supporting tier, then long-tail — so a category
  * reads as a gravitational center with major services anchoring it, rather
- * than a field of same-sized bubbles. Popularity only nudges size within a
+ * than a field of same-sized bubbles. The gap between tiers is deliberately
+ * moderate (~2.3x hero-to-smallest): the category itself should read as the
+ * hero, not any single logo inside it. Popularity only nudges size within a
  * tier, it never moves an item between tiers. */
 function tierRadius(rankInCategory: number, popularity: number): number {
   const base =
-    rankInCategory === 0 ? 1.4 : rankInCategory <= 2 ? 0.84 : rankInCategory <= 5 ? 0.58 : 0.42;
-  return base * (0.92 + (popularity / 100) * 0.16);
+    rankInCategory === 0 ? 0.98 : rankInCategory <= 2 ? 0.74 : rankInCategory <= 5 ? 0.56 : 0.42;
+  return base * (0.94 + (popularity / 100) * 0.12);
 }
 
 interface PackedCircle {
@@ -105,11 +124,17 @@ export function buildUniverse(subs: Subscription[]): UniverseLayout {
     .map(([category, items]) => {
       const sorted = items.slice().sort((a, b) => b.popularity - a.popularity);
       const itemRadii = sorted.map((sub, i) => tierRadius(i, sub.popularity));
-      const localItems = packCircles(itemRadii, 1.15, 0.28);
-      const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 1.6;
+      // Tight item spacing/margin — a category should read as one dense
+      // ecosystem, not a loose scatter of icons.
+      const localItems = packCircles(itemRadii, 0.95, 0.16);
+      const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 1;
       return { category, items: sorted, localItems, footprint };
     })
-    .sort((a, b) => b.items.length - a.items.length);
+    .sort((a, b) => {
+      const aCentral = CENTRAL_CATEGORIES.has(a.category) ? 1 : 0;
+      const bCentral = CENTRAL_CATEGORIES.has(b.category) ? 1 : 0;
+      return bCentral - aCentral || b.items.length - a.items.length;
+    });
 
   const packedClusters = packCircles(
     categoriesByCount.map((c) => c.footprint),

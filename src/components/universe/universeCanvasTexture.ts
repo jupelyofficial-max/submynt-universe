@@ -46,16 +46,21 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
   const pxPerWorldUnit = TEXTURE_WIDTH / UNIVERSE_WORLD_WIDTH;
   for (const cluster of clusters) {
     const { px, py } = worldToPixel(cluster.center.x, cluster.center.y);
-    const r = cluster.radius * pxPerWorldUnit * 2.1;
+    // Wide enough that neighboring clusters' atmospheres visibly overlap now
+    // that clusters themselves sit close together — the universe should
+    // read as one connected field of light, not isolated colored islands.
+    const r = cluster.radius * pxPerWorldUnit * 2.6;
     const gradient = ctx.createRadialGradient(px, py, 0, px, py, r);
-    gradient.addColorStop(0, hexToRgba(cluster.color, 0.16));
-    gradient.addColorStop(0.5, hexToRgba(cluster.color, 0.07));
+    gradient.addColorStop(0, hexToRgba(cluster.color, 0.14));
+    gradient.addColorStop(0.5, hexToRgba(cluster.color, 0.06));
     gradient.addColorStop(1, hexToRgba(cluster.color, 0));
     ctx.fillStyle = gradient;
     ctx.fillRect(px - r, py - r, r * 2, r * 2);
 
+    // Orbit rings/spokes — felt more than seen (opacity kept in the 0.04–0.09
+    // range) so they read as atmosphere, never as a radar/technical overlay.
     const orbitR = cluster.radius * pxPerWorldUnit;
-    ctx.strokeStyle = hexToRgba(cluster.color, 0.14);
+    ctx.strokeStyle = hexToRgba(cluster.color, 0.08);
     ctx.lineWidth = 1;
     for (const frac of [0.52, 0.9]) {
       ctx.beginPath();
@@ -63,7 +68,7 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
       ctx.stroke();
     }
 
-    ctx.strokeStyle = hexToRgba(cluster.color, 0.08);
+    ctx.strokeStyle = hexToRgba(cluster.color, 0.045);
     for (let s = 0; s < 6; s++) {
       const spokeAngle = (s / 6) * Math.PI * 2;
       ctx.beginPath();
@@ -88,6 +93,24 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
     ctx.moveTo(0, y);
     ctx.lineTo(TEXTURE_WIDTH, y);
     ctx.stroke();
+  }
+
+  // A light scatter of tiny particles across the whole canvas — deterministic
+  // (fixed seed), extremely faint — just enough ambient texture that the
+  // background reads as "space" rather than a flat fill.
+  let seed = 42;
+  function rand() {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    return seed / 0x7fffffff;
+  }
+  ctx.fillStyle = "rgba(28,21,13,0.05)";
+  for (let i = 0; i < 260; i++) {
+    const x = rand() * TEXTURE_WIDTH;
+    const y = rand() * TEXTURE_HEIGHT;
+    const rad = 0.6 + rand() * 1.4;
+    ctx.beginPath();
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   const cx = TEXTURE_WIDTH / 2;

@@ -13,9 +13,10 @@ export function CategoryLabels({ clusters }: { clusters: CategoryCluster[] }) {
       {clusters.map((cluster) => (
         <Html
           key={cluster.name}
-          // Anchored just above the cluster's top edge so it never sits over
-          // the icons themselves, however the constellation is packed.
-          position={[cluster.center.x, cluster.center.y + cluster.radius + 1, 3]}
+          // Anchored right at the cluster's top edge — close enough that the
+          // label visually belongs to its own icons, never floating loose in
+          // open space toward a neighboring cluster.
+          position={[cluster.center.x, cluster.center.y + cluster.radius + 0.4, 3]}
           center
           distanceFactor={34}
           zIndexRange={[3, 0]}

@@ -16,9 +16,9 @@ export const MIN_ZOOM = 20;
 export const MAX_ZOOM = 130;
 // Framed to fill the viewport with the primary central-category mass (the
 // five core categories packed near the origin), not just a single cluster —
-// the compact v2 layout is dense enough that this default already shows a
+// the compact v3 layout is dense enough that this default already shows a
 // rich composition. Users can still scroll out to computeMaxZoom's ceiling.
-export const DEFAULT_ZOOM = 46;
+export const DEFAULT_ZOOM = 39;
 
 // Must match UniverseCanvasBackground's mesh position and UniverseScene's camera fov.
 const CANVAS_PLANE_Z = -18;

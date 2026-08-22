@@ -24,8 +24,8 @@ function mulberry32(seed: number) {
 }
 
 const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point
-const CATEGORY_SPACING = 3.2; // base world-unit step used while walking the packing spiral — tight, so neighboring clusters sit close rather than scattered across the canvas
-const CLUSTER_MARGIN = 0.5; // minimum gap between cluster circles — small enough that atmospheres visibly overlap, still enough that icons from different categories never touch
+const CATEGORY_SPACING = 2.3; // base world-unit step used while walking the packing spiral — tight, so neighboring clusters sit close rather than scattered across the canvas
+const CLUSTER_MARGIN = 0.3; // minimum gap between cluster circles — small enough that atmospheres visibly overlap, still enough that icons from different categories never touch
 
 /** The categories that form the universe's primary visual mass — placed
  * first in the packing order (see buildUniverse), which puts the biggest of
@@ -126,8 +126,8 @@ export function buildUniverse(subs: Subscription[]): UniverseLayout {
       const itemRadii = sorted.map((sub, i) => tierRadius(i, sub.popularity));
       // Tight item spacing/margin — a category should read as one dense
       // ecosystem, not a loose scatter of icons.
-      const localItems = packCircles(itemRadii, 0.95, 0.16);
-      const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 1;
+      const localItems = packCircles(itemRadii, 0.72, 0.1);
+      const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 0.75;
       return { category, items: sorted, localItems, footprint };
     })
     .sort((a, b) => {

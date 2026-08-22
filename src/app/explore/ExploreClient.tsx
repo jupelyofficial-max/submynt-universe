@@ -12,7 +12,7 @@ import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
 import { UniverseControls } from "@/components/universe/UniverseControls";
 import { EcosystemStats } from "@/components/universe/EcosystemStats";
-import { TrendingNow } from "@/components/universe/TrendingNow";
+import { LiveInsights } from "@/components/universe/LiveInsights";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ListView } from "@/components/views/ListView";
 import { ViewSwitcher } from "@/components/views/ViewSwitcher";
@@ -92,7 +92,7 @@ export function ExploreClient() {
             </div>
             <div className="pointer-events-none absolute right-4 top-20 z-30 hidden lg:block lg:right-6 lg:top-24">
               <div className="pointer-events-auto">
-                <TrendingNow />
+                <LiveInsights />
               </div>
             </div>
             <div className="pointer-events-none absolute bottom-4 right-4 z-30 lg:bottom-6 lg:right-6">

@@ -103,7 +103,7 @@ function renderTierRadius(rankInCategory: number, popularity: number): number {
   return base * (0.95 + (popularity / 100) * 0.1);
 }
 
-interface PackedCircle {
+export interface PackedCircle {
   x: number;
   y: number;
   r: number;
@@ -116,7 +116,7 @@ interface PackedCircle {
  * bigger hero icon (or a much bigger category) simply pushes its neighbors
  * out exactly as far as it needs to, instead of a fixed radial step that
  * only works when everything is roughly the same size. */
-function packCircles(radii: number[], spacing: number, margin: number): PackedCircle[] {
+export function packCircles(radii: number[], spacing: number, margin: number): PackedCircle[] {
   const placed: PackedCircle[] = [];
   let t = 0;
   radii.forEach((r, i) => {

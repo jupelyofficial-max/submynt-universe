@@ -18,9 +18,13 @@ interface SubscriptionLogoProps {
   size?: keyof typeof SIZES;
   ring?: boolean;
   className?: string;
+  /** Extra inline styles, merged over the base gradient/shadow — used to set
+   * exact pixel dimensions where a fixed size preset isn't granular enough
+   * (e.g. the mobile category cards' continuously-scaled icon layout). */
+  style?: React.CSSProperties;
 }
 
-export function SubscriptionLogo({ subscription, size = "md", ring, className }: SubscriptionLogoProps) {
+export function SubscriptionLogo({ subscription, size = "md", ring, className, style }: SubscriptionLogoProps) {
   const [failed, setFailed] = useState(false);
   const logoPath = getLogoPath(subscription.id);
   const showImage = Boolean(logoPath) && !failed;
@@ -36,6 +40,7 @@ export function SubscriptionLogo({ subscription, size = "md", ring, className }:
       style={{
         background: `radial-gradient(circle at 32% 28%, ${subscription.color}f2, ${subscription.color}99 55%, ${subscription.color}55 100%)`,
         boxShadow: `0 0 0 1px rgba(255,255,255,0.12) inset, 0 6px 18px -6px ${subscription.color}aa`,
+        ...style,
       }}
       title={subscription.name}
     >

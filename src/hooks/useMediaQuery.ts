@@ -23,3 +23,9 @@ export function useMediaQuery(query: string): boolean {
 export function useIsDesktop(): boolean {
   return useMediaQuery("(min-width: 1024px)");
 }
+
+/** The Universe gets a dedicated mobile composition below this width (see
+ * MobileUniverse) rather than the desktop WebGL scene scaled down. */
+export function useIsMobile(): boolean {
+  return useMediaQuery("(max-width: 767px)");
+}

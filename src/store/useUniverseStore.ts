@@ -62,10 +62,6 @@ interface UniverseUIState {
   discoverMode: boolean;
   setDiscoverMode: (v: boolean) => void;
 
-  /** Whether the faint constellation lines linking clustered nodes are shown. */
-  showConnections: boolean;
-  toggleShowConnections: () => void;
-
   cameraCommand: (CameraCommand & { nonce: number }) | null;
   sendCameraCommand: (cmd: CameraCommand) => void;
 }
@@ -109,9 +105,6 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
 
   discoverMode: false,
   setDiscoverMode: (v) => set({ discoverMode: v }),
-
-  showConnections: true,
-  toggleShowConnections: () => set((s) => ({ showConnections: !s.showConnections })),
 
   cameraCommand: null,
   sendCameraCommand: (cmd) =>

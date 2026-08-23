@@ -40,8 +40,10 @@ export function TopNav() {
           </span>
         </Link>
 
-        {isExplore ? (
-          <div className="hidden min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar md:flex">
+        <div className="flex-1" />
+
+        {isExplore && (
+          <div className="hidden min-w-0 items-center gap-2 overflow-x-auto no-scrollbar md:flex">
             <div className="w-44 shrink-0 lg:w-56">
               <SearchBar compact />
             </div>
@@ -63,8 +65,6 @@ export function TopNav() {
               Submit
             </Button>
           </div>
-        ) : (
-          <div className="flex-1" />
         )}
 
         {!isExplore && (

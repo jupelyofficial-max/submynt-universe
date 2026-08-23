@@ -46,7 +46,7 @@ export function ListView() {
             onClick={() => select(sub.id)}
           >
             <div className="flex items-start gap-3">
-              <SubscriptionLogo subscription={sub} size="md" ring={isOwned} />
+              <SubscriptionLogo subscription={sub} size="md" ring={isOwned} bare />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <h3 className="truncate text-sm font-semibold text-ink-0">{sub.name}</h3>

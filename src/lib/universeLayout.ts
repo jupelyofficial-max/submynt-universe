@@ -1,4 +1,4 @@
-import type { Subscription, UniverseNode, Vec3 } from "@/types/subscription";
+import type { Subscription, UniverseNode } from "@/types/subscription";
 import { CATEGORY_META } from "@/data/categories";
 
 /** World-space size of the abstract universe canvas. Kept generous relative
@@ -303,42 +303,3 @@ export function buildUniverse(subs: Subscription[]): UniverseLayout {
   return { nodes, clusters };
 }
 
-export interface ConstellationLink {
-  a: Vec3;
-  b: Vec3;
-  strength: number;
-}
-
-function dist(a: Vec3, b: Vec3) {
-  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2 + (a.z - b.z) ** 2);
-}
-
-/** Faint links between nearby nodes within the same category cluster. */
-export function buildConstellationLinks(
-  nodes: UniverseNode[],
-  maxPerNode = 2,
-  maxDistance = 7
-): ConstellationLink[] {
-  const links: ConstellationLink[] = [];
-  const byCluster = new Map<number, UniverseNode[]>();
-  nodes.forEach((n) => {
-    const arr = byCluster.get(n.cluster) ?? [];
-    arr.push(n);
-    byCluster.set(n.cluster, arr);
-  });
-
-  byCluster.forEach((group) => {
-    group.forEach((node, i) => {
-      const nearest = group
-        .map((other, j) => ({ other, j, d: dist(node.position, other.position) }))
-        .filter((x) => x.j !== i && x.d < maxDistance && x.j > i)
-        .sort((a, b) => a.d - b.d)
-        .slice(0, maxPerNode);
-      nearest.forEach(({ other, d }) => {
-        links.push({ a: node.position, b: other.position, strength: 1 - d / maxDistance });
-      });
-    });
-  });
-
-  return links;
-}

@@ -1,11 +1,8 @@
 "use client";
 
 import { Html } from "@react-three/drei";
-import { useMemo } from "react";
 import type { UniverseNode } from "@/types/subscription";
 import { SubscriptionNode } from "./SubscriptionNode";
-import { ConstellationLines } from "./ConstellationLines";
-import { buildConstellationLinks } from "@/lib/universeLayout";
 import { matchesFilters, matchesSearch } from "@/lib/filterSubscriptions";
 import { potentialSavingsMonthly } from "@/data/subscriptions";
 import { useUniverseStore } from "@/store/useUniverseStore";
@@ -27,7 +24,6 @@ export function SubscriptionField({ nodes, ownedIds }: Props) {
   const filters = useUniverseStore((s) => s.filters);
   const hoveredId = useUniverseStore((s) => s.hoveredId);
   const hoveredCategory = useUniverseStore((s) => s.hoveredCategory);
-  const showConnections = useUniverseStore((s) => s.showConnections);
 
   const hasQuery = searchQuery.trim().length > 0;
   const hasFilters =
@@ -38,12 +34,10 @@ export function SubscriptionField({ nodes, ownedIds }: Props) {
       filters.regions.length >
     0;
 
-  const links = useMemo(() => buildConstellationLinks(nodes), [nodes]);
   const hoveredNode = hoveredId ? nodes.find((n) => n.subscription.id === hoveredId) : null;
 
   return (
     <group>
-      {showConnections && <ConstellationLines links={links} />}
       {nodes.map((node) => {
         const owned = ownedIds.has(node.subscription.id);
         const matches =

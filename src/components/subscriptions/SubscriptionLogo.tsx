@@ -38,7 +38,12 @@ export function SubscriptionLogo({ subscription, size = "md", ring, className, s
   if (bare && showImage) {
     return (
       <div
-        className={cn("relative shrink-0 flex items-center justify-center select-none", SIZES[size], className)}
+        className={cn(
+          "relative shrink-0 flex items-center justify-center select-none",
+          SIZES[size],
+          ring && "rounded-full ring-2 ring-aurora-400/70 ring-offset-2 ring-offset-void-950",
+          className
+        )}
         style={style}
         title={subscription.name}
       >

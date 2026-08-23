@@ -37,6 +37,28 @@ export function CategoryLabels({ clusters }: { clusters: CategoryCluster[] }) {
           </div>
         </Html>
       ))}
+      {clusters.map(
+        (cluster) =>
+          cluster.overflow > 0 && (
+            <Html
+              key={`${cluster.name}-overflow`}
+              // Bottom-right, same corner mobile's "+N" badge sits in — but
+              // pulled well inside the footprint (not right at its edge),
+              // since unlike mobile's hard-bounded card this floats in open
+              // world space and a badge right at the boundary can reach into
+              // the row below's label.
+              position={[cluster.center.x + cluster.radius * 0.42, cluster.center.y - cluster.radius * 0.42, 3]}
+              center
+              distanceFactor={34}
+              zIndexRange={[2, 0]}
+              className="pointer-events-none select-none"
+            >
+              <div className="flex h-6 w-6 items-center justify-center rounded-full border border-black/10 bg-void-950/90 text-[10px] font-semibold text-ink-300 shadow-sm backdrop-blur">
+                +{cluster.overflow}
+              </div>
+            </Html>
+          )
+      )}
     </>
   );
 }

@@ -24,7 +24,12 @@ function mulberry32(seed: number) {
 }
 
 const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point, used for item-level packing within a category
-const ROW_GAP = 0.42; // gap kept between category footprints, both across a row and between rows
+const ROW_GAP = 0.5; // gap kept between category footprints, both across a row and between rows — leaves room for the "+N" overflow badge near each cluster's edge without it reaching the row below's label
+// Caps how many icons a category actually renders — a dominant primary plus
+// up to this many total reads as one clear hero + a curated set, matching
+// the mobile Universe's own cap; anything past it collapses into a "+N"
+// badge instead of crowding the cluster with same-ish small icons.
+const DISPLAY_CAP = 9;
 // A browser viewport reads roughly this wide relative to its height — the
 // row layout below picks whatever row count makes the composition's own
 // intrinsic width:height ratio land near this, so the categories spread
@@ -37,6 +42,10 @@ export interface CategoryCluster {
   radius: number;
   count: number;
   color: string;
+  /** Subscriptions in this category beyond the ones actually rendered (see
+   * DISPLAY_CAP in buildUniverse) — shown as a "+N" badge near the cluster,
+   * same pattern as the mobile Universe's per-card overflow indicator. */
+  overflow: number;
 }
 
 export interface UniverseLayout {
@@ -245,14 +254,20 @@ export function buildUniverse(subs: Subscription[]): UniverseLayout {
 
   const categoriesByCount = [...byCategory.entries()].map(([category, items]) => {
     const sorted = items.slice().sort((a, b) => b.popularity - a.popularity);
-    const itemRadii = sorted.map((sub, i) => tierRadius(i, sub.popularity));
+    // Only the top DISPLAY_CAP items are actually rendered — the footprint,
+    // packing and every node below are all derived from this shown subset,
+    // not the full category, so a 15-item category doesn't force a much
+    // bigger/sparser cluster than an otherwise-identical 9-item one.
+    const shown = sorted.slice(0, DISPLAY_CAP);
+    const overflow = sorted.length - shown.length;
+    const itemRadii = shown.map((sub, i) => tierRadius(i, sub.popularity));
     // Tight item spacing/margin — a category should read as one dense
     // ecosystem, not a loose scatter of icons. Margin (0.18, not tighter)
     // verified against real render sizes with an exhaustive pairwise check —
     // anything looser than this risks two icons visibly touching.
     const localItems = packCircles(itemRadii, 0.68, 0.18);
     const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 0.5;
-    return { category, items: sorted, localItems, footprint };
+    return { category, items: shown, totalCount: sorted.length, overflow, localItems, footprint };
   });
 
   const rows = packCategoryRows(categoriesByCount, TARGET_ROW_ASPECT, ROW_GAP);
@@ -261,7 +276,7 @@ export function buildUniverse(subs: Subscription[]): UniverseLayout {
   const clusters: CategoryCluster[] = [];
   const nodes: UniverseNode[] = [];
 
-  categoriesByCount.forEach(({ category, items, localItems, footprint }, catIndex) => {
+  categoriesByCount.forEach(({ category, items, totalCount, overflow, localItems, footprint }, catIndex) => {
     const { x: centerX, y: centerY } = centers.get(category)!;
 
     items.forEach((sub, i) => {
@@ -279,7 +294,8 @@ export function buildUniverse(subs: Subscription[]): UniverseLayout {
       name: category,
       center: { x: centerX, y: centerY },
       radius: footprint,
-      count: items.length,
+      count: totalCount,
+      overflow,
       color: CATEGORY_META[category as keyof typeof CATEGORY_META]?.color ?? "#A99C87",
     });
   });

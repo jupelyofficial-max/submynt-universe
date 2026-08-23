@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { Rocket, Upload } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { BoostModal } from "@/components/submissions/BoostModal";
@@ -33,7 +33,6 @@ const UniverseScene = dynamic(
 );
 
 export function ExploreClient() {
-  const containerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const setSearchQuery = useUniverseStore((s) => s.setSearchQuery);
   const select = useUniverseStore((s) => s.select);
@@ -109,7 +108,7 @@ export function ExploreClient() {
   );
 
   return (
-    <div ref={containerRef} className="relative flex flex-1 flex-col min-h-0 bg-void-950">
+    <div className="relative flex flex-1 flex-col min-h-0 bg-void-950">
       {viewMode === "universe" && !isMobile && <NebulaBackdrop />}
 
       <div className="relative z-10 flex flex-1 flex-col min-h-0">
@@ -138,7 +137,7 @@ export function ExploreClient() {
                 </div>
               </div>
               <div className="pointer-events-none absolute bottom-4 right-4 z-30 lg:bottom-6 lg:right-6">
-                <UniverseControls containerRef={containerRef} />
+                <UniverseControls />
               </div>
               <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex justify-center lg:bottom-6">
                 <div className="pointer-events-auto">

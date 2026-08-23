@@ -7,7 +7,6 @@ import { ResponsiveSheet } from "@/components/ui/ResponsiveSheet";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
-import { InsightSection } from "@/components/detail/InsightSection";
 import { PlansSection } from "@/components/detail/PlansSection";
 import { SavingsSection } from "@/components/detail/SavingsSection";
 import { AlternativesSection } from "@/components/detail/AlternativesSection";
@@ -149,9 +148,6 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
           </div>
         </div>
       </div>
-
-      {/* 4. Submynt recommendation/insight */}
-      <InsightSection sub={sub} />
 
       {/* 5. Plans */}
       <PlansSection sub={sub} verification={verification} />

@@ -30,6 +30,11 @@
   --gold-500: #e8a83c;
   --line-soft: rgba(28, 21, 13, 0.08);
   --line-strong: rgba(28, 21, 13, 0.14);
+  /* Wordmark accent only — the vivid green "mynt" half of the logo.
+     Deliberately brighter/more saturated than nebula (the app's jade
+     verified/positive color) since this is a fixed brand mark, not a
+     semantic status color. */
+  --mynt-green: #22c55e;
 }
 
 @theme inline {
@@ -49,6 +54,7 @@
   --color-nebula-500: var(--nebula-500);
   --color-gold-400: var(--gold-400);
   --color-gold-500: var(--gold-500);
+  --color-mynt-green: var(--mynt-green);
   --font-display: var(--font-bricolage);
   --font-sans: var(--font-bricolage);
 }

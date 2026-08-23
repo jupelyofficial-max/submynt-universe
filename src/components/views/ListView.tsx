@@ -5,8 +5,10 @@ import { Sparkles } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { SUBSCRIPTIONS, potentialSavingsMonthly } from "@/data/subscriptions";
+import { SUBSCRIPTIONS, bestSavingsAlternative, potentialSavingsMonthly } from "@/data/subscriptions";
+import { VERIFICATION_BY_ID } from "@/data/verification";
 import { matchesFilters, matchesSearch, sortSubscriptions } from "@/lib/filterSubscriptions";
+import { canClaimSavings } from "@/lib/verification/claims";
 import { formatINR } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
@@ -39,6 +41,8 @@ export function ListView() {
       {results.map((sub) => {
         const isOwned = ownedIds.has(sub.id);
         const savings = potentialSavingsMonthly(sub);
+        const savingsAlt = savings > 0 ? bestSavingsAlternative(sub) : null;
+        const savingsVerified = savingsAlt ? canClaimSavings(VERIFICATION_BY_ID[sub.id], VERIFICATION_BY_ID[savingsAlt.id]) : false;
         return (
           <div
             key={sub.id}
@@ -66,12 +70,12 @@ export function ListView() {
             <div className="flex items-center gap-2 text-[11px] text-ink-500">
               <span>★ {sub.rating.toFixed(1)}</span>
               <span>·</span>
-              <span>{sub.popularity}% popular</span>
+              <span>{sub.popularity}% Submynt Popularity</span>
               <span>·</span>
               <span>{sub.region}</span>
             </div>
 
-            {isOwned && savings > 0 && (
+            {isOwned && savings > 0 && savingsVerified && (
               <div className="flex items-center gap-1.5 rounded-lg bg-gold-500/10 px-2.5 py-1.5 text-[11px] text-gold-400">
                 <Sparkles size={12} />
                 Save {formatINR(savings)}/mo by switching

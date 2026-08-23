@@ -25,8 +25,8 @@ export function InsightSection({ sub }: { sub: Subscription }) {
             <span className="font-display text-base font-semibold text-aurora-500">{score}</span>
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-ink-0">Value score</div>
-            <div className="text-xs text-ink-500">Blend of rating and popularity, out of 100</div>
+            <div className="text-sm font-semibold text-ink-0">Submynt Value Score</div>
+            <div className="text-xs text-ink-500">Blend of rating and Submynt Popularity, out of 100 — Submynt&apos;s own calculation, not a provider rating</div>
           </div>
         </div>
 
@@ -64,6 +64,10 @@ export function InsightSection({ sub }: { sub: Subscription }) {
             </p>
           )}
         </div>
+
+        <p className="mt-3 text-[10px] text-ink-500">
+          ✦ Submynt Intelligence — calculated from Submynt&apos;s demo catalogue data, not independently verified.
+        </p>
       </div>
     </div>
   );

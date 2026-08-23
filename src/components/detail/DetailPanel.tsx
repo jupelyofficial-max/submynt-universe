@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Heart, Repeat, Scale, Share2, ShieldCheck, Trash2 } from "lucide-react";
+import { Check, Heart, Repeat, Scale, Share2, Trash2 } from "lucide-react";
 import { ResponsiveSheet } from "@/components/ui/ResponsiveSheet";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -13,10 +13,14 @@ import { SavingsSection } from "@/components/detail/SavingsSection";
 import { AlternativesSection } from "@/components/detail/AlternativesSection";
 import { SubscriptionStatusPicker } from "@/components/detail/SubscriptionStatusPicker";
 import { PriceAlertToggle } from "@/components/detail/PriceAlertToggle";
+import { VerificationBadge } from "@/components/detail/VerificationBadge";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { SUBSCRIPTIONS_BY_ID, bestSavingsAlternative, potentialSavingsMonthly } from "@/data/subscriptions";
+import { VERIFICATION_BY_ID } from "@/data/verification";
 import { getProviderUrl, rankAlternatives } from "@/lib/subscriptionIntelligence";
+import { canClaimSavings } from "@/lib/verification/claims";
+import { FRESHNESS_DAYS } from "@/lib/verification/freshness";
 import { cn, formatDate, formatINR } from "@/lib/utils";
 import { BILLING_LABELS } from "@/data/categories";
 
@@ -61,6 +65,8 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
   const savingsAlt = bestSavingsAlternative(sub);
   const savings = potentialSavingsMonthly(sub);
   const providerUrl = getProviderUrl(sub);
+  const verification = VERIFICATION_BY_ID[sub.id];
+  const savingsVerified = savingsAlt ? canClaimSavings(verification, VERIFICATION_BY_ID[savingsAlt.id]) : false;
 
   function handleShare() {
     const url = `${window.location.origin}/explore?focus=${sub.id}`;
@@ -96,17 +102,14 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
             <div className="mt-2 flex flex-wrap gap-1.5">
               <Badge tone="aurora">{sub.category}</Badge>
               <Badge tone="neutral">{sub.region}</Badge>
-              {sub.trialDays && <Badge tone="nebula">{sub.trialDays}-day free trial</Badge>}
               {sub.isNew && <Badge tone="nebula">New</Badge>}
-              {sub.verified && (
-                <Badge tone="nebula">
-                  <ShieldCheck size={11} />
-                  Verified Provider
-                </Badge>
-              )}
               {isOwned && <Badge tone="nebula">In your universe</Badge>}
             </div>
           </div>
+        </div>
+
+        <div className="mt-3">
+          <VerificationBadge field={verification.price} freshnessDays={FRESHNESS_DAYS.price} />
         </div>
 
         <div className="mt-3 flex items-end justify-between">
@@ -116,7 +119,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
           </div>
           <div className="text-right">
             <div className="text-sm font-semibold text-gold-400">★ {sub.rating.toFixed(1)}</div>
-            <div className="text-xs text-ink-500">{sub.popularity}% popularity</div>
+            <div className="text-xs text-ink-500">{sub.popularity}% Submynt Popularity</div>
           </div>
         </div>
       </div>
@@ -125,11 +128,17 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
       <InsightSection sub={sub} />
 
       {/* 3. What does it really cost? */}
-      <PlansSection sub={sub} />
+      <PlansSection sub={sub} verification={verification} />
 
       {/* 4. Can I get something better or cheaper? */}
       {savingsAlt && savings > 0 && (
-        <SavingsSection sub={sub} alternative={savingsAlt} monthlySavings={savings} onViewAlternative={() => openAlternative(savingsAlt.id)} />
+        <SavingsSection
+          sub={sub}
+          alternative={savingsAlt}
+          monthlySavings={savings}
+          verified={savingsVerified}
+          onViewAlternative={() => openAlternative(savingsAlt.id)}
+        />
       )}
       <AlternativesSection alternatives={alternatives} onSelect={openAlternative} />
 

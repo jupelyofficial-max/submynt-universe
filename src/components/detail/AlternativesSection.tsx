@@ -28,9 +28,9 @@ export function AlternativesSection({
             <SubscriptionLogo subscription={alt} size="xs" bare />
             <div className="min-w-0 flex-1">
               <div className="text-sm font-medium text-ink-0 truncate">{alt.name}</div>
-              <div className="flex flex-wrap gap-x-1.5 text-xs text-ink-500">
+              <div className="flex flex-wrap gap-x-1.5 text-xs text-ink-400">
                 {reasons.map((r, i) => (
-                  <span key={r} className="text-nebula-500">
+                  <span key={r}>
                     {r}
                     {i < reasons.length - 1 && <span className="text-ink-500"> · </span>}
                   </span>
@@ -41,6 +41,7 @@ export function AlternativesSection({
           </button>
         ))}
       </div>
+      <p className="mt-2 text-[10px] text-ink-500">Prices and comparisons are Submynt&apos;s demo catalogue data, not independently verified.</p>
     </div>
   );
 }

@@ -79,7 +79,7 @@ export default function MySubscriptionsPage() {
                 {savings > 0 && (
                   <div className="flex items-center gap-1.5 rounded-lg bg-gold-500/10 px-2.5 py-1.5 text-[11px] text-gold-400">
                     <Sparkles size={12} />
-                    Save {formatINR(savings)}/mo — see Optimize
+                    Save ~{formatINR(savings)}/mo (estimated) — see Optimize
                   </div>
                 )}
 

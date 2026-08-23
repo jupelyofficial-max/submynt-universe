@@ -43,14 +43,20 @@ export function categoryAveragePrice(category: Category): number {
   return avg;
 }
 
+/** Weights for the Submynt Value Score — kept as one named, editable
+ * constant rather than buried in the formula, so the methodology is a
+ * single place to read or tune, not something to reverse-engineer. */
+export const VALUE_SCORE_WEIGHTS = { rating: 0.5, popularity: 0.5 } as const;
+
 /** 0–100, a normalized blend of popularity and rating — same two signals
  * `sortSubscriptions`'s "recommended" case already uses (popularity +
  * rating*10), just rescaled onto a 0–100 "value score" instead of an
- * unbounded sort key. */
+ * unbounded sort key. This is Submynt's own computed signal, not a
+ * provider-supplied rating — always surfaced as "Submynt Value Score". */
 export function computeValueScore(sub: Subscription): number {
-  const popularityHalf = sub.popularity * 0.5;
-  const ratingHalf = (sub.rating / 5) * 100 * 0.5;
-  return Math.round(popularityHalf + ratingHalf);
+  const ratingComponent = (sub.rating / 5) * 100 * VALUE_SCORE_WEIGHTS.rating;
+  const popularityComponent = sub.popularity * VALUE_SCORE_WEIGHTS.popularity;
+  return Math.round(ratingComponent + popularityComponent);
 }
 
 /** Short audience tags — a category baseline plus a price-tier tag computed
@@ -77,7 +83,7 @@ export function computeBestFor(sub: Subscription): string[] {
 export function computeKeyStrengths(sub: Subscription): string[] {
   const strengths: string[] = [];
   if (sub.rating >= 4.5) strengths.push(`Highly rated (★${sub.rating.toFixed(1)})`);
-  if (sub.popularity >= 80) strengths.push(`Very popular (${sub.popularity}% popularity)`);
+  if (sub.popularity >= 80) strengths.push(`Very popular (${sub.popularity}% Submynt Popularity)`);
   else if (sub.popularity >= 60) strengths.push("Well-established choice");
   if (sub.trialDays) strengths.push(`${sub.trialDays}-day free trial`);
   const avg = categoryAveragePrice(sub.category);
@@ -147,7 +153,9 @@ export function rankAlternatives(sub: Subscription, limit = 5): RankedAlternativ
     const score = priceScore + ratingScore + popularityScore + regionScore;
 
     const reasons: string[] = [];
-    if (priceDelta > 0) reasons.push(`${formatINR(priceDelta)}/month cheaper`);
+    // "~" prefix — this is unverified catalogue pricing, not a confirmed
+    // savings claim (see canClaimSavings in lib/verification/claims.ts).
+    if (priceDelta > 0) reasons.push(`~${formatINR(priceDelta)}/month cheaper`);
     if (alt.rating - sub.rating >= 0.2) reasons.push(`Higher-rated (★${alt.rating.toFixed(1)})`);
     if (alt.popularity - sub.popularity >= 10) reasons.push("Popular alternative");
     const altBestFor = computeBestFor(alt);

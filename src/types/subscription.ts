@@ -52,10 +52,6 @@ export interface Subscription {
   isNew?: boolean;
   /** Length of the free trial in days, if this plan offers one. */
   trialDays?: number;
-  /** True only for a listing Submynt has actually verified. Unset (not false)
-   * for everything else — the "Verified Provider" badge only ever renders
-   * when this is explicitly true, never inferred. */
-  verified?: boolean;
   /** Affiliate/deal URL, only set when a real deal relationship exists.
    * Distinct from the provider's own site (see getProviderUrl in
    * lib/subscriptionIntelligence.ts) — this is what "Get Deal →" links to. */

@@ -96,7 +96,7 @@ export function CompareClient() {
                   </Row>
                   <Row label="Annual cost">{formatINR(sub.priceMonthly * 12)}</Row>
                   <Row label="Plans">{sub.plans.length} available</Row>
-                  <Row label="Value">★ {sub.rating.toFixed(1)} · {sub.popularity}% popular</Row>
+                  <Row label="Value">★ {sub.rating.toFixed(1)} · {sub.popularity}% Submynt Popularity</Row>
                   <Row label="Availability">{sub.region}</Row>
                   <Row label="Vs. cheapest here">
                     {sub.priceMonthly === cheapest ? (

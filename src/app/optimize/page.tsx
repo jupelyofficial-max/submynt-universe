@@ -73,7 +73,7 @@ export default function OptimizePage() {
         <StatCard
           label="Potential optimization"
           value={`${formatINR(potentialMonthly)}/mo`}
-          sub={`${formatINR(potentialMonthly * 12)}/yr`}
+          sub={`${formatINR(potentialMonthly * 12)}/yr · estimated, unverified pricing`}
           tone="gold"
         />
         <StatCard label="Subscriptions tracked" value={String(owned.length)} sub={`${opportunities.length} with savings`} />

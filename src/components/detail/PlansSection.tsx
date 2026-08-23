@@ -2,17 +2,22 @@ import { Gift } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { BILLING_LABELS } from "@/data/categories";
 import { getProviderUrl } from "@/lib/subscriptionIntelligence";
-import { formatINR } from "@/lib/utils";
+import { canClaimTrial } from "@/lib/verification/claims";
+import { cn, formatINR } from "@/lib/utils";
 import type { Subscription } from "@/types/subscription";
+import type { SubscriptionVerification } from "@/types/verification";
 
 /** "What does it really cost?" — capabilities 5 + 6. Extends the existing
  * plan-grid pattern with an effective-monthly-vs-annual-savings line (only
  * computed against the same subscription's own monthly plan, never a
- * cross-subscription comparison) and a trial CTA that only appears when
- * there's real trial data AND a real URL to send someone to. */
-export function PlansSection({ sub }: { sub: Subscription }) {
+ * cross-subscription comparison) and a trial section that only ever
+ * presents a confident "Start Free Trial" claim when canClaimTrial() says
+ * the trial is sourced — otherwise the same info renders, clearly qualified
+ * as unverified (never deleted, never disguised as confirmed). */
+export function PlansSection({ sub, verification }: { sub: Subscription; verification: SubscriptionVerification }) {
   const monthlyPlan = sub.plans.find((p) => p.billing === "monthly") ?? sub.plans[0];
   const providerUrl = getProviderUrl(sub);
+  const trialVerified = canClaimTrial(verification);
 
   return (
     <div className="px-4 py-3 border-b border-line-soft">
@@ -31,14 +36,21 @@ export function PlansSection({ sub }: { sub: Subscription }) {
       </div>
 
       {sub.trialDays && (
-        <div className="mt-2.5 flex items-center justify-between gap-3 rounded-xl border border-nebula-500/25 bg-nebula-500/[0.06] px-3 py-2.5">
+        <div
+          className={cn(
+            "mt-2.5 flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5",
+            trialVerified ? "border-nebula-500/25 bg-nebula-500/[0.06]" : "border-black/10 bg-black/[0.03]"
+          )}
+        >
           <div className="flex items-center gap-2 min-w-0">
-            <Gift size={15} className="shrink-0 text-nebula-500" />
-            <span className="text-xs font-medium text-ink-100 truncate">Free trial available — {sub.trialDays} days</span>
+            <Gift size={15} className={cn("shrink-0", trialVerified ? "text-nebula-500" : "text-ink-500")} />
+            <span className={cn("text-xs font-medium truncate", trialVerified ? "text-ink-100" : "text-ink-300")}>
+              {trialVerified ? `Free trial available — ${sub.trialDays} days` : `Trial info unverified — ${sub.trialDays} days (per catalogue data)`}
+            </span>
           </div>
           {providerUrl && (
-            <Button size="sm" variant="secondary" className="shrink-0" href={providerUrl} target="_blank" rel="noopener noreferrer">
-              Start Free Trial
+            <Button size="sm" variant={trialVerified ? "secondary" : "outline"} className="shrink-0" href={providerUrl} target="_blank" rel="noopener noreferrer">
+              {trialVerified ? "Start Free Trial" : "View Plan Details"}
             </Button>
           )}
         </div>

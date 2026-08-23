@@ -64,13 +64,19 @@ export function MobileUniverse() {
 
   return (
     <div className="relative flex flex-1 min-h-0 flex-col">
-      <div ref={scrollRef} className="relative flex-1 min-h-0 overflow-y-auto no-scrollbar">
-        {/* Extremely subtle backdrop — a faint grid, nothing that competes with the icons. */}
+      <div
+        ref={scrollRef}
+        className="relative flex-1 min-h-0 overflow-y-auto no-scrollbar"
+        style={{ backgroundColor: "#F8F6EE" }}
+      >
+        {/* Extremely subtle backdrop — a faint grid, nothing that competes
+            with the icons. Same warm ivory base + low-contrast grid as the
+            desktop Universe's own canvas texture, not a separate tone. */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.35]"
+          className="pointer-events-none absolute inset-0 opacity-[0.6]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(28,21,13,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(28,21,13,0.05) 1px, transparent 1px)",
+              "linear-gradient(#E8E4D8 1px, transparent 1px), linear-gradient(90deg, #E8E4D8 1px, transparent 1px)",
             backgroundSize: "28px 28px",
           }}
         />

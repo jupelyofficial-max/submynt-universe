@@ -35,8 +35,9 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
   canvas.height = TEXTURE_HEIGHT;
   const ctx = canvas.getContext("2d")!;
 
-  // Base
-  ctx.fillStyle = "#f7f2e6";
+  // Base — warm ivory/champagne, matching the mobile Universe's background
+  // exactly rather than a separate desktop tone.
+  ctx.fillStyle = "#F8F6EE";
   ctx.fillRect(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
   // A soft colored glow under each category's real cluster position —
@@ -79,8 +80,10 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
     }
   }
 
-  // Faint fine grid — cartographic texture without being a literal map.
-  ctx.strokeStyle = "rgba(28,21,13,0.045)";
+  // Faint fine grid — a solid, low-contrast warm gray (not a dark tint at
+  // low alpha) so it lands on the exact same muted color as the mobile
+  // Universe's grid, rather than an approximation that shifts with the base.
+  ctx.strokeStyle = "#E8E4D8";
   ctx.lineWidth = 1;
   const gridStep = TEXTURE_WIDTH / 40;
   for (let x = 0; x <= TEXTURE_WIDTH; x += gridStep) {

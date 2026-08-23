@@ -15,10 +15,20 @@ import { BILLING_LABELS } from "@/data/categories";
 export function DetailPanel() {
   const selectedId = useUniverseStore((s) => s.selectedId);
   const select = useUniverseStore((s) => s.select);
+  const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
   const sub = selectedId ? SUBSCRIPTIONS_BY_ID[selectedId] : null;
 
+  function handleClose() {
+    select(null);
+    // Closing should always return the desktop Universe to its default
+    // fitted framing, not leave the camera wherever "focus-node" zoomed it
+    // in to — a no-op when the panel was opened from List view or on
+    // mobile, since there's no CameraController mounted to receive it.
+    sendCameraCommand({ type: "reset" });
+  }
+
   return (
-    <ResponsiveSheet open={Boolean(sub)} onClose={() => select(null)} title={sub?.category ?? ""} desktopVariant="side">
+    <ResponsiveSheet open={Boolean(sub)} onClose={handleClose} title={sub?.category ?? ""} desktopVariant="side">
       {sub && <DetailContent subscriptionId={sub.id} />}
     </ResponsiveSheet>
   );
@@ -60,13 +70,13 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
 
   return (
     <div className="flex flex-col">
-      <div className="px-5 pt-5 pb-4 border-b border-line-soft">
-        <div className="flex items-start gap-4">
-          <SubscriptionLogo subscription={sub} size="xl" ring={isOwned} />
+      <div className="px-4 pt-4 pb-3 border-b border-line-soft">
+        <div className="flex items-start gap-3">
+          <SubscriptionLogo subscription={sub} size="lg" ring={isOwned} bare />
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-xl font-semibold text-ink-0 truncate">{sub.name}</h2>
-            <p className="mt-1 text-sm text-ink-300 line-clamp-2">{sub.tagline}</p>
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
+            <h2 className="font-display text-lg font-semibold text-ink-0 truncate">{sub.name}</h2>
+            <p className="mt-0.5 text-sm text-ink-300 line-clamp-2">{sub.tagline}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
               <Badge tone="aurora">{sub.category}</Badge>
               <Badge tone="neutral">{sub.region}</Badge>
               {sub.trialDays && <Badge tone="nebula">{sub.trialDays}-day free trial</Badge>}
@@ -76,9 +86,9 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
           </div>
         </div>
 
-        <div className="mt-5 flex items-end justify-between">
+        <div className="mt-3 flex items-end justify-between">
           <div>
-            <div className="font-display text-3xl font-semibold text-ink-0">{formatINR(sub.priceMonthly)}</div>
+            <div className="font-display text-2xl font-semibold text-ink-0">{formatINR(sub.priceMonthly)}</div>
             {sub.priceMonthly > 0 && <div className="text-xs text-ink-500">per month, {sub.billing.includes("annual") ? "billed monthly or annually" : "billed monthly"}</div>}
           </div>
           <div className="text-right">
@@ -89,7 +99,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
       </div>
 
       {/* Primary actions */}
-      <div className="px-5 py-4 border-b border-line-soft">
+      <div className="px-4 py-3 border-b border-line-soft">
         <div className={cn("grid gap-2", isOwned ? "grid-cols-2" : "grid-cols-1")}>
           {isOwned && (
             <Button
@@ -128,9 +138,9 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
       </div>
 
       {switchingPlan && isOwned && owned && (
-        <div className="px-5 py-4 border-b border-line-soft bg-black/[0.02]">
-          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-500">Choose a plan</h4>
-          <div className="flex flex-col gap-2">
+        <div className="px-4 py-3 border-b border-line-soft bg-black/[0.02]">
+          <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Choose a plan</h4>
+          <div className="grid grid-cols-2 gap-1.5">
             {sub.plans.map((plan) => (
               <button
                 key={plan.name}
@@ -144,9 +154,9 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
                   });
                   setSwitchingPlan(false);
                 }}
-                className="flex items-center justify-between rounded-xl border border-black/10 bg-void-900/60 px-3.5 py-2.5 text-left hover:border-aurora-500/40 transition-colors cursor-pointer"
+                className="flex flex-col items-start rounded-xl border border-black/10 bg-void-900/60 px-3 py-2 text-left hover:border-aurora-500/40 transition-colors cursor-pointer"
               >
-                <span className="text-sm text-ink-0">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
+                <span className="text-xs text-ink-300">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
                 <span className="text-sm font-semibold text-ink-0">{formatINR(plan.priceMonthly)}</span>
               </button>
             ))}
@@ -155,7 +165,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
       )}
 
       {isOwned && owned && (
-        <div className="px-5 py-4 border-b border-line-soft grid grid-cols-2 gap-4">
+        <div className="px-4 py-3 border-b border-line-soft grid grid-cols-2 gap-4">
           <div>
             <div className="text-xs text-ink-500">Current plan</div>
             <div className="text-sm font-medium text-ink-0 mt-0.5">{owned.planName}</div>
@@ -168,7 +178,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
       )}
 
       {savings > 0 && (
-        <div className="mx-5 my-4 rounded-2xl border border-gold-500/25 bg-gold-500/[0.06] p-4">
+        <div className="mx-4 my-3 rounded-2xl border border-gold-500/25 bg-gold-500/[0.06] p-3.5">
           <div className="flex items-center gap-2 text-gold-400 text-xs font-semibold uppercase tracking-wider">
             <Sparkles size={14} />
             Potential saving
@@ -186,30 +196,30 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
         </div>
       )}
 
-      <div className="px-5 py-4 border-b border-line-soft">
-        <h4 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Available plans</h4>
-        <div className="flex flex-col gap-2">
+      <div className="px-4 py-3 border-b border-line-soft">
+        <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Available plans</h4>
+        <div className="grid grid-cols-2 gap-1.5">
           {sub.plans.map((plan) => (
-            <div key={plan.name} className="flex items-center justify-between rounded-xl bg-black/[0.03] px-3.5 py-2.5">
-              <span className="text-sm text-ink-100">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
+            <div key={plan.name} className="flex flex-col items-start rounded-xl bg-black/[0.03] px-3 py-2">
+              <span className="text-xs text-ink-300">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
               <span className="text-sm font-semibold text-ink-0">{formatINR(plan.priceMonthly)}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div id="alt-section" className="px-5 py-4">
-        <h4 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-ink-500">
+      <div id="alt-section" className="px-4 py-3">
+        <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">
           Alternatives &amp; related
         </h4>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           {alternatives.map((alt) => (
             <button
               key={alt.id}
               onClick={() => openAlternative(alt.id)}
-              className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-black/5 transition-colors text-left cursor-pointer"
+              className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-black/5 transition-colors text-left cursor-pointer"
             >
-              <SubscriptionLogo subscription={alt} size="sm" />
+              <SubscriptionLogo subscription={alt} size="xs" bare />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-ink-0 truncate">{alt.name}</div>
                 <div className="text-xs text-ink-500">{alt.category}</div>

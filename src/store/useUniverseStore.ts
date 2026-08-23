@@ -44,6 +44,9 @@ interface UniverseUIState {
   isBoostModalOpen: boolean;
   setBoostModalOpen: (v: boolean) => void;
 
+  isPerksModalOpen: boolean;
+  setPerksModalOpen: (v: boolean) => void;
+
   selectedId: string | null;
   select: (id: string | null) => void;
   hoveredId: string | null;
@@ -89,6 +92,9 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
 
   isBoostModalOpen: false,
   setBoostModalOpen: (v) => set({ isBoostModalOpen: v }),
+
+  isPerksModalOpen: false,
+  setPerksModalOpen: (v) => set({ isPerksModalOpen: v }),
 
   selectedId: null,
   select: (id) => set({ selectedId: id }),

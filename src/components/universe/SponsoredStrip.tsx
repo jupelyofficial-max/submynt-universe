@@ -23,6 +23,7 @@ export function SponsoredStrip({ compact }: { compact?: boolean }) {
             subscription={sub}
             size={compact ? "xs" : "sm"}
             className="opacity-85 transition-opacity hover:opacity-100"
+            bare
           />
         ))}
       </div>

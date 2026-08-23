@@ -1,7 +1,10 @@
 import * as THREE from "three";
 import { UNIVERSE_WORLD_HEIGHT, UNIVERSE_WORLD_WIDTH, type CategoryCluster } from "@/lib/universeLayout";
 
-const TEXTURE_WIDTH = 1600;
+// 2400, not 1600 — sharper on large/high-density monitors (1920px+ at 2-3x
+// devicePixelRatio) where the lower resolution was visibly softening the
+// background gradients and particle scatter.
+const TEXTURE_WIDTH = 2400;
 const TEXTURE_HEIGHT = Math.round(TEXTURE_WIDTH * (UNIVERSE_WORLD_HEIGHT / UNIVERSE_WORLD_WIDTH));
 
 let cached: THREE.CanvasTexture | null = null;
@@ -110,7 +113,7 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 4;
+  texture.anisotropy = 8;
   texture.needsUpdate = true;
   cached = texture;
   return texture;

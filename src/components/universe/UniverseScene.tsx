@@ -27,9 +27,10 @@ export function UniverseScene() {
   return (
     <Canvas
       className="!touch-none"
+      style={{ cursor: "grab" }}
       gl={{ alpha: true, antialias: true }}
       camera={{ position: [bounds.centerX, bounds.centerY, initialZoom], fov: 45, near: 1, far: 400 }}
-      dpr={[1, 2]}
+      dpr={[1, 3]}
     >
       <ambientLight intensity={0.7} />
       <UniverseCanvasBackground clusters={clusters} />

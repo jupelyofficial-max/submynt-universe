@@ -1,7 +1,7 @@
 "use client";
 
-import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { UniverseNode } from "@/types/subscription";
 import { getGlowTexture, getLogoTexture } from "./logoTexture";
@@ -22,6 +22,14 @@ export function SubscriptionNode({ node, isOwned, dimmed, categoryDimmed, hasSav
   const glowRef = useRef<THREE.Sprite>(null);
   const badgeRef = useRef<THREE.Sprite>(null);
   const groupRef = useRef<THREE.Group>(null);
+  const { gl } = useThree();
+  // Plain ref, reassigned in an effect rather than read straight off `gl` in
+  // the pointer handlers below — mutating a DOM property reached directly
+  // through a hook's return value trips the react-hooks/immutability rule.
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    canvasRef.current = gl.domElement;
+  }, [gl]);
   const texture = useMemo(() => getLogoTexture(node.subscription), [node.subscription]);
   const glowTexture = useMemo(() => getGlowTexture(), []);
   const id = node.subscription.id;
@@ -83,12 +91,15 @@ export function SubscriptionNode({ node, isOwned, dimmed, categoryDimmed, hasSav
         renderOrder={1}
         onPointerOver={(e) => {
           e.stopPropagation();
-          document.body.style.cursor = "pointer";
+          // Standard arrow over a clickable icon — the canvas's own default
+          // is "grab" (this whole area pans), so icons need an explicit
+          // override to read as "click", not "drag", targets.
+          if (canvasRef.current) canvasRef.current.style.cursor = "default";
           setHovered(id);
         }}
         onPointerOut={(e) => {
           e.stopPropagation();
-          document.body.style.cursor = "auto";
+          if (canvasRef.current) canvasRef.current.style.cursor = "grab";
           setHovered(null);
         }}
         onPointerDown={(e) => {

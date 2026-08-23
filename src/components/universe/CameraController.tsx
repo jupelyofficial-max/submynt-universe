@@ -134,6 +134,7 @@ export function CameraController({ nodes, ownedIds, bounds }: Props) {
       last.current = { x: e.clientX, y: e.clientY };
       trackDown(e.clientX, e.clientY);
       if (discoverMode) setDiscoverMode(false);
+      el.style.cursor = "grabbing";
     }
     function onPointerMove(e: PointerEvent) {
       if (!dragging.current) return;
@@ -147,6 +148,7 @@ export function CameraController({ nodes, ownedIds, bounds }: Props) {
     }
     function onPointerUp() {
       dragging.current = false;
+      el.style.cursor = "grab";
     }
     function onWheel(e: WheelEvent) {
       e.preventDefault();

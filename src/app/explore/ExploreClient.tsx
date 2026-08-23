@@ -1,12 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Rocket, Upload } from "lucide-react";
+import { Gift, Rocket, Upload } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { BoostModal } from "@/components/submissions/BoostModal";
+import { PerksModal } from "@/components/submissions/PerksModal";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
@@ -39,6 +40,7 @@ export function ExploreClient() {
   const viewMode = useUniverseStore((s) => s.viewMode);
   const setBoostModalOpen = useUniverseStore((s) => s.setBoostModalOpen);
   const setSubmitModalOpen = useUniverseStore((s) => s.setSubmitModalOpen);
+  const setPerksModalOpen = useUniverseStore((s) => s.setPerksModalOpen);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -126,7 +128,14 @@ export function ExploreClient() {
               <div className="flex flex-1 min-h-0">
                 <UniverseScene />
               </div>
-              <div className="pointer-events-none absolute bottom-4 left-4 z-30 hidden lg:block lg:bottom-6 lg:left-6">
+              <div className="pointer-events-none absolute bottom-4 left-4 z-30 hidden lg:flex lg:flex-col lg:items-start lg:gap-2 lg:bottom-6 lg:left-6">
+                <button
+                  onClick={() => setPerksModalOpen(true)}
+                  className="pointer-events-auto glass-panel flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-ink-0 shadow-lg shadow-black/5 hover:border-black/20 transition-colors cursor-pointer"
+                >
+                  <Gift size={15} className="text-aurora-500" />
+                  Get Free Subscriptions
+                </button>
                 <div className="pointer-events-auto">
                   <EcosystemStats />
                 </div>
@@ -158,6 +167,7 @@ export function ExploreClient() {
 
       <BoostModal />
       <SubmitListingModal />
+      <PerksModal />
     </div>
   );
 }

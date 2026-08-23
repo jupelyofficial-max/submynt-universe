@@ -51,7 +51,11 @@ export function getLogoTexture(
   const cached = cache.get(sub.id);
   if (cached) return cached;
 
-  const size = 128;
+  // 256, not 128 — with the render dpr cap raised to 3 for sharper Retina
+  // rendering, a 128px source texture was the thing actually limiting logo
+  // crispness, especially on the DetailPanel's larger logo and any node
+  // scaled up by hover/focus.
+  const size = 256;
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -61,7 +65,7 @@ export function getLogoTexture(
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 4;
+  texture.anisotropy = 8;
   texture.needsUpdate = true;
   cache.set(sub.id, texture);
 

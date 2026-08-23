@@ -56,7 +56,7 @@ function InsightRow({ sub, badge, onClick }: { sub: Subscription; badge?: string
       onClick={onClick}
       className="flex w-full items-center gap-2.5 rounded-xl px-1.5 py-1.5 text-left transition-colors hover:bg-black/5 cursor-pointer"
     >
-      <SubscriptionLogo subscription={sub} size="xs" />
+      <SubscriptionLogo subscription={sub} size="xs" bare />
       <div className="min-w-0 flex-1 leading-tight">
         <div className="truncate text-xs font-semibold text-ink-0">{sub.name}</div>
         <div className="truncate text-[10px] text-ink-500">{sub.category}</div>

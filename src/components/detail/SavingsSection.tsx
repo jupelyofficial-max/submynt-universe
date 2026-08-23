@@ -9,15 +9,15 @@ import type { Subscription } from "@/types/subscription";
  * styling and copy only ever assert a confident "Potential Saving" when
  * `verified` is true — otherwise it's the same math, visibly reframed as an
  * unverified estimate rather than a claim. Every record in today's
- * catalogue is unverified, so `verified` is false everywhere right now. */
+ * catalogue is unverified, so `verified` is false everywhere right now.
+ * Doesn't re-display the current subscription's own price — that's already
+ * the primary occurrence in the panel's price row above. */
 export function SavingsSection({
-  sub,
   alternative,
   monthlySavings,
   verified,
   onViewAlternative,
 }: {
-  sub: Subscription;
   alternative: Subscription;
   monthlySavings: number;
   verified: boolean;
@@ -35,10 +35,6 @@ export function SavingsSection({
           {verified ? "Potential saving" : "Estimated saving — unverified pricing"}
         </div>
         <div className="mt-2.5 flex items-center justify-between text-sm">
-          <span className="text-[#6B6B6B]">{sub.name}</span>
-          <span className="font-semibold text-black">{formatINR(sub.priceMonthly)}/mo</span>
-        </div>
-        <div className="mt-1 flex items-center justify-between text-sm">
           <span className="text-[#6B6B6B]">{alternative.name}</span>
           <span className={cn("font-semibold", verified ? "text-nebula-500" : "text-black")}>{formatINR(alternative.priceMonthly)}/mo</span>
         </div>
@@ -52,7 +48,6 @@ export function SavingsSection({
             <div className={cn("text-sm font-semibold", verified ? "text-nebula-500" : "text-gold-500")}>~{formatINR(annualSavings)}</div>
           </div>
         </div>
-        {!verified && <p className="mt-2 text-[10px] text-[#999999]">Based on Submynt&apos;s demo catalogue pricing, not independently verified.</p>}
         <Button size="sm" variant="outline" className="mt-3 w-full" onClick={onViewAlternative}>
           {verified ? "Explore cheaper alternatives" : "See similar options"}
         </Button>

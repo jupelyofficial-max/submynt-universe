@@ -41,7 +41,6 @@ export function AlternativesSection({
           </button>
         ))}
       </div>
-      <p className="mt-2 text-[10px] text-[#999999]">Prices and comparisons are Submynt&apos;s demo catalogue data, not independently verified.</p>
     </div>
   );
 }

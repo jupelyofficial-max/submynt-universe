@@ -64,10 +64,6 @@ export function InsightSection({ sub }: { sub: Subscription }) {
             </p>
           )}
         </div>
-
-        <p className="mt-3 text-[10px] text-[#999999]">
-          ✦ Submynt Intelligence — calculated from Submynt&apos;s demo catalogue data, not independently verified.
-        </p>
       </div>
     </div>
   );

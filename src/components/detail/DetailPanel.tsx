@@ -156,7 +156,6 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
           only appears once in this part of the panel. */}
       {savingsAlt && savings > 0 && (
         <SavingsSection
-          sub={sub}
           alternative={savingsAlt}
           monthlySavings={savings}
           verified={savingsVerified}

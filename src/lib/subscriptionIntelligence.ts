@@ -79,13 +79,13 @@ export function computeBestFor(sub: Subscription): string[] {
 }
 
 /** Short, prioritized strength labels — each gated on a real threshold, so
- * a mediocre subscription simply gets fewer (or none), never a padded list. */
+ * a mediocre subscription simply gets fewer (or none), never a padded list.
+ * Rating, popularity-as-a-number, and trial length are deliberately not
+ * repeated here — they're already the primary occurrence elsewhere in the
+ * detail panel (the price row and the Plans section respectively). */
 export function computeKeyStrengths(sub: Subscription): string[] {
   const strengths: string[] = [];
-  if (sub.rating >= 4.5) strengths.push(`Highly rated (★${sub.rating.toFixed(1)})`);
-  if (sub.popularity >= 80) strengths.push(`Very popular (${sub.popularity}% Submynt Popularity)`);
-  else if (sub.popularity >= 60) strengths.push("Well-established choice");
-  if (sub.trialDays) strengths.push(`${sub.trialDays}-day free trial`);
+  if (sub.popularity >= 60) strengths.push("Well-established choice");
   const avg = categoryAveragePrice(sub.category);
   if (sub.priceMonthly > 0 && avg > 0 && sub.priceMonthly < avg * 0.85) {
     strengths.push("Priced below category average");
@@ -95,11 +95,10 @@ export function computeKeyStrengths(sub: Subscription): string[] {
 }
 
 /** One concise "who should consider this" line — priority-ordered, picks
- * the single strongest real signal rather than listing everything. */
+ * the single strongest real signal rather than listing everything. Trial
+ * availability is deliberately not a reason here — it's already the primary
+ * occurrence in the Plans section below, so this doesn't restate it. */
 export function computeConsiderIf(sub: Subscription): string {
-  if (sub.trialDays) {
-    return `You want to try before you commit — ${sub.trialDays}-day free trial available.`;
-  }
   if (sub.rating >= 4.5) {
     return "You value a consistently highly-rated service.";
   }

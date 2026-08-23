@@ -104,15 +104,6 @@ body {
   color: transparent;
 }
 
-/* The "mynt" half of the wordmark — light mint fading to a deeper green,
-   left to right, matching the reference logo. */
-.text-gradient-mynt {
-  background: linear-gradient(90deg, #4ade80, #15803d);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

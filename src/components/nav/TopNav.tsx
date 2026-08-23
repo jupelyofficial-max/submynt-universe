@@ -35,9 +35,9 @@ export function TopNav() {
     >
       <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-4 px-4 lg:px-8">
         <Link href="/explore" className="flex items-center shrink-0 group">
-          <span className="font-display text-xl font-black tracking-tight transition-opacity group-hover:opacity-80">
+          <span className="font-display text-2xl font-black tracking-tight transition-opacity group-hover:opacity-80">
             <span className="text-ink-0">sub</span>
-            <span className="text-gradient-mynt">mynt</span>
+            <span className="text-[#22c55e]">mynt</span>
           </span>
         </Link>
 

@@ -49,8 +49,8 @@
   --color-nebula-500: var(--nebula-500);
   --color-gold-400: var(--gold-400);
   --color-gold-500: var(--gold-500);
-  --font-display: var(--font-fraunces);
-  --font-sans: var(--font-work-sans);
+  --font-display: var(--font-bricolage);
+  --font-sans: var(--font-bricolage);
 }
 
 * {

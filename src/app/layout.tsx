@@ -1,21 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Work_Sans } from "next/font/google";
+import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { TopNav } from "@/components/nav/TopNav";
 import { DetailPanel } from "@/components/detail/DetailPanel";
 
-const workSans = Work_Sans({
-  variable: "--font-work-sans",
+// Single font for the entire app — both --font-sans (body) and
+// --font-display (headings) resolve to this in globals.css, so every
+// existing component keeps working unchanged.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "variable",
   display: "swap",
 });
 
@@ -41,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${workSans.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${bricolage.variable} h-full antialiased`}
     >
       <body className="h-full flex flex-col bg-void-950 text-ink-0 overflow-hidden">
         <Providers>

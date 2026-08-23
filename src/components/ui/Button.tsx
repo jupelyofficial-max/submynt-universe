@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { ButtonHTMLAttributes } from "react";
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from "react";
 
 type Variant = "primary" | "secondary" | "ghost" | "outline" | "danger";
 type Size = "sm" | "md" | "lg" | "icon";
@@ -20,21 +20,29 @@ const SIZE_CLASSES: Record<Size, string> = {
   icon: "h-10 w-10 rounded-xl",
 };
 
+const BASE_CLASSES =
+  "inline-flex items-center justify-center font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none cursor-pointer";
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  href?: undefined;
 }
 
-export function Button({ variant = "primary", size = "md", className, ...props }: ButtonProps) {
-  return (
-    <button
-      className={cn(
-        "inline-flex items-center justify-center font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none cursor-pointer",
-        VARIANT_CLASSES[variant],
-        SIZE_CLASSES[size],
-        className
-      )}
-      {...props}
-    />
-  );
+/** Same visual treatment, rendered as a real `<a>` — for CTAs that navigate
+ * to an outbound URL (e.g. "Visit Provider", "Start Free Trial"), where a
+ * `<button>` would be the wrong element (no href, no right-click-to-open,
+ * no native new-tab support). */
+interface LinkButtonProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+  variant?: Variant;
+  size?: Size;
+  href: string;
+}
+
+export function Button({ variant = "primary", size = "md", className, href, ...props }: ButtonProps | LinkButtonProps) {
+  const classes = cn(BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className);
+  if (href !== undefined) {
+    return <a href={href} className={classes} {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)} />;
+  }
+  return <button className={classes} {...(props as ButtonHTMLAttributes<HTMLButtonElement>)} />;
 }

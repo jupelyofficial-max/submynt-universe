@@ -13,17 +13,15 @@ import { SavingsSection } from "@/components/detail/SavingsSection";
 import { AlternativesSection } from "@/components/detail/AlternativesSection";
 import { SubscriptionStatusPicker } from "@/components/detail/SubscriptionStatusPicker";
 import { PriceAlertToggle } from "@/components/detail/PriceAlertToggle";
-import { VerificationBadge } from "@/components/detail/VerificationBadge";
 import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useDemandSignalsStore } from "@/store/useDemandSignalsStore";
 import { SUBSCRIPTIONS_BY_ID, bestSavingsAlternative, potentialSavingsMonthly } from "@/data/subscriptions";
 import { VERIFICATION_BY_ID } from "@/data/verification";
-import { getProviderUrl, rankAlternatives } from "@/lib/subscriptionIntelligence";
+import { computeBestFor, getProviderUrl, rankAlternatives } from "@/lib/subscriptionIntelligence";
 import { getRecommendation } from "@/lib/recommendations";
 import { canClaimSavings } from "@/lib/verification/claims";
-import { FRESHNESS_DAYS } from "@/lib/verification/freshness";
 import { formatDate, formatINR } from "@/lib/utils";
 import { BILLING_LABELS } from "@/data/categories";
 
@@ -72,6 +70,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
   const providerUrl = getProviderUrl(sub);
   const verification = VERIFICATION_BY_ID[sub.id];
   const savingsVerified = savingsAlt ? canClaimSavings(verification, VERIFICATION_BY_ID[savingsAlt.id]) : false;
+  const bestFor = computeBestFor(sub);
 
   const ownedSubscriptions = useMemo(
     () => ownedList.map((o) => SUBSCRIPTIONS_BY_ID[o.subscriptionId]).filter((s): s is NonNullable<typeof s> => Boolean(s)),
@@ -127,10 +126,16 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
           </div>
         </div>
 
-        {/* 2. Verification status */}
-        <div className="mt-3">
-          <VerificationBadge field={verification.price} freshnessDays={FRESHNESS_DAYS.price} />
-        </div>
+        {/* 2. Best for */}
+        {bestFor.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {bestFor.map((tag) => (
+              <span key={tag} className="rounded-full border border-[#E5E5E5] bg-white px-2.5 py-0.5 text-[11px] font-medium text-black">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* 3. Price */}
         <div className="mt-4 flex items-end justify-between border-t border-[#E5E5E5] pt-4">

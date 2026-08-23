@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Heart, Repeat, Scale, Share2, Trash2 } from "lucide-react";
 import { ResponsiveSheet } from "@/components/ui/ResponsiveSheet";
@@ -14,11 +14,14 @@ import { AlternativesSection } from "@/components/detail/AlternativesSection";
 import { SubscriptionStatusPicker } from "@/components/detail/SubscriptionStatusPicker";
 import { PriceAlertToggle } from "@/components/detail/PriceAlertToggle";
 import { VerificationBadge } from "@/components/detail/VerificationBadge";
+import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
+import { useDemandSignalsStore } from "@/store/useDemandSignalsStore";
 import { SUBSCRIPTIONS_BY_ID, bestSavingsAlternative, potentialSavingsMonthly } from "@/data/subscriptions";
 import { VERIFICATION_BY_ID } from "@/data/verification";
 import { getProviderUrl, rankAlternatives } from "@/lib/subscriptionIntelligence";
+import { getRecommendation } from "@/lib/recommendations";
 import { canClaimSavings } from "@/lib/verification/claims";
 import { FRESHNESS_DAYS } from "@/lib/verification/freshness";
 import { cn, formatDate, formatINR } from "@/lib/utils";
@@ -56,6 +59,8 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
   const owned = useMySubscriptionsStore((s) => s.getOwned(sub.id));
   const removeOwned = useMySubscriptionsStore((s) => s.remove);
   const addOwned = useMySubscriptionsStore((s) => s.add);
+  const ownedList = useMySubscriptionsStore((s) => s.owned);
+  const recordDemand = useDemandSignalsStore((s) => s.record);
 
   const [kept, setKept] = useState(false);
   const [shared, setShared] = useState(false);
@@ -67,6 +72,19 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
   const providerUrl = getProviderUrl(sub);
   const verification = VERIFICATION_BY_ID[sub.id];
   const savingsVerified = savingsAlt ? canClaimSavings(verification, VERIFICATION_BY_ID[savingsAlt.id]) : false;
+
+  const ownedSubscriptions = useMemo(
+    () => ownedList.map((o) => SUBSCRIPTIONS_BY_ID[o.subscriptionId]).filter((s): s is NonNullable<typeof s> => Boolean(s)),
+    [ownedList]
+  );
+  const topRecommendation = alternatives[0] ? getRecommendation(alternatives[0].subscription, { ownedSubscriptions }) : null;
+  const secondaryAlternatives = alternatives.slice(1);
+
+  // Anonymous, per-subscription view counter — see useDemandSignalsStore.
+  useEffect(() => {
+    recordDemand(sub.id, "views");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sub.id]);
 
   function handleShare() {
     const url = `${window.location.origin}/explore?focus=${sub.id}`;
@@ -80,6 +98,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
   }
 
   function openAlternative(id: string) {
+    recordDemand(sub.id, "comparisons");
     select(id);
     sendCameraCommand({ type: "focus-node", id });
   }
@@ -140,17 +159,40 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
           onViewAlternative={() => openAlternative(savingsAlt.id)}
         />
       )}
-      <AlternativesSection alternatives={alternatives} onSelect={openAlternative} />
+      {topRecommendation && (
+        <div className="px-4 py-3 border-b border-line-soft">
+          <RecommendationCard
+            result={topRecommendation}
+            onExplore={() => openAlternative(topRecommendation.subscription.id)}
+            onCompare={() => {
+              router.push(`/compare?ids=${sub.id},${topRecommendation.subscription.id}`);
+            }}
+          />
+        </div>
+      )}
+      <AlternativesSection alternatives={secondaryAlternatives} onSelect={openAlternative} />
 
       {/* 5. What should I do next? */}
       <div className="px-4 py-3 border-b border-line-soft">
         <div className="grid grid-cols-2 gap-2">
           {sub.dealUrl ? (
-            <Button href={sub.dealUrl} target="_blank" rel="noopener noreferrer" className="col-span-2">
+            <Button
+              href={sub.dealUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="col-span-2"
+              onClick={() => recordDemand(sub.id, "clickThroughs")}
+            >
               Get Deal →
             </Button>
           ) : providerUrl ? (
-            <Button href={providerUrl} target="_blank" rel="noopener noreferrer" className="col-span-2">
+            <Button
+              href={providerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="col-span-2"
+              onClick={() => recordDemand(sub.id, "clickThroughs")}
+            >
               Visit Provider →
             </Button>
           ) : null}

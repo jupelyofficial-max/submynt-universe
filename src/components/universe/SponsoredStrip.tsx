@@ -1,10 +1,13 @@
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
-
-const SPONSORED_IDS = ["netflix", "spotify-premium", "adobe-creative-cloud", "notion-ai", "duolingo-super"];
+import { getSponsoredSubscriptionIds } from "@/data/vendors";
 
 export function SponsoredStrip({ compact }: { compact?: boolean }) {
-  const items = SPONSORED_IDS.map((id) => SUBSCRIPTIONS.find((s) => s.id === id)).filter((s) => s !== undefined);
+  // Real structured vendor/sponsorship data (data/vendors.ts) — not a
+  // hardcoded id list — is the single source of truth for what's sponsored.
+  const items = getSponsoredSubscriptionIds()
+    .map((id) => SUBSCRIPTIONS.find((s) => s.id === id))
+    .filter((s) => s !== undefined);
   if (items.length === 0) return null;
 
   return (

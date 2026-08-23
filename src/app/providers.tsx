@@ -6,6 +6,7 @@ import { useSubmissionsStore } from "@/store/useSubmissionsStore";
 import { usePerksStore } from "@/store/usePerksStore";
 import { useSubscriptionStatusStore } from "@/store/useSubscriptionStatusStore";
 import { usePriceAlertStore } from "@/store/usePriceAlertStore";
+import { useDemandSignalsStore } from "@/store/useDemandSignalsStore";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -19,6 +20,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     useSubscriptionStatusStore.getState().setHydrated();
     usePriceAlertStore.persist.rehydrate();
     usePriceAlertStore.getState().setHydrated();
+    useDemandSignalsStore.persist.rehydrate();
+    useDemandSignalsStore.getState().setHydrated();
   }, []);
 
   return <>{children}</>;

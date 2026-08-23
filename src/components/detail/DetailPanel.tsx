@@ -127,12 +127,15 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
 
         {/* 2. Best for */}
         {bestFor.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {bestFor.map((tag) => (
-              <span key={tag} className="rounded-full border border-[#E5E5E5] bg-white px-2.5 py-0.5 text-[11px] font-medium text-black">
-                {tag}
-              </span>
-            ))}
+          <div className="mt-3">
+            <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#6B6B6B]">Best Fit</div>
+            <div className="flex flex-wrap gap-1.5">
+              {bestFor.map((tag) => (
+                <span key={tag} className="rounded-full border border-[#E5E5E5] bg-white px-2.5 py-0.5 text-[11px] font-medium text-black">
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 

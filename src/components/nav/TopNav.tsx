@@ -37,7 +37,11 @@ export function TopNav() {
         <Link href="/explore" className="flex items-center shrink-0 group">
           <span className="font-display text-xl font-bold tracking-tight transition-opacity group-hover:opacity-80">
             <span className="text-ink-0">sub</span>
-            <span className="text-[#22c55e]">mynt</span>
+            <span className="relative pr-[0.16em] text-[#22c55e]">
+              mynt
+              {/* Coin Terminal — a small disc stamped on the crossbar of the final "t". */}
+              <span className="absolute right-[0.02em] top-[0.3em] h-[0.15em] w-[0.15em] rounded-full bg-[#22c55e]" aria-hidden="true" />
+            </span>
           </span>
         </Link>
 

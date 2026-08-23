@@ -153,7 +153,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
       </div>
 
       {/* 5. Plans */}
-      <PlansSection sub={sub} verification={verification} />
+      <PlansSection sub={sub} />
 
       {/* 6. Best alternative / recommendation — savings estimate and the
           personalized pick together, so price-vs-alternative information

@@ -64,8 +64,8 @@ export function SubscriptionStatusPicker({ sub }: { sub: Subscription }) {
   }
 
   return (
-    <div className="px-4 py-3 border-b border-line-soft">
-      <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Add to My Subscriptions</h4>
+    <div className="px-5 py-4 border-t border-[#E5E5E5]">
+      <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Add to My Subscriptions</h4>
       <div className="grid grid-cols-2 gap-1.5">
         {OPTIONS.map((opt) => {
           const isActive = active === opt.value;
@@ -74,10 +74,10 @@ export function SubscriptionStatusPicker({ sub }: { sub: Subscription }) {
               key={opt.value}
               onClick={() => handlePick(opt.value)}
               className={cn(
-                "flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium transition-colors cursor-pointer",
+                "flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-medium transition-colors cursor-pointer",
                 isActive
                   ? "border-nebula-500 bg-nebula-500/10 text-nebula-500"
-                  : "border-black/10 bg-void-900/60 text-ink-300 hover:border-black/20"
+                  : "border-[#E5E5E5] bg-white text-[#6B6B6B] hover:border-black/20"
               )}
             >
               {isActive && <Check size={12} />}
@@ -88,17 +88,17 @@ export function SubscriptionStatusPicker({ sub }: { sub: Subscription }) {
       </div>
 
       {choosingPlan && !isOwned && (
-        <div className="mt-2 rounded-xl border border-line-soft bg-black/[0.02] p-2.5">
-          <div className="mb-1.5 text-[11px] text-ink-500">Which plan?</div>
+        <div className="mt-2 rounded-lg border border-[#E5E5E5] bg-white p-2.5">
+          <div className="mb-1.5 text-[11px] text-[#6B6B6B]">Which plan?</div>
           <div className="grid grid-cols-2 gap-1.5">
             {sub.plans.map((plan) => (
               <button
                 key={plan.name}
                 onClick={() => confirmPlan(plan.name, plan.priceMonthly, plan.billing)}
-                className="flex flex-col items-start rounded-xl border border-black/10 bg-void-950/60 px-3 py-2 text-left hover:border-nebula-500/40 transition-colors cursor-pointer"
+                className="flex flex-col items-start rounded-lg border border-[#E5E5E5] bg-white px-3 py-2 text-left hover:border-nebula-500/40 transition-colors cursor-pointer"
               >
-                <span className="text-[11px] text-ink-300">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
-                <span className="text-sm font-semibold text-ink-0">{formatINR(plan.priceMonthly)}</span>
+                <span className="text-[11px] text-[#6B6B6B]">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
+                <span className="text-sm font-semibold text-black">{formatINR(plan.priceMonthly)}</span>
               </button>
             ))}
           </div>

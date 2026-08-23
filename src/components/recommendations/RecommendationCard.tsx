@@ -27,7 +27,7 @@ export function RecommendationCard({
   const verification = VERIFICATION_BY_ID[sub.id];
 
   return (
-    <div className="rounded-2xl border border-aurora-500/20 bg-aurora-500/[0.04] p-3.5">
+    <div className="rounded-xl border border-[#E5E5E5] border-l-2 border-l-aurora-500 bg-white p-4">
       <div className="flex items-center gap-1.5 mb-2.5">
         <Sparkle size={13} className="text-aurora-500" />
         <span className="text-xs font-semibold uppercase tracking-wider text-aurora-500">Recommended for you</span>
@@ -37,21 +37,21 @@ export function RecommendationCard({
         <SubscriptionLogo subscription={sub} size="md" bare />
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-sm font-semibold text-ink-0 truncate">{sub.name}</h4>
+            <h4 className="text-sm font-semibold text-black truncate">{sub.name}</h4>
             <span className="shrink-0 text-xs font-semibold text-aurora-500">{score}% match</span>
           </div>
-          <p className="text-xs text-ink-500">{sub.category}</p>
-          {reasons[0] && <p className="mt-1 text-xs text-ink-300">{reasons[0]}</p>}
+          <p className="text-xs text-[#6B6B6B]">{sub.category}</p>
+          {reasons[0] && <p className="mt-1 text-xs text-[#6B6B6B]">{reasons[0]}</p>}
         </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between">
-        <div className="text-sm font-semibold text-ink-0">{formatINR(sub.priceMonthly)}{sub.priceMonthly > 0 && <span className="text-xs font-normal text-ink-500">/mo</span>}</div>
+        <div className="text-sm font-semibold text-black">{formatINR(sub.priceMonthly)}{sub.priceMonthly > 0 && <span className="text-xs font-normal text-[#6B6B6B]">/mo</span>}</div>
         <VerificationBadge field={verification.price} freshnessDays={FRESHNESS_DAYS.price} />
       </div>
 
       <div className="mt-3 flex gap-2">
-        <Button size="sm" className="flex-1" onClick={onExplore}>
+        <Button size="sm" variant="secondary" className="flex-1" onClick={onExplore}>
           Explore →
         </Button>
         {onCompare && (

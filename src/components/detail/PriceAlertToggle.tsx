@@ -18,8 +18,8 @@ export function PriceAlertToggle({ subscriptionId }: { subscriptionId: string })
       className={cn(
         "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
         enabled
-          ? "border-aurora-500/40 bg-aurora-500/10 text-aurora-500"
-          : "border-black/10 text-ink-300 hover:border-black/20"
+          ? "border-black bg-black text-white"
+          : "border-[#E5E5E5] bg-white text-[#6B6B6B] hover:border-black/20"
       )}
     >
       {enabled ? <BellRing size={13} /> : <Bell size={13} />}

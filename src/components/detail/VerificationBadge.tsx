@@ -6,9 +6,10 @@ import type { VerifiedField } from "@/types/verification";
 
 /**
  * Four real states, four distinct treatments — never let UNVERIFIED or
- * STALE read as confidently as VERIFIED. UNVERIFIED is deliberately calm
- * (neutral gray, not red/alarming) since it's the expected state for every
- * record in today's catalogue, not an error condition.
+ * STALE read as confidently as VERIFIED. Color system: green = verified,
+ * amber = caution/unverified, matching the app-wide convention — UNVERIFIED
+ * is amber rather than alarmingly red since it's the expected state for
+ * every record in today's catalogue, not an error condition.
  */
 export function VerificationBadge({ field, freshnessDays }: { field: VerifiedField<unknown>; freshnessDays: number }) {
   const state = computeVerificationState(field, freshnessDays);
@@ -34,7 +35,7 @@ export function VerificationBadge({ field, freshnessDays }: { field: VerifiedFie
     },
     UNVERIFIED: {
       icon: CircleDashed,
-      tone: "border-black/10 bg-black/[0.03] text-ink-500",
+      tone: "border-gold-500/30 bg-gold-500/10 text-gold-500",
       title: "Unverified",
       subtitle: "Submynt demo data — no source on file",
     },

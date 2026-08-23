@@ -24,7 +24,7 @@ import { getProviderUrl, rankAlternatives } from "@/lib/subscriptionIntelligence
 import { getRecommendation } from "@/lib/recommendations";
 import { canClaimSavings } from "@/lib/verification/claims";
 import { FRESHNESS_DAYS } from "@/lib/verification/freshness";
-import { cn, formatDate, formatINR } from "@/lib/utils";
+import { formatDate, formatINR } from "@/lib/utils";
 import { BILLING_LABELS } from "@/data/categories";
 
 export function DetailPanel() {
@@ -43,7 +43,7 @@ export function DetailPanel() {
   }
 
   return (
-    <ResponsiveSheet open={Boolean(sub)} onClose={handleClose} title={sub?.category ?? ""} desktopVariant="side">
+    <ResponsiveSheet open={Boolean(sub)} onClose={handleClose} title={sub?.category ?? ""} desktopVariant="side" panelVariant="solid">
       {sub && <DetailContent subscriptionId={sub.id} />}
     </ResponsiveSheet>
   );
@@ -111,13 +111,13 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
 
   return (
     <div className="flex flex-col">
-      {/* 1. What is this? */}
-      <div className="px-4 pt-4 pb-3 border-b border-line-soft">
+      {/* 1. Provider + category */}
+      <div className="px-5 pt-5 pb-4">
         <div className="flex items-start gap-3">
           <SubscriptionLogo subscription={sub} size="lg" ring={isOwned} bare />
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-lg font-semibold text-ink-0 truncate">{sub.name}</h2>
-            <p className="mt-0.5 text-sm text-ink-300 line-clamp-2">{sub.tagline}</p>
+            <h2 className="font-display text-lg font-semibold text-black truncate">{sub.name}</h2>
+            <p className="mt-0.5 text-sm text-[#6B6B6B] line-clamp-2">{sub.tagline}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               <Badge tone="aurora">{sub.category}</Badge>
               <Badge tone="neutral">{sub.region}</Badge>
@@ -127,29 +127,33 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
           </div>
         </div>
 
+        {/* 2. Verification status */}
         <div className="mt-3">
           <VerificationBadge field={verification.price} freshnessDays={FRESHNESS_DAYS.price} />
         </div>
 
-        <div className="mt-3 flex items-end justify-between">
+        {/* 3. Price */}
+        <div className="mt-4 flex items-end justify-between border-t border-[#E5E5E5] pt-4">
           <div>
-            <div className="font-display text-2xl font-semibold text-ink-0">{formatINR(sub.priceMonthly)}</div>
-            {sub.priceMonthly > 0 && <div className="text-xs text-ink-500">per month, {sub.billing.includes("annual") ? "billed monthly or annually" : "billed monthly"}</div>}
+            <div className="font-display text-[28px] leading-none font-semibold text-black">{formatINR(sub.priceMonthly)}</div>
+            {sub.priceMonthly > 0 && <div className="mt-1 text-xs text-[#6B6B6B]">per month, {sub.billing.includes("annual") ? "billed monthly or annually" : "billed monthly"}</div>}
           </div>
           <div className="text-right">
-            <div className="text-sm font-semibold text-gold-400">★ {sub.rating.toFixed(1)}</div>
-            <div className="text-xs text-ink-500">{sub.popularity}% Submynt Popularity</div>
+            <div className="text-sm font-semibold text-black">★ {sub.rating.toFixed(1)}</div>
+            <div className="text-xs text-[#6B6B6B]">{sub.popularity}% Submynt Popularity</div>
           </div>
         </div>
       </div>
 
-      {/* 2. Is it right for me? */}
+      {/* 4. Submynt recommendation/insight */}
       <InsightSection sub={sub} />
 
-      {/* 3. What does it really cost? */}
+      {/* 5. Plans */}
       <PlansSection sub={sub} verification={verification} />
 
-      {/* 4. Can I get something better or cheaper? */}
+      {/* 6. Best alternative / recommendation — savings estimate and the
+          personalized pick together, so price-vs-alternative information
+          only appears once in this part of the panel. */}
       {savingsAlt && savings > 0 && (
         <SavingsSection
           sub={sub}
@@ -160,7 +164,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
         />
       )}
       {topRecommendation && (
-        <div className="px-4 py-3 border-b border-line-soft">
+        <div className="px-5 py-4">
           <RecommendationCard
             result={topRecommendation}
             onExplore={() => openAlternative(topRecommendation.subscription.id)}
@@ -172,63 +176,55 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
       )}
       <AlternativesSection alternatives={secondaryAlternatives} onSelect={openAlternative} />
 
-      {/* 5. What should I do next? */}
-      <div className="px-4 py-3 border-b border-line-soft">
-        <div className="grid grid-cols-2 gap-2">
-          {sub.dealUrl ? (
-            <Button
-              href={sub.dealUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="col-span-2"
-              onClick={() => recordDemand(sub.id, "clickThroughs")}
-            >
-              Get Deal →
-            </Button>
-          ) : providerUrl ? (
-            <Button
-              href={providerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="col-span-2"
-              onClick={() => recordDemand(sub.id, "clickThroughs")}
-            >
-              Visit Provider →
-            </Button>
-          ) : null}
-          <Button variant="outline" size="sm" onClick={handleCompare} className={cn(!sub.dealUrl && !providerUrl && "col-span-2")}>
+      {/* 7. Primary CTA — the one dominant action in this panel. */}
+      <div className="px-5 py-4 border-t border-[#E5E5E5]">
+        {sub.dealUrl ? (
+          <Button
+            href={sub.dealUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full"
+            onClick={() => recordDemand(sub.id, "clickThroughs")}
+          >
+            Get Deal →
+          </Button>
+        ) : providerUrl ? (
+          <Button
+            href={providerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full"
+            onClick={() => recordDemand(sub.id, "clickThroughs")}
+          >
+            Visit Provider →
+          </Button>
+        ) : null}
+        <div className="mt-2 flex items-center justify-center gap-1">
+          <Button variant="ghost" size="sm" onClick={handleCompare}>
             <Scale size={14} />
             Compare
           </Button>
-          {(sub.dealUrl || providerUrl) && (
-            <Button variant="ghost" size="sm" onClick={handleShare}>
-              <Share2 size={14} />
-              {shared ? "Link copied" : "Share"}
-            </Button>
-          )}
-        </div>
-        {!sub.dealUrl && !providerUrl && (
-          <Button variant="ghost" size="sm" className="mt-2 w-full" onClick={handleShare}>
+          <Button variant="ghost" size="sm" onClick={handleShare}>
             <Share2 size={14} />
             {shared ? "Link copied" : "Share"}
           </Button>
-        )}
+        </div>
       </div>
 
       <SubscriptionStatusPicker sub={sub} />
 
       {isOwned && owned && (
         <>
-          <div className="px-4 py-3 border-b border-line-soft">
+          <div className="px-5 py-4 border-t border-[#E5E5E5]">
             <div className="grid grid-cols-2 gap-2">
               <Button
-                variant={kept ? "secondary" : "primary"}
+                variant="secondary"
                 onClick={() => {
                   setKept(true);
                   setTimeout(() => setKept(false), 1500);
                 }}
               >
-                {kept ? <Check size={16} /> : <Heart size={16} />}
+                {kept ? <Check size={16} className="text-nebula-500" /> : <Heart size={16} />}
                 {kept ? "Kept" : "Keep"}
               </Button>
               <Button variant="ghost" onClick={() => setSwitchingPlan((v) => !v)}>
@@ -239,7 +235,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
             <Button
               variant="ghost"
               size="sm"
-              className="mt-2 w-full text-red-300 hover:text-red-200"
+              className="mt-2 w-full text-red-500 hover:text-red-600"
               onClick={() => removeOwned(owned.ownedId)}
             >
               <Trash2 size={14} />
@@ -248,8 +244,8 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
           </div>
 
           {switchingPlan && (
-            <div className="px-4 py-3 border-b border-line-soft bg-black/[0.02]">
-              <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Choose a plan</h4>
+            <div className="px-5 py-4 border-t border-[#E5E5E5]">
+              <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Choose a plan</h4>
               <div className="grid grid-cols-2 gap-1.5">
                 {sub.plans.map((plan) => (
                   <button
@@ -264,30 +260,30 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
                       });
                       setSwitchingPlan(false);
                     }}
-                    className="flex flex-col items-start rounded-xl border border-black/10 bg-void-900/60 px-3 py-2 text-left hover:border-aurora-500/40 transition-colors cursor-pointer"
+                    className="flex flex-col items-start rounded-lg border border-[#E5E5E5] bg-white px-3 py-2 text-left hover:border-aurora-500/40 transition-colors cursor-pointer"
                   >
-                    <span className="text-xs text-ink-300">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
-                    <span className="text-sm font-semibold text-ink-0">{formatINR(plan.priceMonthly)}</span>
+                    <span className="text-xs text-[#6B6B6B]">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
+                    <span className="text-sm font-semibold text-black">{formatINR(plan.priceMonthly)}</span>
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="px-4 py-3 border-b border-line-soft grid grid-cols-2 gap-4">
+          <div className="px-5 py-4 border-t border-[#E5E5E5] grid grid-cols-2 gap-4">
             <div>
-              <div className="text-xs text-ink-500">Current plan</div>
-              <div className="text-sm font-medium text-ink-0 mt-0.5">{owned.planName}</div>
+              <div className="text-xs text-[#6B6B6B]">Current plan</div>
+              <div className="text-sm font-medium text-black mt-0.5">{owned.planName}</div>
             </div>
             <div>
-              <div className="text-xs text-ink-500">Next renewal</div>
-              <div className="text-sm font-medium text-ink-0 mt-0.5">{formatDate(owned.nextRenewal)}</div>
+              <div className="text-xs text-[#6B6B6B]">Next renewal</div>
+              <div className="text-sm font-medium text-black mt-0.5">{formatDate(owned.nextRenewal)}</div>
             </div>
           </div>
         </>
       )}
 
-      <div className="px-4 py-3">
+      <div className="px-5 py-4 border-t border-[#E5E5E5]">
         <PriceAlertToggle subscriptionId={sub.id} />
       </div>
     </div>

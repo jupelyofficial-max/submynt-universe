@@ -20,15 +20,15 @@ export function PlansSection({ sub, verification }: { sub: Subscription; verific
   const trialVerified = canClaimTrial(verification);
 
   return (
-    <div className="px-4 py-3 border-b border-line-soft">
-      <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Available plans</h4>
+    <div className="px-5 py-4 border-t border-[#E5E5E5]">
+      <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Available plans</h4>
       <div className="grid grid-cols-2 gap-1.5">
         {sub.plans.map((plan) => {
           const annualSavings = monthlyPlan && plan.name !== monthlyPlan.name ? (monthlyPlan.priceMonthly - plan.priceMonthly) * 12 : 0;
           return (
-            <div key={plan.name} className="flex flex-col items-start rounded-xl bg-black/[0.03] px-3 py-2">
-              <span className="text-xs text-ink-300">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
-              <span className="text-sm font-semibold text-ink-0">{formatINR(plan.priceMonthly)}</span>
+            <div key={plan.name} className="flex flex-col items-start rounded-lg border border-[#E5E5E5] bg-white px-3 py-2">
+              <span className="text-xs text-[#6B6B6B]">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
+              <span className="text-sm font-semibold text-black">{formatINR(plan.priceMonthly)}</span>
               {annualSavings > 0 && <span className="mt-0.5 text-[10px] font-medium text-nebula-500">Save {formatINR(annualSavings)}/yr</span>}
             </div>
           );
@@ -38,18 +38,18 @@ export function PlansSection({ sub, verification }: { sub: Subscription; verific
       {sub.trialDays && (
         <div
           className={cn(
-            "mt-2.5 flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5",
-            trialVerified ? "border-nebula-500/25 bg-nebula-500/[0.06]" : "border-black/10 bg-black/[0.03]"
+            "mt-2.5 flex items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2.5",
+            trialVerified ? "border-nebula-500/40" : "border-gold-500/40"
           )}
         >
           <div className="flex items-center gap-2 min-w-0">
-            <Gift size={15} className={cn("shrink-0", trialVerified ? "text-nebula-500" : "text-ink-500")} />
-            <span className={cn("text-xs font-medium truncate", trialVerified ? "text-ink-100" : "text-ink-300")}>
+            <Gift size={15} className={cn("shrink-0", trialVerified ? "text-nebula-500" : "text-gold-500")} />
+            <span className="text-xs font-medium text-black truncate">
               {trialVerified ? `Free trial available — ${sub.trialDays} days` : `Trial info unverified — ${sub.trialDays} days (per catalogue data)`}
             </span>
           </div>
           {providerUrl && (
-            <Button size="sm" variant={trialVerified ? "secondary" : "outline"} className="shrink-0" href={providerUrl} target="_blank" rel="noopener noreferrer">
+            <Button size="sm" variant="outline" className="shrink-0" href={providerUrl} target="_blank" rel="noopener noreferrer">
               {trialVerified ? "Start Free Trial" : "View Plan Details"}
             </Button>
           )}

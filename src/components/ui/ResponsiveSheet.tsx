@@ -13,6 +13,11 @@ interface ResponsiveSheetProps {
   children: ReactNode;
   desktopVariant?: "side" | "center";
   widthClassName?: string;
+  /** "glass" (default) is the existing cream-tinted glass-panel look used by
+   * every other modal — untouched. "solid" is a plain white panel with a
+   * hairline border, for surfaces that need to read as flat/editorial
+   * rather than translucent. */
+  panelVariant?: "glass" | "solid";
 }
 
 export function ResponsiveSheet({
@@ -22,6 +27,7 @@ export function ResponsiveSheet({
   children,
   desktopVariant = "side",
   widthClassName = "w-[440px]",
+  panelVariant = "glass",
 }: ResponsiveSheetProps) {
   const isDesktop = useIsDesktop();
 
@@ -75,7 +81,8 @@ export function ResponsiveSheet({
               variants={panelVariants}
               transition={{ type: "spring", damping: 32, stiffness: 300 }}
               className={cn(
-                "glass-panel relative flex flex-col overflow-hidden",
+                "relative flex flex-col overflow-hidden",
+                panelVariant === "solid" ? "bg-white border border-[#E5E5E5]" : "glass-panel",
                 isDesktop && desktopVariant === "center"
                   ? cn("rounded-2xl max-h-[86vh]", widthClassName)
                   : isDesktop
@@ -83,7 +90,7 @@ export function ResponsiveSheet({
                     : "w-full rounded-t-2xl max-h-[86vh]"
               )}
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-line-soft shrink-0">
+              <div className={cn("flex items-center justify-between px-5 py-4 border-b shrink-0", panelVariant === "solid" ? "border-[#E5E5E5]" : "border-line-soft")}>
                 <div className="text-sm font-semibold text-ink-0 font-display tracking-wide">{title}</div>
                 <button
                   onClick={onClose}

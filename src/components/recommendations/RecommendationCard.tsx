@@ -1,9 +1,6 @@
 import { Scale, Sparkle } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
-import { VerificationBadge } from "@/components/detail/VerificationBadge";
-import { VERIFICATION_BY_ID } from "@/data/verification";
-import { FRESHNESS_DAYS } from "@/lib/verification/freshness";
 import { formatINR } from "@/lib/utils";
 import type { RecommendationResult } from "@/types/recommendation";
 
@@ -24,7 +21,6 @@ export function RecommendationCard({
   onCompare?: () => void;
 }) {
   const { subscription: sub, score, reasons } = result;
-  const verification = VERIFICATION_BY_ID[sub.id];
 
   return (
     <div className="rounded-xl border border-[#E5E5E5] border-l-2 border-l-aurora-500 bg-white p-4">
@@ -45,10 +41,7 @@ export function RecommendationCard({
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
-        <div className="text-sm font-semibold text-black">{formatINR(sub.priceMonthly)}{sub.priceMonthly > 0 && <span className="text-xs font-normal text-[#6B6B6B]">/mo</span>}</div>
-        <VerificationBadge field={verification.price} freshnessDays={FRESHNESS_DAYS.price} />
-      </div>
+      <div className="mt-3 text-sm font-semibold text-black">{formatINR(sub.priceMonthly)}{sub.priceMonthly > 0 && <span className="text-xs font-normal text-[#6B6B6B]">/mo</span>}</div>
 
       <div className="mt-3 flex gap-2">
         <Button size="sm" variant="secondary" className="flex-1" onClick={onExplore}>

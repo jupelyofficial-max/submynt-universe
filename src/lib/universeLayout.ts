@@ -64,13 +64,13 @@ export interface UniverseBounds {
 // (0.3 offset + the label text block's own height) — computeUniverseBounds
 // has to reserve this on the top edge too, or a tight FIT_PADDING has no
 // slack left to absorb it and the top row's labels clip against the header.
-const LABEL_RESERVE = 1.4;
+const LABEL_RESERVE = 1.6;
 // SponsoredStrip renders as a fixed DOM overlay pinned near the bottom of
 // the viewport (see ExploreClient.tsx) — the camera's fit-to-bounds has no
 // visibility into that overlay at all, so without an explicit reserve here
 // the bottom row's icons get fit flush against the true bottom edge and can
 // land directly underneath the strip.
-const BOTTOM_RESERVE = 2.2;
+const BOTTOM_RESERVE = 2.8;
 
 /** Bounding box of the whole packed composition — the union of every
  * category cluster's circle (center ± its own radius, plus LABEL_RESERVE on
@@ -172,16 +172,24 @@ export function packCircles(radii: number[], spacing: number, margin: number): P
   return placed;
 }
 
-/** Arranges category clusters into a strict, uniform grid — every column
- * shares one x position across all rows, every row shares one y position
- * across all columns, and every cell is the same fixed pitch (sized to the
- * single largest category's footprint, so no cluster ever crowds a
- * neighbor regardless of how many subscriptions it has). Categories are
- * ordered by subscription count, most-populated first — the same ordering
- * key the mobile Universe uses (see MobileUniverse.tsx's `ordered` sort) —
- * so both platforms group and rank categories identically, filled
- * left-to-right then top-to-bottom into CATEGORY_GRID_COLUMNS columns (rows
- * derived from category count). */
+/** Arranges category clusters into a structured grid — every column shares
+ * one x position across all rows, every row shares one y position across
+ * all columns, so the composition stays deterministic and non-overlapping —
+ * but each column/row is sized to its own largest occupant (CSS Grid's
+ * `auto` track sizing, not a single uniform pitch for the whole grid). A
+ * uniform pitch sized to the single biggest category (e.g. Entertainment,
+ * 9 icons) would pad every other cell out to that same size even when its
+ * own cluster is much smaller (e.g. Communication, 5 icons) — auto-sizing
+ * keeps a dense row dense and a sparse row compact, which is what keeps the
+ * composition (and therefore the camera's fit-zoom, and therefore every
+ * icon's on-screen size) close to its real content instead of bloated by
+ * the single largest category in the whole catalogue.
+ *
+ * Categories are ordered by subscription count, most-populated first — the
+ * same ordering key the mobile Universe uses (see MobileUniverse.tsx's
+ * `ordered` sort) — so both platforms group and rank categories
+ * identically, filled left-to-right then top-to-bottom into `columns`
+ * columns (rows derived from category count). */
 function layoutCategoryGrid<T extends { category: string; footprint: number; totalCount: number }>(
   categories: T[],
   gap: number,
@@ -189,15 +197,51 @@ function layoutCategoryGrid<T extends { category: string; footprint: number; tot
 ): Map<string, { x: number; y: number }> {
   const ordered = categories.slice().sort((a, b) => b.totalCount - a.totalCount);
   const rows = Math.ceil(ordered.length / columns);
-  const maxFootprint = Math.max(...ordered.map((c) => c.footprint));
-  const cellPitch = maxFootprint * 2 + gap;
+
+  const grid: (T | undefined)[][] = Array.from({ length: rows }, () => Array(columns).fill(undefined));
+  ordered.forEach((cat, i) => {
+    grid[Math.floor(i / columns)][i % columns] = cat;
+  });
+
+  const colSizes = Array.from({ length: columns }, (_, col) => {
+    let max = 0;
+    for (let row = 0; row < rows; row++) max = Math.max(max, grid[row][col]?.footprint ?? 0);
+    return max * 2 + gap;
+  });
+  // Every row has a category label sitting above its own icons (see
+  // CategoryLabels), not just the top row of the whole composition — so
+  // every row needs LABEL_RESERVE worth of clearance from the row above it,
+  // not only the gap between icon clusters. Splitting it across both rows
+  // (half added to each row's own height) puts exactly LABEL_RESERVE of
+  // extra space between any two adjacent row centers, same as the reserve
+  // computeUniverseBounds adds above the topmost row.
+  const rowSizes = Array.from({ length: rows }, (_, row) => {
+    let max = 0;
+    for (let col = 0; col < columns; col++) max = Math.max(max, grid[row][col]?.footprint ?? 0);
+    return max * 2 + gap + LABEL_RESERVE;
+  });
+
+  const totalWidth = colSizes.reduce((a, b) => a + b, 0);
+  const totalHeight = rowSizes.reduce((a, b) => a + b, 0);
+  // Cumulative offset of each column/row's leading edge, so its center is
+  // just that offset plus half its own size.
+  const colStart: number[] = [];
+  for (let i = 0, acc = 0; i < columns; i++) {
+    colStart.push(acc);
+    acc += colSizes[i];
+  }
+  const rowStart: number[] = [];
+  for (let i = 0, acc = 0; i < rows; i++) {
+    rowStart.push(acc);
+    acc += rowSizes[i];
+  }
 
   const positions = new Map<string, { x: number; y: number }>();
   ordered.forEach((cat, i) => {
     const col = i % columns;
     const row = Math.floor(i / columns);
-    const x = (col - (columns - 1) / 2) * cellPitch;
-    const y = ((rows - 1) / 2 - row) * cellPitch;
+    const x = colStart[col] + colSizes[col] / 2 - totalWidth / 2;
+    const y = totalHeight / 2 - (rowStart[row] + rowSizes[row] / 2);
     positions.set(cat.category, { x, y });
   });
   return positions;

@@ -193,7 +193,8 @@ export function packCircles(radii: number[], spacing: number, margin: number): P
 function layoutCategoryGrid<T extends { category: string; footprint: number; totalCount: number }>(
   categories: T[],
   gap: number,
-  columns: number = CATEGORY_GRID_COLUMNS
+  columns: number = CATEGORY_GRID_COLUMNS,
+  columnSpread: number = 1
 ): Map<string, { x: number; y: number }> {
   const ordered = categories.slice().sort((a, b) => b.totalCount - a.totalCount);
   const rows = Math.ceil(ordered.length / columns);
@@ -240,7 +241,12 @@ function layoutCategoryGrid<T extends { category: string; footprint: number; tot
   ordered.forEach((cat, i) => {
     const col = i % columns;
     const row = Math.floor(i / columns);
-    const x = colStart[col] + colSizes[col] / 2 - totalWidth / 2;
+    // columnSpread widens the gap BETWEEN column centers only — column
+    // widths (colSizes, used above for packing/overlap safety) and every
+    // row's own height are untouched, so this only ever adds clearance
+    // between columns, never removes it, and never reflows icons within a
+    // category's own cluster.
+    const x = (colStart[col] + colSizes[col] / 2 - totalWidth / 2) * columnSpread;
     const y = totalHeight / 2 - (rowStart[row] + rowSizes[row] / 2);
     positions.set(cat.category, { x, y });
   });
@@ -257,8 +263,24 @@ function layoutCategoryGrid<T extends { category: string; footprint: number; tot
  * data-driven, organically shaped composition. `columns` defaults to the
  * full desktop width (see CATEGORY_GRID_COLUMNS) — callers on a narrower
  * desktop/tablet viewport pass fewer, matching the mobile Universe's own
- * breakpoint-driven column count. */
-export function buildUniverse(subs: Subscription[], columns: number = CATEGORY_GRID_COLUMNS): UniverseLayout {
+ * breakpoint-driven column count.
+ *
+ * `columnSpread` widens the gap between column centers only (see
+ * layoutCategoryGrid) — the composition's own packed width is narrower than
+ * a typical landscape viewport, and computeFitZoom's camera fit is bound by
+ * height at essentially every realistic desktop aspect ratio, so extra
+ * viewport width beyond that just becomes unused margin. UniverseScene
+ * computes a spread that closes that gap by matching the composition's
+ * width to the live viewport's aspect ratio, so wider windows spread
+ * category columns further apart instead of leaving the grid small and
+ * centered in empty canvas. Defaults to 1 (no spread, natural packed
+ * width) — the mobile Universe's call site doesn't need this at all, since
+ * it never reads these x/y positions. */
+export function buildUniverse(
+  subs: Subscription[],
+  columns: number = CATEGORY_GRID_COLUMNS,
+  columnSpread: number = 1
+): UniverseLayout {
   const rand = mulberry32(1337);
   const byCategory = new Map<string, Subscription[]>();
   subs.forEach((s) => {
@@ -285,7 +307,7 @@ export function buildUniverse(subs: Subscription[], columns: number = CATEGORY_G
     return { category, items: shown, totalCount: sorted.length, overflow, localItems, footprint };
   });
 
-  const centers = layoutCategoryGrid(categoriesByCount, ROW_GAP, columns);
+  const centers = layoutCategoryGrid(categoriesByCount, ROW_GAP, columns, columnSpread);
 
   const clusters: CategoryCluster[] = [];
   const nodes: UniverseNode[] = [];

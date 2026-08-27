@@ -9,9 +9,19 @@ import { CameraController, computeFitZoom } from "./CameraController";
 import { buildUniverse, computeUniverseBounds } from "@/lib/universeLayout";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
+import { useIsDesktop } from "@/hooks/useMediaQuery";
+
+// The Universe grid is 4 columns wide at desktop (>=1024px, matching
+// useIsDesktop) and 3 columns in the narrower tablet band above the
+// dedicated MobileUniverse breakpoint (768–1023px) — same breakpoint-driven
+// column-count idea the mobile Universe already uses, just a different
+// column count for a wider, still-desktop viewport.
+const TABLET_GRID_COLUMNS = 3;
 
 export function UniverseScene() {
-  const { nodes, clusters } = useMemo(() => buildUniverse(SUBSCRIPTIONS), []);
+  const isDesktop = useIsDesktop();
+  const columns = isDesktop ? undefined : TABLET_GRID_COLUMNS;
+  const { nodes, clusters } = useMemo(() => buildUniverse(SUBSCRIPTIONS, columns), [columns]);
   const bounds = useMemo(() => computeUniverseBounds(clusters), [clusters]);
   const owned = useMySubscriptionsStore((s) => s.owned);
   const ownedIds = useMemo(() => new Set(owned.map((o) => o.subscriptionId)), [owned]);

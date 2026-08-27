@@ -23,10 +23,14 @@ const CAMERA_FOV_DEG = 45;
 // depth so "fit the content" isn't measured from the wrong plane.
 const CONTENT_Z = 2;
 // Breathing room around the packed composition so no cluster sits flush
-// against the viewport edge — kept tight (8%, not the old 18%) so the
-// default view actually fills the viewport instead of floating in a
-// visible margin of empty canvas.
-const FIT_PADDING = 1.08;
+// against the viewport edge — and, since this is a single perspective zoom,
+// the one lever that reaches every edge including the corners where the
+// EcosystemStats/"Get Free Subscriptions" (bottom-left) and LiveInsights
+// "Top 5" (top-right) fixed overlays sit. Bumped from 1.08 (8%) once the
+// grid layout made those two corners a real, verified overlap risk right at
+// the 1024px breakpoint where both overlays first appear alongside the
+// full 4-column grid.
+const FIT_PADDING = 1.25;
 // The default/auto-fit framing looks slightly right of the composition's
 // true horizontal center, which shifts everything left on screen — giving
 // the right column of categories clearance from the fixed LiveInsights

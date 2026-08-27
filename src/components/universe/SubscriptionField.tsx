@@ -13,12 +13,6 @@ interface Props {
   ownedIds: Set<string>;
 }
 
-function hashSeed(id: string): number {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 100000;
-  return (h / 100000) * Math.PI * 2;
-}
-
 export function SubscriptionField({ nodes, ownedIds }: Props) {
   const searchQuery = useUniverseStore((s) => s.searchQuery);
   const filters = useUniverseStore((s) => s.filters);
@@ -54,7 +48,6 @@ export function SubscriptionField({ nodes, ownedIds }: Props) {
             dimmed={dimmed}
             categoryDimmed={categoryDimmed}
             hasSavings={hasSavings}
-            seed={hashSeed(node.subscription.id)}
           />
         );
       })}

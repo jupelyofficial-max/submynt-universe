@@ -24,17 +24,17 @@ function mulberry32(seed: number) {
 }
 
 const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point, used for item-level packing within a category
-const ROW_GAP = 0.5; // gap kept between category footprints, both across a row and between rows — leaves room for the "+N" overflow badge near each cluster's edge without it reaching the row below's label
+const ROW_GAP = 0.5; // fixed gap between category cells, both across a row and between rows — leaves room for the "+N" overflow badge near each cluster's edge without it reaching the row below's label
 // Caps how many icons a category actually renders — a dominant primary plus
 // up to this many total reads as one clear hero + a curated set, matching
 // the mobile Universe's own cap; anything past it collapses into a "+N"
 // badge instead of crowding the cluster with same-ish small icons.
 const DISPLAY_CAP = 9;
-// A browser viewport reads roughly this wide relative to its height — the
-// row layout below picks whatever row count makes the composition's own
-// intrinsic width:height ratio land near this, so the categories spread
-// across the screen's width instead of stacking into a tall column.
-const TARGET_ROW_ASPECT = 1.85;
+// Desktop categories are laid out in a fixed grid this many columns wide
+// (rows are derived from category count), so every column shares the same
+// x position and every row the same y position instead of a data-driven,
+// aspect-balanced shelf layout.
+const CATEGORY_GRID_COLUMNS = 4;
 
 export interface CategoryCluster {
   name: string;
@@ -65,13 +65,29 @@ export interface UniverseBounds {
 // has to reserve this on the top edge too, or a tight FIT_PADDING has no
 // slack left to absorb it and the top row's labels clip against the header.
 const LABEL_RESERVE = 1.4;
+// SponsoredStrip renders as a fixed DOM overlay pinned near the bottom of
+// the viewport (see ExploreClient.tsx) — the camera's fit-to-bounds has no
+// visibility into that overlay at all, so without an explicit reserve here
+// the bottom row's icons get fit flush against the true bottom edge and can
+// land directly underneath the strip.
+const BOTTOM_RESERVE = 2.2;
 
 /** Bounding box of the whole packed composition — the union of every
  * category cluster's circle (center ± its own radius, plus LABEL_RESERVE on
- * top for the floating category label). Used to fit the camera to the
- * actual content instead of a fixed zoom constant, so the default view
- * always shows the complete universe — including every label — regardless
- * of how many categories/subscriptions the catalogue ends up with. */
+ * top for the floating category label and BOTTOM_RESERVE on the bottom for
+ * the fixed sponsored strip overlay). Used to fit the camera to the actual
+ * content instead of a fixed zoom constant, so the default view always shows
+ * the complete universe — including every label — regardless of how many
+ * categories/subscriptions the catalogue ends up with.
+ *
+ * Left/right clearance for the corner overlays (EcosystemStats bottom-left,
+ * LiveInsights top-right) is deliberately NOT handled here with a
+ * width-side reserve — at every realistic landscape desktop aspect ratio
+ * this composition's height is the binding constraint for computeFitZoom
+ * (verified: distanceForHeight > distanceForWidth for both 1024×800 and
+ * 1440×900), so a width-only reserve never actually changes the fitted
+ * zoom. See CameraController's FIT_PADDING for the fix that actually
+ * reaches every edge, corners included. */
 export function computeUniverseBounds(clusters: CategoryCluster[]): UniverseBounds {
   if (clusters.length === 0) return { centerX: 0, centerY: 0, width: 1, height: 1 };
   let minX = Infinity;
@@ -81,7 +97,7 @@ export function computeUniverseBounds(clusters: CategoryCluster[]): UniverseBoun
   for (const c of clusters) {
     minX = Math.min(minX, c.center.x - c.radius);
     maxX = Math.max(maxX, c.center.x + c.radius);
-    minY = Math.min(minY, c.center.y - c.radius);
+    minY = Math.min(minY, c.center.y - c.radius - BOTTOM_RESERVE);
     maxY = Math.max(maxY, c.center.y + c.radius + LABEL_RESERVE);
   }
   return {
@@ -156,81 +172,33 @@ export function packCircles(radii: number[], spacing: number, margin: number): P
   return placed;
 }
 
-interface RowBin<T> {
-  items: T[];
-  width: number;
-}
-
-/** Arranges category footprints into a compact, horizontally-balanced grid
- * of rows instead of a circular spiral — a spiral spreads roughly equally in
- * every direction, which on a wide browser viewport leaves the composition
- * needlessly tall (lots of unused width, categories stacking from the top
- * of the screen to the bottom). A shelf layout fixes that at the source.
- *
- * Row count is chosen dynamically: it tries every plausible row count and
- * keeps whichever one makes the composition's own width:height ratio land
- * closest to TARGET_ROW_ASPECT, so it stays balanced regardless of how many
- * categories the catalogue has. Within that row count, categories are
- * distributed with a longest-first greedy balance (each category goes into
- * whichever row is currently narrowest) rather than filled row-by-row, so
- * every row ends up a similar width instead of a sparse, lopsided last row —
- * and each row itself is then sorted largest-to-smallest, left to right, so
- * every category still reads by size within its row. */
-function packCategoryRows<T extends { footprint: number }>(
+/** Arranges category clusters into a strict, uniform grid — every column
+ * shares one x position across all rows, every row shares one y position
+ * across all columns, and every cell is the same fixed pitch (sized to the
+ * single largest category's footprint, so no cluster ever crowds a
+ * neighbor regardless of how many subscriptions it has). Categories are
+ * ordered by subscription count, most-populated first — the same ordering
+ * key the mobile Universe uses (see MobileUniverse.tsx's `ordered` sort) —
+ * so both platforms group and rank categories identically, filled
+ * left-to-right then top-to-bottom into CATEGORY_GRID_COLUMNS columns (rows
+ * derived from category count). */
+function layoutCategoryGrid<T extends { category: string; footprint: number; totalCount: number }>(
   categories: T[],
-  targetAspect: number,
-  gap: number
-): RowBin<T>[] {
-  const bySize = categories.slice().sort((a, b) => b.footprint - a.footprint);
-  const maxRows = Math.max(1, Math.min(categories.length, 6));
-
-  let best: RowBin<T>[] = [{ items: bySize, width: 0 }];
-  let bestDiff = Infinity;
-
-  for (let numRows = 1; numRows <= maxRows; numRows++) {
-    const rows: RowBin<T>[] = Array.from({ length: numRows }, () => ({ items: [], width: 0 }));
-    for (const cat of bySize) {
-      const span = cat.footprint * 2 + gap;
-      const narrowest = rows.reduce((min, r) => (r.width < min.width ? r : min), rows[0]);
-      narrowest.items.push(cat);
-      narrowest.width += span;
-    }
-    const rowHeights = rows.map((r) => Math.max(...r.items.map((c) => c.footprint)) * 2 + gap);
-    const totalHeight = rowHeights.reduce((sum, h) => sum + h, 0);
-    const totalWidth = Math.max(...rows.map((r) => r.width - gap));
-    const diff = Math.abs(totalWidth / totalHeight - targetAspect);
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      best = rows;
-    }
-  }
-
-  best.forEach((row) => row.items.sort((a, b) => b.footprint - a.footprint));
-  return best;
-}
-
-/** Lays out rows returned by packCategoryRows into world positions, stacked
- * top to bottom and centered as a whole, each row itself centered
- * horizontally so shorter rows don't hug the left edge. */
-function positionCategoryRows<T extends { category: string; footprint: number }>(
-  rows: RowBin<T>[],
-  gap: number
+  gap: number,
+  columns: number = CATEGORY_GRID_COLUMNS
 ): Map<string, { x: number; y: number }> {
-  const rowHeights = rows.map((r) => Math.max(...r.items.map((c) => c.footprint)) * 2 + gap);
-  const totalHeight = rowHeights.reduce((sum, h) => sum + h, 0);
+  const ordered = categories.slice().sort((a, b) => b.totalCount - a.totalCount);
+  const rows = Math.ceil(ordered.length / columns);
+  const maxFootprint = Math.max(...ordered.map((c) => c.footprint));
+  const cellPitch = maxFootprint * 2 + gap;
 
   const positions = new Map<string, { x: number; y: number }>();
-  let y = totalHeight / 2;
-  rows.forEach((row, i) => {
-    y -= rowHeights[i] / 2;
-    const rowWidth = row.items.reduce((sum, c) => sum + c.footprint * 2 + gap, 0) - gap;
-    let x = -rowWidth / 2;
-    row.items.forEach((c) => {
-      x += c.footprint;
-      positions.set(c.category, { x, y });
-      x += c.footprint + gap;
-    });
-    y -= rowHeights[i] / 2;
+  ordered.forEach((cat, i) => {
+    const col = i % columns;
+    const row = Math.floor(i / columns);
+    const x = (col - (columns - 1) / 2) * cellPitch;
+    const y = ((rows - 1) / 2 - row) * cellPitch;
+    positions.set(cat.category, { x, y });
   });
   return positions;
 }
@@ -240,10 +208,13 @@ function positionCategoryRows<T extends { category: string; footprint: number }>
  * around a shared center — the popularity-ranked hero sits dead center,
  * everything else packs outward just far enough to clear it and each other,
  * so a much bigger hero never collides with its neighbors. Category centers
- * are then arranged into a compact, horizontally-balanced row grid (see
- * packCategoryRows) so the whole composition spreads across the viewport's
- * width instead of stretching from top to bottom. */
-export function buildUniverse(subs: Subscription[]): UniverseLayout {
+ * are then arranged into a fixed `columns`-wide grid (see layoutCategoryGrid)
+ * so every category lands on a consistent row/column position instead of a
+ * data-driven, organically shaped composition. `columns` defaults to the
+ * full desktop width (see CATEGORY_GRID_COLUMNS) — callers on a narrower
+ * desktop/tablet viewport pass fewer, matching the mobile Universe's own
+ * breakpoint-driven column count. */
+export function buildUniverse(subs: Subscription[], columns: number = CATEGORY_GRID_COLUMNS): UniverseLayout {
   const rand = mulberry32(1337);
   const byCategory = new Map<string, Subscription[]>();
   subs.forEach((s) => {
@@ -270,8 +241,7 @@ export function buildUniverse(subs: Subscription[]): UniverseLayout {
     return { category, items: shown, totalCount: sorted.length, overflow, localItems, footprint };
   });
 
-  const rows = packCategoryRows(categoriesByCount, TARGET_ROW_ASPECT, ROW_GAP);
-  const centers = positionCategoryRows(rows, ROW_GAP);
+  const centers = layoutCategoryGrid(categoriesByCount, ROW_GAP, columns);
 
   const clusters: CategoryCluster[] = [];
   const nodes: UniverseNode[] = [];

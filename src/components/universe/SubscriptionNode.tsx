@@ -14,10 +14,9 @@ interface Props {
   dimmed: boolean;
   categoryDimmed?: boolean;
   hasSavings: boolean;
-  seed: number;
 }
 
-export function SubscriptionNode({ node, isOwned, dimmed, categoryDimmed, hasSavings, seed }: Props) {
+export function SubscriptionNode({ node, isOwned, dimmed, categoryDimmed, hasSavings }: Props) {
   const spriteRef = useRef<THREE.Sprite>(null);
   const glowRef = useRef<THREE.Sprite>(null);
   const badgeRef = useRef<THREE.Sprite>(null);
@@ -42,13 +41,8 @@ export function SubscriptionNode({ node, isOwned, dimmed, categoryDimmed, hasSav
 
   const baseScale = node.radius * 2.8;
 
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
+  useFrame(() => {
     if (!groupRef.current) return;
-    const floatY = Math.sin(t * 0.35 + seed) * 0.6;
-    const floatX = Math.cos(t * 0.28 + seed * 1.7) * 0.35;
-    groupRef.current.position.set(node.position.x + floatX, node.position.y + floatY, node.position.z);
-
     const targetScale = baseScale * (hovered ? 1.4 : selected ? 1.25 : 1) * (dimmed ? 0.8 : 1);
     if (spriteRef.current) {
       const s = THREE.MathUtils.lerp(spriteRef.current.scale.x || baseScale, targetScale, 0.15);
@@ -76,7 +70,7 @@ export function SubscriptionNode({ node, isOwned, dimmed, categoryDimmed, hasSav
   });
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} position={[node.position.x, node.position.y, node.position.z]}>
       <sprite ref={glowRef} renderOrder={0}>
         <spriteMaterial
           map={glowTexture}

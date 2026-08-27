@@ -11,7 +11,6 @@ import { PerksModal } from "@/components/submissions/PerksModal";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
-import { UniverseControls } from "@/components/universe/UniverseControls";
 import { EcosystemStats } from "@/components/universe/EcosystemStats";
 import { LiveInsights } from "@/components/universe/LiveInsights";
 import { MobileUniverse } from "@/components/universe/MobileUniverse";
@@ -144,9 +143,6 @@ export function ExploreClient() {
                 <div className="pointer-events-auto">
                   <LiveInsights />
                 </div>
-              </div>
-              <div className="pointer-events-none absolute bottom-4 right-4 z-30 lg:bottom-6 lg:right-6">
-                <UniverseControls />
               </div>
               <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex justify-center lg:bottom-6">
                 <div className="pointer-events-auto">

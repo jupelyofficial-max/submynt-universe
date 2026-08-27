@@ -4,7 +4,6 @@ import type { Category, FilterState, SortOption, UserStatusFilter } from "@/type
 export type ViewMode = "universe" | "list";
 
 export type CameraCommand =
-  | { type: "zoom"; delta: number }
   | { type: "reset" }
   | { type: "focus-node"; id: string }
   | { type: "focus-mine" }

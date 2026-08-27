@@ -223,10 +223,6 @@ export function CameraController({ nodes, ownedIds, bounds }: Props) {
   useEffect(() => {
     if (!cameraCommand) return;
     switch (cameraCommand.type) {
-      case "zoom":
-        hasInteracted.current = true;
-        desired.current.zoom = THREE.MathUtils.clamp(desired.current.zoom + cameraCommand.delta, MIN_ZOOM, maxZoom.current);
-        break;
       case "reset":
         // Clears hasInteracted too, so a later window resize re-fits again
         // instead of leaving the camera pinned to this reset position.

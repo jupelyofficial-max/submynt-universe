@@ -93,19 +93,6 @@ export function UniverseScene() {
     [columns, columnSpread]
   );
   const bounds = useMemo(() => computeUniverseBounds(clusters), [clusters]);
-  // TEMP DEBUG — remove before merging. On-page readout so the numbers can
-  // be screenshotted directly instead of routing through dev tools.
-  const debugInfo = {
-    innerWidth: typeof window !== "undefined" ? window.innerWidth : 0,
-    innerHeight: typeof window !== "undefined" ? window.innerHeight : 0,
-    devicePixelRatio: typeof window !== "undefined" ? window.devicePixelRatio : 0,
-    naturalWidth: naturalBounds.width.toFixed(2),
-    naturalHeight: naturalBounds.height.toFixed(2),
-    viewportAspect: viewportAspect.toFixed(3),
-    columnSpread: columnSpread.toFixed(3),
-    boundsWidth: bounds.width.toFixed(2),
-    boundsHeight: bounds.height.toFixed(2),
-  };
   const owned = useMySubscriptionsStore((s) => s.owned);
   const ownedIds = useMemo(() => new Set(owned.map((o) => o.subscriptionId)), [owned]);
 
@@ -117,40 +104,18 @@ export function UniverseScene() {
   const initialZoom = computeFitZoom(bounds, initialAspect, 1);
 
   return (
-    <>
-      {/* TEMP DEBUG — remove before merging */}
-      <div
-        style={{
-          position: "fixed",
-          top: 68,
-          left: 8,
-          zIndex: 999,
-          background: "black",
-          color: "#0f0",
-          font: "11px monospace",
-          padding: "6px 8px",
-          borderRadius: 4,
-          whiteSpace: "pre",
-          pointerEvents: "none",
-        }}
-      >
-        {Object.entries(debugInfo)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join("\n")}
-      </div>
-      <Canvas
-        className="!touch-none"
-        style={{ cursor: "grab" }}
-        gl={{ alpha: true, antialias: true }}
-        camera={{ position: [bounds.centerX, bounds.centerY, initialZoom], fov: 45, near: 1, far: 400 }}
-        dpr={[1, 3]}
-      >
-        <ambientLight intensity={0.7} />
-        <UniverseCanvasBackground clusters={clusters} />
-        <CategoryLabels clusters={clusters} />
-        <SubscriptionField nodes={nodes} ownedIds={ownedIds} />
-        <CameraController nodes={nodes} ownedIds={ownedIds} bounds={bounds} />
-      </Canvas>
-    </>
+    <Canvas
+      className="!touch-none"
+      style={{ cursor: "grab" }}
+      gl={{ alpha: true, antialias: true }}
+      camera={{ position: [bounds.centerX, bounds.centerY, initialZoom], fov: 45, near: 1, far: 400 }}
+      dpr={[1, 3]}
+    >
+      <ambientLight intensity={0.7} />
+      <UniverseCanvasBackground clusters={clusters} />
+      <CategoryLabels clusters={clusters} />
+      <SubscriptionField nodes={nodes} ownedIds={ownedIds} />
+      <CameraController nodes={nodes} ownedIds={ownedIds} bounds={bounds} />
+    </Canvas>
   );
 }

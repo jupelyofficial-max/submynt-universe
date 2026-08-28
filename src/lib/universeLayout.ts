@@ -24,7 +24,7 @@ function mulberry32(seed: number) {
 }
 
 const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point, used for item-level packing within a category
-const ROW_GAP = 0.12; // fixed gap between category cells, both across a row and between rows — tightened further for a dense 4-column desktop layout; still leaves room for the "+N" overflow badge near each cluster's edge without it reaching the row below's label
+const ROW_GAP = 0.08; // fixed gap between category cells, both across a row and between rows — tightened further for a dense 4-column desktop layout; still leaves room for the "+N" overflow badge near each cluster's edge without it reaching the row below's label
 // Caps how many icons a category actually renders — a dominant primary plus
 // up to this many total reads as one clear hero + a curated set, matching
 // the mobile Universe's own cap; anything past it collapses into a "+N"
@@ -293,10 +293,12 @@ export function buildUniverse(
     const overflow = sorted.length - shown.length;
     const itemRadii = shown.map((sub, i) => tierRadius(i, sub.popularity));
     // Tight item spacing/margin — a category should read as one dense
-    // ecosystem, not a loose scatter of icons. Margin (0.18, not tighter)
-    // verified against real render sizes with an exhaustive pairwise check —
-    // anything looser than this risks two icons visibly touching.
-    const localItems = packCircles(itemRadii, 0.68, 0.18);
+    // ecosystem, not a loose scatter of icons. packCircles enforces this
+    // margin as a hard minimum gap between circle edges, so overlap is
+    // geometrically impossible regardless of how small it is — tightened
+    // further here purely for a denser collage, closer to mobile's own
+    // density (see computeMobileClusterLayout).
+    const localItems = packCircles(itemRadii, 0.55, 0.1);
     const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 0.5;
     return { category, items: shown, totalCount: sorted.length, overflow, localItems, footprint };
   });

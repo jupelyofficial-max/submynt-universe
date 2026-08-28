@@ -111,26 +111,20 @@ export function computeUniverseBounds(clusters: CategoryCluster[]): UniverseBoun
 /** Rank-based icon-size tiers within a category — a primary anchor, a
  * handful of secondary services, then a supporting tier — so a category
  * reads as a gravitational center with its major service anchoring it,
- * rather than a field of same-sized icons. This is the LAYOUT radius: it
- * drives spacing/packing/composition only, and is deliberately left
- * unchanged by icon-only visual passes (see renderTierRadius below) so
- * retuning how big icons look on screen never reflows category positions. */
+ * rather than a field of same-sized icons. This is the ONLY radius: it's
+ * fed straight into packCircles below AND used as the actual on-screen
+ * render radius (see SubscriptionNode's baseScale) — the same pattern
+ * mobile's computeMobileClusterLayout already uses (it packs the exact
+ * size it renders, never a separate "layout size"). A previous version of
+ * this file split those into two functions so icon size could be retuned
+ * without recomputing layout — but every subsequent size increase then
+ * drifted further from what packCircles was actually reserving space for,
+ * and icons started overlapping past recognizability. Packing the real
+ * render radius makes that class of bug structurally impossible: whatever
+ * space packCircles reserves for a circle is exactly the circle drawn
+ * there, guaranteed by the packer's own geometry, not by keeping two
+ * numbers in sync by hand. */
 function tierRadius(rankInCategory: number, popularity: number): number {
-  const base =
-    rankInCategory === 0 ? 0.98 : rankInCategory <= 2 ? 0.74 : rankInCategory <= 5 ? 0.56 : 0.42;
-  return base * (0.94 + (popularity / 100) * 0.12);
-}
-
-/** The RENDER radius — what actually determines each icon's on-screen size
- * (see SubscriptionNode's baseScale) — kept separate from the layout radius
- * above so retuning how big icons look is a purely visual change with zero
- * effect on cluster composition. Three tiers, as large as the layout's own
- * packing margins safely allow without icons touching: a Primary anchor per
- * category, a Secondary tier for its next few services, and a Supporting
- * tier for the rest — so even the busiest category's anchor (e.g. Netflix,
- * YouTube) reads as prominent without dominating the frame. Popularity only
- * nudges size within a tier, it never moves an item between tiers. */
-function renderTierRadius(rankInCategory: number, popularity: number): number {
   const base = rankInCategory === 0 ? 1.65 : rankInCategory <= 2 ? 1.24 : 0.8;
   return base * (0.95 + (popularity / 100) * 0.1);
 }
@@ -321,7 +315,10 @@ export function buildUniverse(
       nodes.push({
         subscription: sub,
         position: { x: centerX + local.x, y: centerY + local.y, z },
-        radius: renderTierRadius(i, sub.popularity),
+        // Reuses the exact radius packCircles just packed at this slot
+        // (local.r), not a recomputed value — guarantees the rendered icon
+        // can never be bigger than the space actually reserved for it.
+        radius: local.r,
         cluster: catIndex,
       });
     });

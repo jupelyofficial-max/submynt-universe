@@ -17,20 +17,24 @@ export const MAX_ZOOM = 130;
 
 // Must match UniverseCanvasBackground's mesh position and UniverseScene's camera fov.
 const CANVAS_PLANE_Z = -18;
-const CAMERA_FOV_DEG = 45;
+// Exported so UniverseScene's own column-spread math (see
+// computeColumnSpread in UniverseScene.tsx) can compute the actual visible
+// world width at the real fit distance, instead of duplicating/guessing it —
+// the two need to agree exactly or the spread targets the wrong scale.
+export const CAMERA_FOV_DEG = 45;
 // Subscription nodes sit near z ≈ 0–4 (see buildUniverse's position.z), not
 // at the background plane's z — computeFitZoom needs its own reference
 // depth so "fit the content" isn't measured from the wrong plane.
 const CONTENT_Z = 2;
 // Breathing room around the packed composition so no cluster sits flush
-// against the viewport edge — the one lever that reaches every edge
-// including the corners where the EcosystemStats/"Get Free Subscriptions"
-// (bottom-left) and LiveInsights "Top 5" (top-right) fixed overlays sit.
-// Tuned against the auto-sized grid (see layoutCategoryGrid): kept as tight
-// as verified safe at 1024px — the narrowest width both corner overlays are
-// visible at alongside the full 4-column grid — so the composition reads as
-// large/dense rather than small and centered in empty canvas.
-const FIT_PADDING = 1.17;
+// against the viewport edge. Tightened from 1.17 — that value was tuned
+// against a rougher (over-estimated) side-overlay reserve; with the reserve
+// now measured precisely from the real DOM (see UniverseScene.tsx), this can
+// run tighter and still leave the corners (EcosystemStats/"Get Free
+// Subscriptions" bottom-left, LiveInsights "Top 5" top-right) clear —
+// re-verified safe at 1024px, the narrowest width both are visible at
+// alongside the full 4-column grid.
+export const FIT_PADDING = 1.1;
 // The default/auto-fit framing looks slightly right of the composition's
 // true horizontal center, which shifts everything left on screen — giving
 // the right column of categories clearance from the fixed LiveInsights

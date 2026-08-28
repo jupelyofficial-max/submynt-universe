@@ -24,7 +24,7 @@ function mulberry32(seed: number) {
 }
 
 const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point, used for item-level packing within a category
-const ROW_GAP = 0.2; // fixed gap between category cells, both across a row and between rows — tightened further for a 5-column desktop layout; still leaves room for the "+N" overflow badge near each cluster's edge without it reaching the row below's label
+const ROW_GAP = 0.12; // fixed gap between category cells, both across a row and between rows — tightened further for a dense 4-column desktop layout; still leaves room for the "+N" overflow badge near each cluster's edge without it reaching the row below's label
 // Caps how many icons a category actually renders — a dominant primary plus
 // up to this many total reads as one clear hero + a curated set, matching
 // the mobile Universe's own cap; anything past it collapses into a "+N"
@@ -131,7 +131,7 @@ function tierRadius(rankInCategory: number, popularity: number): number {
  * YouTube) reads as prominent without dominating the frame. Popularity only
  * nudges size within a tier, it never moves an item between tiers. */
 function renderTierRadius(rankInCategory: number, popularity: number): number {
-  const base = rankInCategory === 0 ? 1.4 : rankInCategory <= 2 ? 1.05 : 0.68;
+  const base = rankInCategory === 0 ? 1.65 : rankInCategory <= 2 ? 1.24 : 0.8;
   return base * (0.95 + (popularity / 100) * 0.1);
 }
 

@@ -9,14 +9,13 @@ import { CameraController, computeFitZoom, CAMERA_FOV_DEG, FIT_PADDING } from ".
 import { buildUniverse, computeUniverseBounds, type UniverseBounds } from "@/lib/universeLayout";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
-import { useIsDesktop, useIsLargeDesktop } from "@/hooks/useMediaQuery";
+import { useIsDesktop } from "@/hooks/useMediaQuery";
 
 // Column count steps with viewport width: 3 in the tablet band
 // (768–1023px, above the dedicated MobileUniverse breakpoint), 4 from
-// 1024–1439px, 5 from 1440px up.
+// 1024px up.
 const TABLET_GRID_COLUMNS = 3;
 const DESKTOP_GRID_COLUMNS = 4;
-const LARGE_DESKTOP_GRID_COLUMNS = 5;
 
 // Never spread columns apart enough to make the grid feel disconnected —
 // this is a cap on how far computeColumnSpread (below) is allowed to
@@ -127,8 +126,7 @@ function computeColumnSpread(
 
 export function UniverseScene() {
   const isDesktop = useIsDesktop();
-  const isLargeDesktop = useIsLargeDesktop();
-  const columns = isLargeDesktop ? LARGE_DESKTOP_GRID_COLUMNS : isDesktop ? DESKTOP_GRID_COLUMNS : TABLET_GRID_COLUMNS;
+  const columns = isDesktop ? DESKTOP_GRID_COLUMNS : TABLET_GRID_COLUMNS;
   const viewport = useViewportSize();
 
   // First pass at the natural (unspread) packed size, purely to measure it —

@@ -24,12 +24,6 @@ export function useIsDesktop(): boolean {
   return useMediaQuery("(min-width: 1024px)");
 }
 
-/** The Universe grid steps up to 5 columns at this width (see
- * UniverseScene.tsx) — 1024–1439px stays at 4 columns. */
-export function useIsLargeDesktop(): boolean {
-  return useMediaQuery("(min-width: 1440px)");
-}
-
 /** The Universe gets a dedicated mobile composition below this width (see
  * MobileUniverse) rather than the desktop WebGL scene scaled down. */
 export function useIsMobile(): boolean {

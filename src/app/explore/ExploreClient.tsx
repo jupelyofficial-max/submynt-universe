@@ -124,40 +124,28 @@ export function ExploreClient() {
               <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex justify-center p-4 md:hidden">
                 <div className="pointer-events-auto flex justify-center">{toolbar}</div>
               </div>
-              {/* Real layout region, not an overlay: a row holding the
-                  canvas and a dedicated Top 5 column side by side, with a
-                  dedicated Sponsored-bar footer row beneath both — so the
-                  canvas's own rendered box never extends underneath either
-                  one, at any scroll position or content height. Previously
-                  both were `absolute` overlays sitting on top of the
-                  canvas, kept clear only by a fixed camera-zoom pixel
-                  reserve computed once at the top of the composition — that
-                  reserve had no way to account for scrolled-in rows lower
-                  down, which is exactly what let Music/Cloud reach under
-                  the Top 5 panel and News/Shopping/Finance reach under the
-                  Sponsored bar. */}
-              <div className="flex flex-1 min-h-0 flex-col">
-                <div className="flex flex-1 min-h-0">
-                  <div className="relative flex flex-1 min-h-0">
-                    <UniverseScene />
-                    <div className="pointer-events-none absolute bottom-4 left-4 z-30 hidden lg:flex lg:flex-col lg:items-start lg:gap-2 lg:bottom-6 lg:left-6">
-                      <button
-                        onClick={() => setPerksModalOpen(true)}
-                        className="pointer-events-auto glass-panel flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-ink-0 shadow-lg shadow-black/5 hover:border-black/20 transition-colors cursor-pointer"
-                      >
-                        <Gift size={15} className="text-aurora-500" />
-                        Get Free Subscriptions
-                      </button>
-                      <div className="pointer-events-auto">
-                        <EcosystemStats />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="hidden w-[264px] shrink-0 flex-col items-stretch overflow-y-auto no-scrollbar px-4 pb-4 pt-6 lg:flex">
-                    <LiveInsights />
-                  </div>
+              <div className="flex flex-1 min-h-0">
+                <UniverseScene />
+              </div>
+              <div className="pointer-events-none absolute bottom-4 left-4 z-30 hidden lg:flex lg:flex-col lg:items-start lg:gap-2 lg:bottom-6 lg:left-6">
+                <button
+                  onClick={() => setPerksModalOpen(true)}
+                  className="pointer-events-auto glass-panel flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-ink-0 shadow-lg shadow-black/5 hover:border-black/20 transition-colors cursor-pointer"
+                >
+                  <Gift size={15} className="text-aurora-500" />
+                  Get Free Subscriptions
+                </button>
+                <div className="pointer-events-auto">
+                  <EcosystemStats />
                 </div>
-                <div className="flex shrink-0 justify-center px-4 py-3">
+              </div>
+              <div className="pointer-events-none absolute right-4 top-20 z-30 hidden lg:block lg:right-6 lg:top-24">
+                <div className="pointer-events-auto">
+                  <LiveInsights />
+                </div>
+              </div>
+              <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex justify-center lg:bottom-6">
+                <div className="pointer-events-auto">
                   <SponsoredStrip />
                 </div>
               </div>

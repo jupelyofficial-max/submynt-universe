@@ -26,10 +26,10 @@ function worldToPixel(x: number, y: number) {
   };
 }
 
-/** Abstract discovery-canvas backdrop — no real geography. A warm cream
- * surface with a soft colored glow "galaxy" under each category cluster
- * (evoking depth/regions without drawing literal continents), quiet enough
- * that the subscription clusters stay the visual focus. */
+/** Abstract discovery-canvas backdrop — no real geography. A white surface
+ * with a soft colored glow "galaxy" under each category cluster (evoking
+ * depth/regions without drawing literal continents), quiet enough that the
+ * subscription clusters stay the visual focus. */
 export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.CanvasTexture {
   if (cached) return cached;
 
@@ -38,9 +38,10 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
   canvas.height = TEXTURE_HEIGHT;
   const ctx = canvas.getContext("2d")!;
 
-  // Base — near-white with just a whisper of warmth, matching the mobile
-  // Universe's background exactly rather than a separate desktop tone.
-  ctx.fillStyle = "#FCFBF7";
+  // Base — true white, not the warm off-white this used to share with the
+  // mobile Universe's own background (MobileUniverse.tsx, left as-is per
+  // the "don't touch mobile" scope of this change).
+  ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
   // A soft colored glow under each category's real cluster position —
@@ -104,10 +105,11 @@ export function getUniverseCanvasTexture(clusters: CategoryCluster[]): THREE.Can
   const cx = TEXTURE_WIDTH / 2;
   const cy = TEXTURE_HEIGHT / 2;
 
-  // Soft vignette so edges recede.
+  // Soft vignette so edges recede — neutral gray, not the warm brown this
+  // used to share with the cream base above (now true white).
   const vignette = ctx.createRadialGradient(cx, cy, TEXTURE_HEIGHT * 0.25, cx, cy, TEXTURE_WIDTH * 0.62);
-  vignette.addColorStop(0, "rgba(120,105,75,0)");
-  vignette.addColorStop(1, "rgba(120,105,75,0.14)");
+  vignette.addColorStop(0, "rgba(20,20,20,0)");
+  vignette.addColorStop(1, "rgba(20,20,20,0.1)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 

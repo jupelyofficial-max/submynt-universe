@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { UniverseCanvasBackground } from "./UniverseCanvasBackground";
 import { SubscriptionField } from "./SubscriptionField";
 import { CategoryLabels } from "./CategoryLabels";
@@ -23,19 +23,20 @@ const DESKTOP_GRID_COLUMNS = 4;
 // stretch things at very wide/ultra-wide viewports.
 const MAX_COLUMN_SPREAD = 3.5;
 
-// EcosystemStats/"Get Free Subscriptions" (bottom-left) and LiveInsights
-// "Top 5" (top-right) are fixed screen overlays that appear starting at the
-// same >=1024px breakpoint the grid reaches its full column count at (see
-// ExploreClient's `lg:` gating). Measured directly from the live DOM
-// (getBoundingClientRect) rather than estimated: the left stack (promo
-// button + stats card, both `w-60`-capped) is 211px wide + 24px margin =
-// 235px; the Top 5 panel is a fixed `w-60` (240px) + 24px margin = 264px.
-// A small buffer is added on top for breathing room, not zero-clearance.
-const LEFT_OVERLAY_RESERVE_PX = 235 + 30;
-const RIGHT_OVERLAY_RESERVE_PX = 264 + 30;
-const SIDE_OVERLAY_RESERVE_PX = LEFT_OVERLAY_RESERVE_PX + RIGHT_OVERLAY_RESERVE_PX;
+// EcosystemStats/"Get Free Subscriptions" (bottom-left) is the ONE overlay
+// still absolutely positioned on top of the canvas (see ExploreClient) — the
+// Top 5 panel and Sponsored bar now get real, dedicated layout space instead
+// (a sibling column and a sibling footer row respectively — see
+// ExploreClient), so the canvas itself never extends underneath them at
+// all, at any scroll position; there's nothing left for camera math to keep
+// clear of on those two. Measured directly from the live DOM
+// (getBoundingClientRect): the left stack (promo button + stats card, both
+// `w-60`-capped) is 211px wide + 24px margin = 235px, plus a small buffer
+// for breathing room, not zero-clearance. Only applies at the `lg` (isDesktop)
+// breakpoint the CTA stack itself appears at.
+const CTA_OVERLAY_RESERVE_PX = 235 + 30;
 
-// How much of the viewport width the Universe should aim to fill — set
+// How much of the container width the Universe should aim to fill — set
 // deliberately higher than what's actually reachable once the overlay
 // reserve above is subtracted, so the reserve (not this target) is what
 // ends up binding at every desktop width, and the composition always reads
@@ -43,11 +44,10 @@ const SIDE_OVERLAY_RESERVE_PX = LEFT_OVERLAY_RESERVE_PX + RIGHT_OVERLAY_RESERVE_
 // percentage.
 const TARGET_WIDTH_FILL = 0.85;
 
-// Extra scroll room below the last row so it can clear the fixed
-// SponsoredStrip overlay at the bottom of the viewport when scrolled all
-// the way down — the same idea as MobileUniverse's own bottom padding for
-// its sponsored bar, just in pixels here instead of Tailwind spacing.
-const BOTTOM_SCROLL_PADDING_PX = 110;
+// Small cosmetic gap below the last row — purely breathing room now that
+// the SponsoredStrip footer is a real sibling row below the canvas (not an
+// overlay on top of it), so there's no overlap left to scroll clear of.
+const BOTTOM_SCROLL_PADDING_PX = 24;
 
 // World-unit clearance added above row 1's own computed top edge — verified
 // necessary: without it, row 1 measured as rendering ~38px behind/above the
@@ -55,33 +55,29 @@ const BOTTOM_SCROLL_PADDING_PX = 110;
 // math for boundsMaxY implies). Small and empirically checked, not derived.
 const TOP_SAFETY_MARGIN = 2.0;
 
-const HEADER_PX = 64;
-
-// useSyncExternalStore requires getSnapshot to return a referentially
-// stable value when nothing has changed — a fresh object literal every call
-// makes React think the snapshot changed on every render, which is an
-// infinite update loop, not just a wasted render. Cached at module scope
-// (window size is inherently global) and only replaced when the actual
-// numbers differ.
-let cachedViewportSize = { width: 1440, height: 900 };
-function getViewportSize() {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  if (cachedViewportSize.width !== width || cachedViewportSize.height !== height) {
-    cachedViewportSize = { width, height };
-  }
-  return cachedViewportSize;
-}
-
-function useViewportSize(): { width: number; height: number } {
-  return useSyncExternalStore(
-    (callback) => {
-      window.addEventListener("resize", callback);
-      return () => window.removeEventListener("resize", callback);
-    },
-    getViewportSize,
-    () => cachedViewportSize
-  );
+/** Measures the actual rendered size of `ref`'s element via ResizeObserver,
+ * rather than reading `window.innerWidth`/`innerHeight` — the canvas no
+ * longer spans the full browser viewport (it now sits beside the Top 5
+ * column and above the Sponsored footer, both real layout siblings, see
+ * ExploreClient), so window size and this container's own size are
+ * different numbers. Measuring the container directly also means the
+ * header's height no longer needs a hand-kept pixel constant to subtract —
+ * this element is already laid out below it. */
+function useContainerSize(ref: RefObject<HTMLElement | null>): { width: number; height: number } {
+  const [size, setSize] = useState({ width: 1440, height: 900 });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    function measure() {
+      const rect = el!.getBoundingClientRect();
+      setSize((prev) => (prev.width === rect.width && prev.height === rect.height ? prev : { width: rect.width, height: rect.height }));
+    }
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return size;
 }
 
 /** How much world-width is visible across the full viewport at a given
@@ -104,8 +100,8 @@ function visibleWorldWidthAt(distance: number, viewportWidthPx: number, viewport
  * the Top 5 panel / promo card zones. */
 const NATURAL_FILL_OF_TARGET = 0.95;
 
-function computeDistance(naturalWidth: number, viewportWidthPx: number, viewportHeightPx: number): number {
-  const reservePx = viewportWidthPx >= 1024 ? SIDE_OVERLAY_RESERVE_PX : 0;
+function computeDistance(naturalWidth: number, viewportWidthPx: number, viewportHeightPx: number, hasCtaOverlay: boolean): number {
+  const reservePx = hasCtaOverlay ? CTA_OVERLAY_RESERVE_PX : 0;
   const targetWidthPx = Math.min(TARGET_WIDTH_FILL * viewportWidthPx, viewportWidthPx - reservePx);
   const desiredNaturalWidthPx = Math.max(1, targetWidthPx * NATURAL_FILL_OF_TARGET);
   const pixelsPerWorldUnitTarget = desiredNaturalWidthPx / naturalWidth;
@@ -116,24 +112,24 @@ function computeDistance(naturalWidth: number, viewportWidthPx: number, viewport
 }
 
 /** Spreads category columns apart (via buildUniverse's columnSpread) to
- * fill TARGET_WIDTH_FILL of the viewport at the given (already
- * reserve-aware) camera distance, capped by the real overlay reserve in
+ * fill TARGET_WIDTH_FILL of the container at the given (already
+ * reserve-aware) camera distance, capped by the real CTA overlay reserve in
  * pixels so widening the grid never pushes a column back underneath the
- * Top 5 panel or the promo cards. `widthAtSpread` finds the exact spread
- * via binary search rather than dividing target-width by natural-width
- * directly: columnSpread only scales each cluster's *center* offset, not
- * its own radius, so the resulting bounds.width is a bit short of a naive
- * linear estimate. */
+ * promo cards. `widthAtSpread` finds the exact spread via binary search
+ * rather than dividing target-width by natural-width directly: columnSpread
+ * only scales each cluster's *center* offset, not its own radius, so the
+ * resulting bounds.width is a bit short of a naive linear estimate. */
 function computeColumnSpread(
   naturalWidth: number,
   distance: number,
   viewportWidthPx: number,
   viewportHeightPx: number,
+  hasCtaOverlay: boolean,
   widthAtSpread: (spread: number) => number
 ): number {
   if (naturalWidth <= 0) return 1;
   const visibleWorldWidth = visibleWorldWidthAt(distance, viewportWidthPx, viewportHeightPx);
-  const reservePx = viewportWidthPx >= 1024 ? SIDE_OVERLAY_RESERVE_PX : 0;
+  const reservePx = hasCtaOverlay ? CTA_OVERLAY_RESERVE_PX : 0;
   const targetWidthPx = Math.min(TARGET_WIDTH_FILL * viewportWidthPx, viewportWidthPx - reservePx);
   const targetWorldWidth = (Math.max(0, targetWidthPx) / viewportWidthPx) * visibleWorldWidth;
 
@@ -153,8 +149,12 @@ function computeColumnSpread(
 export function UniverseScene() {
   const isDesktop = useIsDesktop();
   const columns = isDesktop ? DESKTOP_GRID_COLUMNS : TABLET_GRID_COLUMNS;
-  const viewport = useViewportSize();
-  const viewportHeightPx = Math.max(1, viewport.height - HEADER_PX);
+  // Declared here (not down by the scroll-sync effects below) because the
+  // camera/layout math above needs the container's real measured size —
+  // this ref is what useContainerSize observes.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const viewport = useContainerSize(scrollRef);
+  const viewportHeightPx = Math.max(1, viewport.height);
 
   // First pass at the natural (unspread) packed size, purely to measure it —
   // cheap given the catalogue's size (124 subscriptions, 16 categories).
@@ -177,14 +177,14 @@ export function UniverseScene() {
   // second pass: spread only ever widens the composition toward the same
   // reserve-capped target this distance was already calibrated against.
   const distance = useMemo(
-    () => computeDistance(naturalBounds.width, viewport.width, viewportHeightPx),
-    [naturalBounds.width, viewport.width, viewportHeightPx]
+    () => computeDistance(naturalBounds.width, viewport.width, viewportHeightPx, isDesktop),
+    [naturalBounds.width, viewport.width, viewportHeightPx, isDesktop]
   );
 
   const columnSpread = useMemo(() => {
     const widthAtSpread = (spread: number) => computeUniverseBounds(buildUniverse(SUBSCRIPTIONS, columns, spread).clusters).width;
-    return computeColumnSpread(naturalBounds.width, distance, viewport.width, viewportHeightPx, widthAtSpread);
-  }, [naturalBounds.width, distance, viewport.width, viewportHeightPx, columns]);
+    return computeColumnSpread(naturalBounds.width, distance, viewport.width, viewportHeightPx, isDesktop, widthAtSpread);
+  }, [naturalBounds.width, distance, viewport.width, viewportHeightPx, isDesktop, columns]);
 
   const { nodes, clusters } = useMemo(
     () => buildUniverse(SUBSCRIPTIONS, columns, columnSpread),
@@ -215,7 +215,6 @@ export function UniverseScene() {
 
   const spacerHeightPx = bounds.height * pixelsPerWorldUnit + BOTTOM_SCROLL_PADDING_PX;
 
-  const scrollRef = useRef<HTMLDivElement>(null);
   const scrollWorldYRef = useRef(initialCameraY);
 
   // Keeps the camera's world-Y in step with the container's own scroll

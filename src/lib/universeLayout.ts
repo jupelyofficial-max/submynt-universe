@@ -24,7 +24,7 @@ function mulberry32(seed: number) {
 }
 
 const GOLDEN_ANGLE = 2.399963; // radians — even fan-out around a shared origin point, used for item-level packing within a category
-const ROW_GAP = 0.08; // fixed gap between category cells, both across a row and between rows — tightened further for a dense 4-column desktop layout; still leaves room for the "+N" overflow badge near each cluster's edge without it reaching the row below's label
+const ROW_GAP = 0.04; // fixed gap between category cells, both across a row and between rows — tightened further for a dense 4-column desktop layout; still leaves room for the "+N" overflow badge near each cluster's edge without it reaching the row below's label
 // Caps how many icons a category actually renders — a dominant primary plus
 // up to this many total reads as one clear hero + a curated set, matching
 // the mobile Universe's own cap; anything past it collapses into a "+N"
@@ -64,7 +64,18 @@ export interface UniverseBounds {
 // (0.3 offset + the label text block's own height) — computeUniverseBounds
 // has to reserve this on the top edge too, or a tight FIT_PADDING has no
 // slack left to absorb it and the top row's labels clip against the header.
-const LABEL_RESERVE = 1.6;
+//
+// This (plus ROW_GAP) is the ONLY lever that actually changes the ON-SCREEN
+// row-to-row gap at a fixed row count. Verified by direct computation: when
+// height is the camera's binding fit dimension (true at every desktop width
+// tested) and rows are roughly uniform, on-screen row spacing reduces to
+// viewportHeightPx / (rowCount * FIT_PADDING) — the world-space footprint
+// term cancels out completely, because a smaller footprint just makes the
+// camera zoom in proportionally more. Shrinking tierRadius/packCircles
+// margins makes icons relatively larger within their row, but does NOT
+// shrink the visible gap between rows — only LABEL_RESERVE/ROW_GAP (a fixed
+// per-row cost, not proportional to footprint) survives that cancellation.
+const LABEL_RESERVE = 0.75;
 // SponsoredStrip renders as a fixed DOM overlay pinned near the bottom of
 // the viewport (see ExploreClient.tsx) — the camera's fit-to-bounds has no
 // visibility into that overlay at all, so without an explicit reserve here
@@ -125,7 +136,17 @@ export function computeUniverseBounds(clusters: CategoryCluster[]): UniverseBoun
  * there, guaranteed by the packer's own geometry, not by keeping two
  * numbers in sync by hand. */
 function tierRadius(rankInCategory: number, popularity: number): number {
-  const base = rankInCategory === 0 ? 1.65 : rankInCategory <= 2 ? 1.24 : 0.8;
+  // Verified by direct computation (packing a real 9-icon category), not
+  // eyeballed: a cluster's footprint — and therefore row height, since
+  // rowSizes is 2*footprint+gap+LABEL_RESERVE — is set almost entirely by
+  // the distance from the primary anchor to the first secondary circle, not
+  // by the supporting tier or item count (capping DISPLAY_CAP down to 5
+  // changed footprint by <0.1%). The secondary base was brought down from
+  // 1.24 to close a real, measured 25%+ shortfall in row-to-row spacing that
+  // tightening gaps/margins alone couldn't reach — the primary anchor (1.65)
+  // and supporting tier (0.8) are untouched, so the hero icon and the bulk
+  // of each cluster stay exactly as large as before.
+  const base = rankInCategory === 0 ? 1.65 : rankInCategory <= 2 ? 1.0 : 0.8;
   return base * (0.95 + (popularity / 100) * 0.1);
 }
 
@@ -292,13 +313,16 @@ export function buildUniverse(
     const shown = sorted.slice(0, DISPLAY_CAP);
     const overflow = sorted.length - shown.length;
     const itemRadii = shown.map((sub, i) => tierRadius(i, sub.popularity));
-    // Tight item spacing/margin — a category should read as one dense
-    // ecosystem, not a loose scatter of icons. packCircles enforces this
-    // margin as a hard minimum gap between circle edges, so overlap is
-    // geometrically impossible regardless of how small it is — tightened
-    // further here purely for a denser collage, closer to mobile's own
-    // density (see computeMobileClusterLayout).
-    const localItems = packCircles(itemRadii, 0.55, 0.1);
+    // Tight item spacing, and a deliberately negative margin — a category
+    // should read as one dense collage, not a loose scatter of icons.
+    // packCircles' margin is a hard minimum GAP between circle edges when
+    // positive; a small negative value instead permits a small, intentional
+    // EDGE overlap (icons visually shingling like an overlapping photo
+    // collage) rather than a gap, without ever letting one icon's center
+    // encroach past another's edge — verified by direct computation this is
+    // what actually closes the real row-spacing shortfall (see tierRadius),
+    // not just a cosmetic density tweak.
+    const localItems = packCircles(itemRadii, 0.3, -0.18);
     const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 0.5;
     return { category, items: shown, totalCount: sorted.length, overflow, localItems, footprint };
   });

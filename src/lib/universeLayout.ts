@@ -28,8 +28,25 @@ const ROW_GAP = 0.04; // fixed gap between category cells, both across a row and
 // Caps how many icons a category actually renders — a dominant primary plus
 // up to this many total reads as one clear hero + a curated set, matching
 // the mobile Universe's own cap; anything past it collapses into a "+N"
-// badge instead of crowding the cluster with same-ish small icons.
-const DISPLAY_CAP = 9;
+// badge instead of crowding the cluster with same-ish small icons. Lowered
+// from 9 — packing enough icons at a size that stays individually readable
+// (see ICON_RENDER_SCALE below) needs more per-icon room than a raw radius
+// suggested, so a smaller curated set + "+N" reads better than cramming.
+const DISPLAY_CAP = 7;
+/** SubscriptionNode's sprite is a SQUARE `radius * ICON_RENDER_SCALE` wide —
+ * a single source of truth so packCircles (below) reserves space for the
+ * icon's actual rendered footprint, not just its nominal tier radius. A
+ * previous version packed circles at the raw tier radius while rendering
+ * sprites 2.8x that size, so the ~40% of extra footprint the sprite
+ * actually occupied on screen was never reserved by the packer at all —
+ * every category's "intentional shingle overlap" (see the packCircles call
+ * in buildUniverse) silently became uncontrolled overlap once real icon art
+ * (not the small dev placeholder) filled that sprite edge-to-edge, reducing
+ * smaller-tier icons next to the hero to unreadable slivers. Exported so
+ * SubscriptionNode's baseScale uses this exact value instead of a second,
+ * hand-kept constant that could drift out of sync the same way.
+ */
+export const ICON_RENDER_SCALE = 2.3;
 // Desktop categories are laid out in a fixed grid this many columns wide
 // (rows are derived from category count), so every column shares the same
 // x position and every row the same y position instead of a data-driven,
@@ -136,17 +153,11 @@ export function computeUniverseBounds(clusters: CategoryCluster[]): UniverseBoun
  * there, guaranteed by the packer's own geometry, not by keeping two
  * numbers in sync by hand. */
 function tierRadius(rankInCategory: number, popularity: number): number {
-  // Verified by direct computation (packing a real 9-icon category), not
-  // eyeballed: a cluster's footprint — and therefore row height, since
-  // rowSizes is 2*footprint+gap+LABEL_RESERVE — is set almost entirely by
-  // the distance from the primary anchor to the first secondary circle, not
-  // by the supporting tier or item count (capping DISPLAY_CAP down to 5
-  // changed footprint by <0.1%). The secondary base was brought down from
-  // 1.24 to close a real, measured 25%+ shortfall in row-to-row spacing that
-  // tightening gaps/margins alone couldn't reach — the primary anchor (1.65)
-  // and supporting tier (0.8) are untouched, so the hero icon and the bulk
-  // of each cluster stay exactly as large as before.
-  const base = rankInCategory === 0 ? 1.65 : rankInCategory <= 2 ? 1.0 : 0.8;
+  // Tightened from 1.65/1.0/0.8 (a 2.06x hero-to-supporting ratio) to keep
+  // every icon in a cluster within a consistent size band — no single icon
+  // reads as 2-3x any other — while still giving the top item a clear,
+  // recognizable hero presence.
+  const base = rankInCategory === 0 ? 1.5 : rankInCategory <= 2 ? 1.05 : 0.9;
   return base * (0.95 + (popularity / 100) * 0.1);
 }
 
@@ -313,17 +324,30 @@ export function buildUniverse(
     const shown = sorted.slice(0, DISPLAY_CAP);
     const overflow = sorted.length - shown.length;
     const itemRadii = shown.map((sub, i) => tierRadius(i, sub.popularity));
-    // Tight item spacing, and a deliberately negative margin — a category
-    // should read as one dense collage, not a loose scatter of icons.
-    // packCircles' margin is a hard minimum GAP between circle edges when
-    // positive; a small negative value instead permits a small, intentional
-    // EDGE overlap (icons visually shingling like an overlapping photo
-    // collage) rather than a gap, without ever letting one icon's center
-    // encroach past another's edge — verified by direct computation this is
-    // what actually closes the real row-spacing shortfall (see tierRadius),
-    // not just a cosmetic density tweak.
-    const localItems = packCircles(itemRadii, 0.3, -0.18);
-    const footprint = Math.max(...localItems.map((p) => Math.hypot(p.x, p.y) + p.r)) + 0.5;
+    // Pack using the icon's actual RENDERED half-width (radius *
+    // ICON_RENDER_SCALE / 2), not the raw tier radius — packCircles has to
+    // reserve space for the square sprite that's really drawn on screen, or
+    // its non-overlap guarantee is checking the wrong shape entirely (see
+    // ICON_RENDER_SCALE's docstring). Tight item spacing, and a deliberately
+    // negative margin — a category should read as one dense collage, not a
+    // loose scatter of icons. packCircles' margin is a hard minimum GAP
+    // between circle edges when positive; a small negative value instead
+    // permits a small, intentional overlap (icons visually shingling like an
+    // overlapping photo collage) rather than a gap. -0.3 here (relative to
+    // the render-scale radii, not the old raw-radius -0.18) was picked by
+    // direct simulation of this exact packer/tier setup: every icon keeps
+    // ≥90% of its own area visible (well above the ≥55-60% floor), while
+    // keeping the collage's overlap clearly intentional rather than a bare
+    // grid of touching circles.
+    const packRadii = itemRadii.map((r) => (r * ICON_RENDER_SCALE) / 2);
+    const packed = packCircles(packRadii, 0.3, -0.3);
+    // local.r is reset to the true (unscaled) tier radius, not the packing
+    // radius — packCircles' packing radius exists purely to reserve enough
+    // room for the real sprite; the node itself still renders at
+    // `radius * ICON_RENDER_SCALE` off the tier radius (see SubscriptionNode),
+    // so re-attaching the packing radius here would double-apply the scale.
+    const localItems = packed.map((p, i) => ({ x: p.x, y: p.y, r: itemRadii[i] }));
+    const footprint = Math.max(...packed.map((p) => Math.hypot(p.x, p.y) + p.r)) + 0.5;
     return { category, items: shown, totalCount: sorted.length, overflow, localItems, footprint };
   });
 

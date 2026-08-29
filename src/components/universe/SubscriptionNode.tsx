@@ -7,6 +7,7 @@ import type { UniverseNode } from "@/types/subscription";
 import { getGlowTexture, getLogoTexture } from "./logoTexture";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { trackDown, wasDrag } from "@/lib/dragTracker";
+import { ICON_RENDER_SCALE } from "@/lib/universeLayout";
 
 interface Props {
   node: UniverseNode;
@@ -39,7 +40,10 @@ export function SubscriptionNode({ node, isOwned, dimmed, categoryDimmed, hasSav
   const select = useUniverseStore((s) => s.select);
   const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
 
-  const baseScale = node.radius * 2.8;
+  // Uses the exact scale packCircles reserved space for (see
+  // ICON_RENDER_SCALE's docstring) — the packer and the render must agree
+  // on this number, or its non-overlap guarantee is checking the wrong size.
+  const baseScale = node.radius * ICON_RENDER_SCALE;
 
   useFrame(() => {
     if (!groupRef.current) return;

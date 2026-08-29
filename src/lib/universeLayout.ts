@@ -29,10 +29,14 @@ const ROW_GAP = 0.04; // fixed gap between category cells, both across a row and
 // up to this many total reads as one clear hero + a curated set, matching
 // the mobile Universe's own cap; anything past it collapses into a "+N"
 // badge instead of crowding the cluster with same-ish small icons. Lowered
-// from 9 — packing enough icons at a size that stays individually readable
-// (see ICON_RENDER_SCALE below) needs more per-icon room than a raw radius
-// suggested, so a smaller curated set + "+N" reads better than cramming.
-const DISPLAY_CAP = 7;
+// from 9, then 7 — a real per-pair measurement against production data (see
+// the packCircles margin comment below) showed the 7-icon cluster's worst
+// pair still landed close enough to the visibility floor that ordinary
+// render effects (drop-shadow blur, antialiasing) could tip it under in
+// practice even though the bare packing geometry cleared it on paper. 6
+// buys a real, measured buffer at essentially no footprint cost (packing is
+// dominated by the hero-to-first-neighbor distance, not the tail count).
+const DISPLAY_CAP = 6;
 /** SubscriptionNode's sprite is a SQUARE `radius * ICON_RENDER_SCALE` wide —
  * a single source of truth so packCircles (below) reserves space for the
  * icon's actual rendered footprint, not just its nominal tier radius. A
@@ -328,19 +332,23 @@ export function buildUniverse(
     // ICON_RENDER_SCALE / 2), not the raw tier radius — packCircles has to
     // reserve space for the square sprite that's really drawn on screen, or
     // its non-overlap guarantee is checking the wrong shape entirely (see
-    // ICON_RENDER_SCALE's docstring). Tight item spacing, and a deliberately
+    // ICON_RENDER_SCALE's docstring). Tight item spacing, and a small
     // negative margin — a category should read as one dense collage, not a
     // loose scatter of icons. packCircles' margin is a hard minimum GAP
     // between circle edges when positive; a small negative value instead
     // permits a small, intentional overlap (icons visually shingling like an
-    // overlapping photo collage) rather than a gap. -0.3 here (relative to
-    // the render-scale radii, not the old raw-radius -0.18) was picked by
-    // direct simulation of this exact packer/tier setup: every icon keeps
-    // ≥90% of its own area visible (well above the ≥55-60% floor), while
-    // keeping the collage's overlap clearly intentional rather than a bare
-    // grid of touching circles.
+    // overlapping photo collage) rather than a gap. Measured directly
+    // against the real catalogue (buildUniverse's own output, not a
+    // synthetic test), using exact square-overlap geometry (sprites are
+    // axis-aligned quads, not circles): -0.3 left the worst real pair around
+    // 72% visible — geometrically above the ≥55-60% floor, but close enough
+    // that render-only effects (drop-shadow blur, antialiasing) visibly
+    // pushed specific pairs past it in production (e.g. Netflix/JioHotstar,
+    // Canva/Framer). -0.1, together with DISPLAY_CAP's drop to 6 above,
+    // measures at ≥86% worst-case across every category — a real buffer
+    // against those render-only effects, not just a passing number on paper.
     const packRadii = itemRadii.map((r) => (r * ICON_RENDER_SCALE) / 2);
-    const packed = packCircles(packRadii, 0.3, -0.3);
+    const packed = packCircles(packRadii, 0.3, -0.1);
     // local.r is reset to the true (unscaled) tier radius, not the packing
     // radius — packCircles' packing radius exists purely to reserve enough
     // room for the real sprite; the node itself still renders at

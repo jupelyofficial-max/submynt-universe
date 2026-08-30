@@ -12,6 +12,7 @@ export const CATEGORY_META: Record<Category, { blurb: string; color: string }> =
   Gaming: { blurb: "Play libraries and cloud gaming", color: "#6B84A8" },
   Finance: { blurb: "Investing, credit and money tools", color: "#D2A83E" },
   Shopping: { blurb: "Delivery, retail and loyalty perks", color: "#DD7A48" },
+  "Quick Commerce": { blurb: "Groceries and essentials, delivered in minutes", color: "#8B5FBF" },
   Business: { blurb: "Work, collaboration and operations", color: "#4A82B8" },
   Communication: { blurb: "Calls, chat and team messaging", color: "#C07B93" },
   Travel: { blurb: "Rides, stays and trip planning", color: "#D9668F" },

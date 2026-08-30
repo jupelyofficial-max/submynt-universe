@@ -132,6 +132,13 @@ const DOMAIN_BY_NAME: Record<string, string> = {
   "BigBasket BB Star": "bigbasket.com",
   "Tata Neu": "tataneu.com",
 
+  "Amazon Now": "amazon.in",
+  Zepto: "zeptonow.com",
+  Blinkit: "blinkit.com",
+  "Swiggy Instamart": "swiggy.com",
+  Licious: "licious.in",
+  FreshToHome: "freshtohome.com",
+
   "Microsoft 365": "microsoft.com",
   "Google Workspace": "workspace.google.com",
   "Zoom Pro": "zoom.us",
@@ -203,6 +210,15 @@ const BRAND_COLORS: Record<string, string> = {
   NordVPN: "#4687FF",
   Audible: "#FF9900",
   "Kindle Unlimited": "#232F3E",
+
+  // Quick Commerce — best-effort brand colors, same illustrative standard
+  // as the rest of this mock catalogue (see the file's own header comment).
+  "Amazon Now": "#FF9900",
+  Zepto: "#8025FB",
+  Blinkit: "#F8CB46",
+  "Swiggy Instamart": "#FC8019",
+  Licious: "#EE3F32",
+  FreshToHome: "#2E9E4F",
 };
 
 function hashString(str: string): number {
@@ -444,6 +460,24 @@ const RAW: RawSub[] = [
   { name: "Zomato Gold", category: "Shopping", priceMonthly: 150, popularity: 65, rating: 4.1, region: "India" },
   { name: "BigBasket BB Star", category: "Shopping", priceMonthly: 60, popularity: 30, rating: 3.9, region: "India" },
   { name: "Tata Neu", category: "Shopping", priceMonthly: 0, popularity: 35, rating: 3.8, region: "India" },
+
+  // Quick Commerce — pricing is placeholder/illustrative like the rest of
+  // this mock catalogue, but flagged individually here since confidence
+  // varies a lot more than usual: Zepto/Blinkit plausibly have a real paid
+  // membership (Zepto Pass / Blinkit Pass) but the figures below are NOT
+  // verified against a live source — needs real data before this leaves
+  // mock status. Swiggy Instamart mirrors "Swiggy One" above (its actual
+  // paid perk IS that membership, not a separate product) so that number is
+  // as real as this catalogue gets. Amazon Now, Licious and FreshToHome are
+  // priced free (0) deliberately, not as a placeholder guess — none of the
+  // three appear to have a real recurring paid membership product; if that's
+  // wrong, needs real data too.
+  { name: "Amazon Now", category: "Quick Commerce", priceMonthly: 0, popularity: 55, rating: 4.0, region: "India", tagline: "10-minute grocery delivery from Amazon" },
+  { name: "Zepto", category: "Quick Commerce", priceMonthly: 49, popularity: 72, rating: 4.2, region: "India", tagline: "Groceries delivered in 10 minutes" },
+  { name: "Blinkit", category: "Quick Commerce", priceMonthly: 99, popularity: 75, rating: 4.2, region: "India", tagline: "Instant grocery and essentials delivery" },
+  { name: "Swiggy Instamart", category: "Quick Commerce", priceMonthly: 150, popularity: 70, rating: 4.1, region: "India", tagline: "Groceries in minutes, via Swiggy One" },
+  { name: "Licious", category: "Quick Commerce", priceMonthly: 0, popularity: 40, rating: 4.0, region: "India", tagline: "Fresh meat and seafood, delivered" },
+  { name: "FreshToHome", category: "Quick Commerce", priceMonthly: 0, popularity: 35, rating: 3.9, region: "India", tagline: "Farm-fresh meat, fish and produce" },
 
   // Business
   { name: "Microsoft 365", category: "Business", priceMonthly: 580, popularity: 80, rating: 4.5, region: "Available in India", tagline: "Word, Excel, Teams and cloud storage" },

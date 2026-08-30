@@ -18,6 +18,7 @@ export type Category =
   | "Gaming"
   | "Finance"
   | "Shopping"
+  | "Quick Commerce"
   | "Business"
   | "Communication"
   | "Travel"

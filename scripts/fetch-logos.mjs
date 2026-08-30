@@ -112,6 +112,13 @@ const DOMAIN_BY_NAME = {
   "BigBasket BB Star": "bigbasket.com",
   "Tata Neu": "tataneu.com",
 
+  "Amazon Now": "amazon.in",
+  Zepto: "zeptonow.com",
+  Blinkit: "blinkit.com",
+  "Swiggy Instamart": "swiggy.com",
+  Licious: "licious.in",
+  FreshToHome: "freshtohome.com",
+
   "Microsoft 365": "microsoft.com",
   "Google Workspace": "workspace.google.com",
   "Zoom Pro": "zoom.us",

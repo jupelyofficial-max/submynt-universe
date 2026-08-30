@@ -31,10 +31,16 @@ function PerksForm({ onClose }: { onClose: () => void }) {
   const [userType, setUserType] = useState<PerksUserType>("student");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [consentTouched, setConsentTouched] = useState(false);
   const [success, setSuccess] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!consent) {
+      setConsentTouched(true);
+      return;
+    }
     addLead({ userType, email, phone });
     setSuccess(true);
     setTimeout(onClose, 1400);
@@ -107,6 +113,27 @@ function PerksForm({ onClose }: { onClose: () => void }) {
           className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
         />
       </div>
+
+      <label className="flex cursor-pointer items-start gap-2.5">
+        <input
+          type="checkbox"
+          checked={consent}
+          onChange={(e) => { setConsent(e.target.checked); setConsentTouched(true); }}
+          className={`mt-0.5 h-4 w-4 shrink-0 rounded border-black/20 text-aurora-500 focus:ring-aurora-500/40 ${
+            consentTouched && !consent ? "border-rose-400" : ""
+          }`}
+        />
+        <span className="text-xs text-ink-300">
+          I consent to Submynt using my email and phone number to send me curated free trials and perks. See our{" "}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-aurora-500 underline underline-offset-2">
+            Privacy Policy
+          </a>
+          .
+        </span>
+      </label>
+      {consentTouched && !consent && (
+        <p className="-mt-2 text-xs text-rose-400">Please agree to continue.</p>
+      )}
 
       <Button type="submit" size="lg" className="mt-1">
         Get free subscriptions

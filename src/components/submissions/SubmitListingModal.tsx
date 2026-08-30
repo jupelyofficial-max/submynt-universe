@@ -30,10 +30,16 @@ function SubmitListingForm({ onClose }: { onClose: () => void }) {
   const [priceMonthly, setPriceMonthly] = useState(0);
   const [region, setRegion] = useState<Region>(REGION_OPTIONS[0]);
   const [contactEmail, setContactEmail] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [consentTouched, setConsentTouched] = useState(false);
   const [success, setSuccess] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!consent) {
+      setConsentTouched(true);
+      return;
+    }
     addSubmission({ name, website, category, tagline, priceMonthly, region, contactEmail });
     setSuccess(true);
     setTimeout(onClose, 1200);
@@ -141,6 +147,31 @@ function SubmitListingForm({ onClose }: { onClose: () => void }) {
           />
         </div>
       </div>
+
+      {/* Data-processing consent — its own affirmative action, not
+          pre-checked, purpose stated inline (not just implied by the form
+          existing). Separate from the "reviewed before adding" note below,
+          which is about the listing itself, not personal-data consent. */}
+      <label className="flex cursor-pointer items-start gap-2.5">
+        <input
+          type="checkbox"
+          checked={consent}
+          onChange={(e) => { setConsent(e.target.checked); setConsentTouched(true); }}
+          className={`mt-0.5 h-4 w-4 shrink-0 rounded border-black/20 text-aurora-500 focus:ring-aurora-500/40 ${
+            consentTouched && !consent ? "border-rose-400" : ""
+          }`}
+        />
+        <span className="text-xs text-ink-300">
+          I consent to Submynt using my email to review this submission and follow up if needed. See our{" "}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-aurora-500 underline underline-offset-2">
+            Privacy Policy
+          </a>
+          .
+        </span>
+      </label>
+      {consentTouched && !consent && (
+        <p className="-mt-2 text-xs text-rose-400">Please agree to continue.</p>
+      )}
 
       <Button type="submit" size="lg" className="mt-1">
         Submit for review

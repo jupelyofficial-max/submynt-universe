@@ -16,14 +16,14 @@ export type Category =
   | "Wellness"
   | "News"
   | "Gaming"
-  | "Finance"
   | "Shopping"
   | "Quick Commerce"
   | "Business"
   | "Communication"
   | "Travel"
-  | "Security"
-  | "Reading";
+  | "Reading"
+  | "Productivity"
+  | "Professional Networking";
 
 export type Region = "India" | "Global" | "Available in India";
 

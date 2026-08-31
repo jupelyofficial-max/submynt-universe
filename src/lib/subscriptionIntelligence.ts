@@ -20,14 +20,14 @@ const CATEGORY_BEST_FOR: Record<Category, string[]> = {
   Wellness: ["Individuals", "Fitness enthusiasts"],
   News: ["Professionals", "Avid readers"],
   Gaming: ["Gamers", "Families"],
-  Finance: ["Investors", "Professionals"],
   Shopping: ["Frequent shoppers", "Families"],
   "Quick Commerce": ["Busy households", "Last-minute shoppers"],
   Business: ["Teams", "Professionals"],
   Communication: ["Teams", "Communities"],
   Travel: ["Frequent travelers"],
-  Security: ["Privacy-conscious users", "Professionals"],
   Reading: ["Avid readers", "Commuters"],
+  Productivity: ["Professionals", "Teams"],
+  "Professional Networking": ["Job seekers", "Professionals"],
 };
 
 const categoryAvgCache = new Map<Category, number>();

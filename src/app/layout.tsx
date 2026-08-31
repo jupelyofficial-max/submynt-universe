@@ -3,6 +3,7 @@ import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { TopNav } from "@/components/nav/TopNav";
+import { Footer } from "@/components/nav/Footer";
 import { DetailPanel } from "@/components/detail/DetailPanel";
 
 // Single font for the entire app — both --font-sans (body) and
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <TopNav />
           <main className="flex-1 flex flex-col min-h-0 overflow-y-auto no-scrollbar">{children}</main>
+          <Footer />
           <DetailPanel />
         </Providers>
       </body>

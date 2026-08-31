@@ -34,16 +34,32 @@ function PerksForm({ onClose }: { onClose: () => void }) {
   const [consent, setConsent] = useState(false);
   const [consentTouched, setConsentTouched] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!consent) {
       setConsentTouched(true);
       return;
     }
-    addLead({ userType, email, phone });
-    setSuccess(true);
-    setTimeout(onClose, 1400);
+    setSubmitting(true);
+    setError(false);
+    try {
+      const res = await fetch("/api/perks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userType, email, phone }),
+      });
+      if (!res.ok) throw new Error("request failed");
+      addLead({ userType, email, phone });
+      setSuccess(true);
+      setTimeout(onClose, 1400);
+    } catch {
+      setError(true);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (success) {
@@ -134,9 +150,12 @@ function PerksForm({ onClose }: { onClose: () => void }) {
       {consentTouched && !consent && (
         <p className="-mt-2 text-xs text-rose-400">Please agree to continue.</p>
       )}
+      {error && (
+        <p className="-mt-2 text-xs text-rose-400">Something went wrong on our end — please try again.</p>
+      )}
 
-      <Button type="submit" size="lg" className="mt-1">
-        Get free subscriptions
+      <Button type="submit" size="lg" className="mt-1" disabled={submitting}>
+        {submitting ? "Sending…" : "Get free subscriptions"}
       </Button>
       <p className="text-center text-[11px] text-ink-500">Free · no spam · unsubscribe anytime</p>
     </form>

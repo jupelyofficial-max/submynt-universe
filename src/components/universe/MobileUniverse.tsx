@@ -119,12 +119,12 @@ export function MobileUniverse() {
 
       <div
         className="pointer-events-none fixed inset-x-0 z-20 px-3"
-        // +28px (the footer's own min-h-7) on top of the previous 10px —
-        // this strip is `fixed` (viewport-relative), so it has no idea the
-        // global footer (layout.tsx, added after this strip existed) now
-        // occupies the bottom of the viewport too; without this it sat on
-        // top of the footer and ate its click target entirely.
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 38px)" }}
+        // 34px clears the footer's own 28px height (env(safe-area-inset-bottom)
+        // cancels out of the gap math the same way regardless of device, since
+        // both this offset and the footer's own padding-bottom include it) with
+        // a steady ~6px to spare — nudged down slightly from the original 38px
+        // fix, still safely short of colliding with the footer below it.
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 34px)" }}
       >
         {/* w-full so this box is genuinely bounded by the wrapper's own
             padding, and deliberately NOT centered — a flex `justify-center`

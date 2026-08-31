@@ -24,7 +24,7 @@ export function SponsoredStrip({ compact }: { compact?: boolean }) {
       }
     >
       <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-ink-500">
-        {compact ? "Featured" : "Sponsored"}
+        Featured
       </span>
       <div className={compact ? "flex flex-1 items-center justify-between gap-1.5" : "flex items-center gap-2"}>
         {items.map((sub) => (

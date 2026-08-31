@@ -156,7 +156,7 @@ export function ExploreClient() {
                   <LiveInsights />
                 </div>
               </div>
-              <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex justify-center lg:bottom-6">
+              <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center lg:bottom-4">
                 <div className="pointer-events-auto">
                   <SponsoredStrip />
                 </div>

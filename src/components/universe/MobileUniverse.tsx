@@ -94,7 +94,10 @@ export function MobileUniverse() {
           scroll position, safe-area aware for the home indicator. */}
       <div
         className="pointer-events-none fixed right-3 z-20 flex flex-col gap-2"
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}
+        // +28px on top of the previous 88px offset — the global footer
+        // (layout.tsx) now sits below this whole fixed-bottom cluster and
+        // needs the same clearance the Sponsored/Featured strip below gets.
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 116px)" }}
       >
         {owned.length > 0 && (
           <button
@@ -116,7 +119,12 @@ export function MobileUniverse() {
 
       <div
         className="pointer-events-none fixed inset-x-0 z-20 px-3"
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
+        // +28px (the footer's own min-h-7) on top of the previous 10px —
+        // this strip is `fixed` (viewport-relative), so it has no idea the
+        // global footer (layout.tsx, added after this strip existed) now
+        // occupies the bottom of the viewport too; without this it sat on
+        // top of the footer and ate its click target entirely.
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 38px)" }}
       >
         {/* w-full so this box is genuinely bounded by the wrapper's own
             padding, and deliberately NOT centered — a flex `justify-center`

@@ -78,14 +78,19 @@ export function ExploreClient() {
     </div>
   );
 
-  // Dedicated mobile toolbar — full-width search, horizontally-scrollable
-  // filter chips, then Universe/List next to Boost/Submit — each its own row
-  // instead of one row's worth of controls squeezed to illegible size.
+  // Dedicated mobile toolbar. Search shares a row with the filter chips
+  // (both h-9, align cleanly) instead of each getting its own full-width
+  // row — three stacked rows read as more chrome than content above the
+  // fold. Universe/List + Boost/Submit keep their own row.
   const mobileToolbar = (
     <div className="flex flex-col gap-2 border-b border-line-soft bg-void-950 p-2.5 md:hidden">
-      <SearchBar size="lg" compact />
-      <div className="overflow-x-auto no-scrollbar">
-        <FilterBar className="flex-nowrap" />
+      <div className="flex items-center gap-2">
+        <div className="w-[38%] min-w-[130px] shrink-0">
+          <SearchBar compact />
+        </div>
+        <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar">
+          <FilterBar className="flex-nowrap" />
+        </div>
       </div>
       <div className="flex items-center justify-between gap-2">
         <ViewSwitcher />

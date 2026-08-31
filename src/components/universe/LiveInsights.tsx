@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { GraduationCap, Lightbulb } from "lucide-react";
+import { GraduationCap, Lightbulb, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
@@ -107,12 +107,14 @@ export function LiveInsights() {
 
       {tab === "top5" && (
         <>
+          {/* No real usage/activity feed exists behind this reshuffle — it's
+              a deterministic shuffle of a static popularity-sorted pool
+              (TOP_POOL above), not live data, so this header doesn't claim
+              otherwise. Same icon+text treatment as the students/tips tabs
+              below, not a pulsing "live" indicator. */}
           <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10px] font-semibold uppercase tracking-wider text-ink-500">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            </span>
-            Live
+            <Star size={12} className="text-aurora-500" />
+            Top rated
           </div>
           <AnimatePresence mode="wait">
             <motion.div

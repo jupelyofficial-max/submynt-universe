@@ -93,6 +93,10 @@ export interface OwnedSubscription {
   billing: BillingCycle;
   nextRenewal: string;
   addedAt: string;
+  /** User-confirmed intent to keep this subscription (the DetailPanel
+   * "Keep" button) — optional/undefined for entries added before this
+   * field existed, which reads the same as false. */
+  kept?: boolean;
 }
 
 export type UserStatusFilter =

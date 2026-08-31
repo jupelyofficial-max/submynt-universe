@@ -56,10 +56,10 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
   const owned = useMySubscriptionsStore((s) => s.getOwned(sub.id));
   const removeOwned = useMySubscriptionsStore((s) => s.remove);
   const addOwned = useMySubscriptionsStore((s) => s.add);
+  const toggleKept = useMySubscriptionsStore((s) => s.toggleKept);
   const ownedList = useMySubscriptionsStore((s) => s.owned);
   const recordDemand = useDemandSignalsStore((s) => s.record);
 
-  const [kept, setKept] = useState(false);
   const [shared, setShared] = useState(false);
   const [switchingPlan, setSwitchingPlan] = useState(false);
 
@@ -220,15 +220,9 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
         <>
           <div className="px-5 py-4 border-t border-[#E5E5E5]">
             <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setKept(true);
-                  setTimeout(() => setKept(false), 1500);
-                }}
-              >
-                {kept ? <Check size={16} className="text-nebula-500" /> : <Heart size={16} />}
-                {kept ? "Kept" : "Keep"}
+              <Button variant="secondary" onClick={() => toggleKept(owned.ownedId)}>
+                {owned.kept ? <Check size={16} className="text-nebula-500" /> : <Heart size={16} />}
+                {owned.kept ? "Kept" : "Keep"}
               </Button>
               <Button variant="ghost" onClick={() => setSwitchingPlan((v) => !v)}>
                 <Repeat size={14} />

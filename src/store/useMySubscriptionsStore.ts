@@ -16,6 +16,7 @@ interface MySubscriptionsState {
   setHydrated: () => void;
   add: (input: AddInput) => void;
   remove: (ownedId: string) => void;
+  toggleKept: (ownedId: string) => void;
   isOwned: (subscriptionId: string) => boolean;
   getOwned: (subscriptionId: string) => OwnedSubscription | undefined;
 }
@@ -38,6 +39,10 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           ],
         })),
       remove: (ownedId) => set((state) => ({ owned: state.owned.filter((o) => o.ownedId !== ownedId) })),
+      toggleKept: (ownedId) =>
+        set((state) => ({
+          owned: state.owned.map((o) => (o.ownedId === ownedId ? { ...o, kept: !o.kept } : o)),
+        })),
       isOwned: (subscriptionId) => get().owned.some((o) => o.subscriptionId === subscriptionId),
       getOwned: (subscriptionId) => get().owned.find((o) => o.subscriptionId === subscriptionId),
     }),

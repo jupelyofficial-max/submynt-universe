@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Heart, Repeat, Scale, Share2, Trash2 } from "lucide-react";
+import { Heart, Repeat, Scale, Share2, Trash2 } from "lucide-react";
 import { ResponsiveSheet } from "@/components/ui/ResponsiveSheet";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -21,7 +21,7 @@ import { VERIFICATION_BY_ID } from "@/data/verification";
 import { computeBestFor, getProviderUrl, rankAlternatives } from "@/lib/subscriptionIntelligence";
 import { getRecommendation } from "@/lib/recommendations";
 import { canClaimSavings } from "@/lib/verification/claims";
-import { formatDate, formatINR } from "@/lib/utils";
+import { cn, formatDate, formatINR } from "@/lib/utils";
 import { BILLING_LABELS } from "@/data/categories";
 
 export function DetailPanel() {
@@ -84,6 +84,34 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sub.id]);
 
+  const isKept = Boolean(isOwned && owned?.kept);
+
+  // Heart is clickable immediately, with no prior "add to My Subscriptions"
+  // step — that means a click here can't assume an owned record already
+  // exists. Already-owned: flip the existing kept flag, exactly as before.
+  // Not yet owned: this click IS the add, using the subscription's first
+  // listed plan as a reasonable default (same day-count-by-billing
+  // convention SubscriptionStatusPicker's confirmPlan already uses) so the
+  // click never does nothing.
+  function handleToggleKeep() {
+    if (isOwned && owned) {
+      toggleKept(owned.ownedId);
+      return;
+    }
+    const plan = sub.plans[0];
+    const days = plan.billing === "annual" ? 365 : plan.billing === "quarterly" ? 90 : 30;
+    const nextRenewal = new Date();
+    nextRenewal.setDate(nextRenewal.getDate() + days);
+    addOwned({
+      subscriptionId: sub.id,
+      planName: plan.name,
+      priceMonthly: plan.priceMonthly,
+      billing: plan.billing,
+      nextRenewal: nextRenewal.toISOString(),
+      kept: true,
+    });
+  }
+
   function handleShare() {
     const url = `${window.location.origin}/explore?focus=${sub.id}`;
     if (navigator.share) {
@@ -123,6 +151,19 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
               {isOwned && <Badge tone="nebula">In your universe</Badge>}
             </div>
           </div>
+          <button
+            onClick={handleToggleKeep}
+            aria-label={isKept ? "Remove from kept" : "Keep this subscription"}
+            aria-pressed={isKept}
+            className={cn(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors cursor-pointer",
+              isKept
+                ? "border-rose-300 bg-rose-50 text-rose-500"
+                : "border-[#E5E5E5] bg-white text-[#6B6B6B] hover:border-black/20"
+            )}
+          >
+            <Heart size={16} className={isKept ? "fill-current" : ""} />
+          </button>
         </div>
 
         {/* 2. Best for */}
@@ -219,16 +260,10 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
       {isOwned && owned && (
         <>
           <div className="px-5 py-4 border-t border-[#E5E5E5]">
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="secondary" onClick={() => toggleKept(owned.ownedId)}>
-                {owned.kept ? <Check size={16} className="text-nebula-500" /> : <Heart size={16} />}
-                {owned.kept ? "Kept" : "Keep"}
-              </Button>
-              <Button variant="ghost" onClick={() => setSwitchingPlan((v) => !v)}>
-                <Repeat size={14} />
-                Switch Plan
-              </Button>
-            </div>
+            <Button variant="ghost" className="w-full" onClick={() => setSwitchingPlan((v) => !v)}>
+              <Repeat size={14} />
+              Switch Plan
+            </Button>
             <Button
               variant="ghost"
               size="sm"

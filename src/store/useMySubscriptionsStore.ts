@@ -8,6 +8,10 @@ interface AddInput {
   priceMonthly: number;
   billing: BillingCycle;
   nextRenewal: string;
+  /** Set true when this add is triggered by the top-of-panel Heart button
+   * on a not-yet-owned subscription, so "keep" and "add" happen as one
+   * action instead of a dead click. */
+  kept?: boolean;
 }
 
 interface MySubscriptionsState {

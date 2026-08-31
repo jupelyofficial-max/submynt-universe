@@ -7,9 +7,13 @@ import Link from "next/link";
 // inside the Submit/Perks modals, easy to miss entirely.
 export function Footer() {
   return (
-    <footer className="flex h-7 shrink-0 items-center justify-center border-t border-line-soft bg-void-950 px-4 text-[11px] text-ink-500">
+    <footer className="flex h-7 shrink-0 items-center justify-center gap-3 border-t border-line-soft bg-void-950 px-4 text-[11px] text-ink-500">
       <Link href="/privacy" className="transition-colors hover:text-ink-0">
         Privacy
+      </Link>
+      <span aria-hidden="true">·</span>
+      <Link href="/terms" className="transition-colors hover:text-ink-0">
+        Terms
       </Link>
     </footer>
   );

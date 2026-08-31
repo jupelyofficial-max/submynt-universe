@@ -5,7 +5,7 @@ import { Gift, Rocket, Upload } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
-import { FilterBar } from "@/components/filters/FilterBar";
+import { FilterBar, SortDropdown } from "@/components/filters/FilterBar";
 import { BoostModal } from "@/components/submissions/BoostModal";
 import { PerksModal } from "@/components/submissions/PerksModal";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
@@ -78,10 +78,14 @@ export function ExploreClient() {
     </div>
   );
 
-  // Dedicated mobile toolbar. Search shares a row with the filter chips
-  // (both h-9, align cleanly) instead of each getting its own full-width
-  // row — three stacked rows read as more chrome than content above the
-  // fold. Universe/List + Boost/Submit keep their own row.
+  // Dedicated mobile toolbar. Search shares a row with the Categories/Price
+  // chips (both h-9, align cleanly) instead of each getting its own
+  // full-width row — three stacked rows read as more chrome than content
+  // above the fold. Sort ("Popular" etc.) moves to row 2, between the
+  // Universe/List toggle and Boost — row 2's own left group scrolls
+  // (min-w-0 flex-1 overflow-x-auto, same pattern as row 1's FilterBar) so
+  // Boost/Submit stay pinned and always tappable even on a narrow phone
+  // where Universe/List + Popular + Boost + Submit don't all fit at once.
   const mobileToolbar = (
     <div className="flex flex-col gap-2 border-b border-line-soft bg-void-950 p-2.5 md:hidden">
       <div className="flex items-center gap-2">
@@ -89,11 +93,14 @@ export function ExploreClient() {
           <SearchBar compact />
         </div>
         <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar">
-          <FilterBar className="flex-nowrap" />
+          <FilterBar className="flex-nowrap" hideSort />
         </div>
       </div>
-      <div className="flex items-center justify-between gap-2">
-        <ViewSwitcher />
+      <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
+          <ViewSwitcher />
+          <SortDropdown />
+        </div>
         <div className="flex shrink-0 gap-2">
           <Button
             variant="outline"

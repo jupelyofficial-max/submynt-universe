@@ -5,8 +5,11 @@ type Variant = "primary" | "secondary" | "ghost" | "outline" | "danger";
 type Size = "sm" | "md" | "lg" | "icon";
 
 const VARIANT_CLASSES: Record<Variant, string> = {
+  // aurora-500/600 read as ~2.9:1 / ~4.3:1 against white text — both fail
+  // WCAG AA (4.5:1). aurora-700/800 are the same hue darkened until white
+  // text clears it (~5.3:1 / ~6.5:1).
   primary:
-    "bg-gradient-to-br from-aurora-500 to-aurora-600 text-white shadow-[0_0_0_1px_rgba(227,125,61,0.4),0_8px_24px_-8px_rgba(227,125,61,0.6)] hover:brightness-110 active:brightness-95",
+    "bg-gradient-to-br from-aurora-700 to-aurora-800 text-white shadow-[0_0_0_1px_rgba(168,85,31,0.4),0_8px_24px_-8px_rgba(168,85,31,0.6)] hover:brightness-110 active:brightness-95",
   secondary: "bg-void-700 text-ink-0 border border-line-soft hover:bg-void-600",
   ghost: "text-ink-100 hover:bg-black/5",
   outline: "border border-black/15 text-ink-0 hover:bg-black/5",

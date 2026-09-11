@@ -24,6 +24,13 @@
   --aurora-400: #b8551d;
   --aurora-500: #e37d3d;
   --aurora-600: #c05f26;
+  /* aurora-700/800: aurora-500/600 fail WCAG AA (2.89:1 / 4.28:1) as text
+     on white or as white-text-on-fill — these are the same hue darkened
+     until white text clears 4.5:1 (5.27:1 / 6.49:1). Use for text/icons on
+     light backgrounds and for white-text CTA fills; aurora-500/600 stay as
+     they are for large decorative use (tints, borders on dark). */
+  --aurora-700: #a8551f;
+  --aurora-800: #934a1a;
   --nebula-400: #0f8a6c;
   --nebula-500: #45b79e;
   --gold-400: #9c6b12;
@@ -45,6 +52,8 @@
   --color-aurora-400: var(--aurora-400);
   --color-aurora-500: var(--aurora-500);
   --color-aurora-600: var(--aurora-600);
+  --color-aurora-700: var(--aurora-700);
+  --color-aurora-800: var(--aurora-800);
   --color-nebula-400: var(--nebula-400);
   --color-nebula-500: var(--nebula-500);
   --color-gold-400: var(--gold-400);

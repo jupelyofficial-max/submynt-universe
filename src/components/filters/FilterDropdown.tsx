@@ -67,8 +67,10 @@ export function FilterDropdown<T extends string>({
         onClick={() => setOpen((v) => !v)}
         className={cn(
           "flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] px-3.5 text-xs font-medium transition-colors cursor-pointer",
+          // aurora-500 text/border on this near-white tint reads ~2.9:1 —
+          // fails WCAG AA. aurora-700 on the same tint is ~4.8:1.
           selected.length > 0
-            ? "border-aurora-500 bg-aurora-500/10 text-aurora-500"
+            ? "border-aurora-700 bg-aurora-500/10 text-aurora-700"
             : "border-black/15 bg-void-950 text-ink-0 hover:border-ink-0"
         )}
       >

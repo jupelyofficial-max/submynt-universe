@@ -65,7 +65,7 @@ export function ExploreClient() {
       <Button
         variant="outline"
         size="sm"
-        className="h-9 shrink-0 rounded-full border-[1.5px] border-aurora-500 bg-void-950 text-aurora-500 hover:bg-aurora-500/5"
+        className="h-9 shrink-0 rounded-full border-[1.5px] border-aurora-700 bg-void-950 text-aurora-700 hover:bg-aurora-500/5"
         onClick={() => setBoostModalOpen(true)}
       >
         <Rocket size={13} />
@@ -105,7 +105,7 @@ export function ExploreClient() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 shrink-0 rounded-full border-[1.5px] border-aurora-500 bg-void-950 text-aurora-500 hover:bg-aurora-500/5"
+            className="h-9 shrink-0 rounded-full border-[1.5px] border-aurora-700 bg-void-950 text-aurora-700 hover:bg-aurora-500/5"
             onClick={() => setBoostModalOpen(true)}
           >
             <Rocket size={13} />

@@ -17,7 +17,7 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "SUBMYNT — Your Subscription Universe",
+  title: "Submynt — Your Subscription Universe",
   description:
     "Discover, compare and optimize every digital subscription you pay for — mapped as one living universe.",
 };

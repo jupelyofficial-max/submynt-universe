@@ -74,7 +74,7 @@ export function TopNav() {
             <Button
               variant="outline"
               size="sm"
-              className="h-9 shrink-0 rounded-full border-[1.5px] border-aurora-700 bg-void-950 text-aurora-700 hover:bg-aurora-500/5"
+              className="h-9 shrink-0 rounded-full border-[1.5px] border-ocean-600 bg-void-950 text-ocean-600 hover:bg-ocean-500/5"
               onClick={() => setBoostModalOpen(true)}
             >
               <Rocket size={13} />

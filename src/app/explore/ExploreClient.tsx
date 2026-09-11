@@ -65,7 +65,7 @@ export function ExploreClient() {
       <Button
         variant="outline"
         size="sm"
-        className="h-9 shrink-0 rounded-full border-[1.5px] border-aurora-700 bg-void-950 text-aurora-700 hover:bg-aurora-500/5"
+        className="h-9 shrink-0 rounded-full border-[1.5px] border-ocean-600 bg-void-950 text-ocean-600 hover:bg-ocean-500/5"
         onClick={() => setBoostModalOpen(true)}
       >
         <Rocket size={13} />
@@ -105,7 +105,7 @@ export function ExploreClient() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 shrink-0 rounded-full border-[1.5px] border-aurora-700 bg-void-950 text-aurora-700 hover:bg-aurora-500/5"
+            className="h-9 shrink-0 rounded-full border-[1.5px] border-ocean-600 bg-void-950 text-ocean-600 hover:bg-ocean-500/5"
             onClick={() => setBoostModalOpen(true)}
           >
             <Rocket size={13} />
@@ -144,7 +144,7 @@ export function ExploreClient() {
                   onClick={() => setPerksModalOpen(true)}
                   className="pointer-events-auto glass-panel flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-ink-0 shadow-lg shadow-black/5 hover:border-black/20 transition-colors cursor-pointer"
                 >
-                  <Gift size={15} className="text-aurora-500" />
+                  <Gift size={15} className="text-ocean-600" />
                   Get Free Subscriptions
                 </button>
                 <div className="pointer-events-auto">

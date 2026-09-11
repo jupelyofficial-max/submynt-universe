@@ -31,6 +31,15 @@
      they are for large decorative use (tints, borders on dark). */
   --aurora-700: #a8551f;
   --aurora-800: #934a1a;
+  /* ocean: the logo's blue (#2563EB, the "Mynt Blue" brand color), taking
+     over the primary-accent role aurora/orange used to have in this
+     toolbar — too many accent hues competing (orange + green + the logo's
+     unused blue) was the actual complaint. 600/700 are 2563EB darkened
+     until white text clears WCAG AA (6.70:1 / 8.72:1); 2563EB itself
+     already clears 4.5:1 on white (5.17:1) so it's kept for lighter uses. */
+  --ocean-500: #2563eb;
+  --ocean-600: #1d4ed8;
+  --ocean-700: #1e40af;
   --nebula-400: #0f8a6c;
   --nebula-500: #45b79e;
   --gold-400: #9c6b12;
@@ -54,6 +63,9 @@
   --color-aurora-600: var(--aurora-600);
   --color-aurora-700: var(--aurora-700);
   --color-aurora-800: var(--aurora-800);
+  --color-ocean-500: var(--ocean-500);
+  --color-ocean-600: var(--ocean-600);
+  --color-ocean-700: var(--ocean-700);
   --color-nebula-400: var(--nebula-400);
   --color-nebula-500: var(--nebula-500);
   --color-gold-400: var(--gold-400);

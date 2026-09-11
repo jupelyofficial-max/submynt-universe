@@ -6,7 +6,7 @@ export function EcosystemStats() {
 
   return (
     <div className="glass-panel flex items-center gap-3 rounded-2xl px-4 py-3 shadow-lg shadow-black/5">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-aurora-500/10 text-aurora-500">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
         <Globe2 size={17} />
       </div>
       <div className="leading-tight">

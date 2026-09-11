@@ -34,7 +34,22 @@ export function TopNav() {
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-4 px-4 lg:px-8">
-        <Link href="/explore" className="flex items-center shrink-0 group">
+        <Link href="/explore" className="flex items-center gap-2 shrink-0 group">
+          <svg width="28" height="28" viewBox="0 0 240 240" className="shrink-0 transition-opacity group-hover:opacity-80" aria-hidden="true">
+            <defs>
+              <linearGradient id="navLogoGreen" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#0EA672" />
+                <stop offset="100%" stopColor="#5EEAA0" />
+              </linearGradient>
+              <linearGradient id="navLogoBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#38BDF8" />
+                <stop offset="100%" stopColor="#1D4ED8" />
+              </linearGradient>
+            </defs>
+            <rect x="10" y="26" width="220" height="96" rx="48" fill="url(#navLogoGreen)" transform="rotate(-15 120 74)" />
+            <rect x="14" y="126" width="212" height="96" rx="48" fill="url(#navLogoBlue)" />
+            <path d="M 55 118 L 185 118 L 120 152 Z" fill="#0B1F5C" />
+          </svg>
           <span className="font-display text-xl font-bold tracking-tight transition-opacity group-hover:opacity-80">
             <span className="text-ink-0">sub</span>
             <span className="relative pr-[0.16em] text-[#22c55e]">

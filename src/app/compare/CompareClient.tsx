@@ -83,7 +83,7 @@ export function CompareClient() {
                 <div className="flex flex-col items-center text-center gap-2">
                   <SubscriptionLogo subscription={sub} size="lg" ring={isOwned} />
                   <div>
-                    <h3 className="font-display text-base font-semibold text-ink-0">{sub.name}</h3>
+                    <h3 className="truncate text-sm font-semibold text-ink-0">{sub.name}</h3>
                     <p className="text-xs text-ink-400">{sub.category}</p>
                   </div>
                   {isOwned && <Badge tone="nebula">In your universe</Badge>}

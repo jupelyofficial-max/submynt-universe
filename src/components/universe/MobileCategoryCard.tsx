@@ -21,7 +21,7 @@ export function MobileCategoryCard({ cluster, subs }: { cluster: CategoryCluster
       <div className="mb-1 flex items-start gap-1.5">
         <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: cluster.color }} />
         <div className="min-w-0 leading-tight">
-          <div className="truncate text-[15px] font-semibold text-ink-0">{cluster.name}</div>
+          <div className="truncate text-base font-bold text-ink-0">{cluster.name}</div>
           <div className="text-[11px] text-ink-500">{subs.length} services</div>
         </div>
       </div>

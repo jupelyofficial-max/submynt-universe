@@ -16,7 +16,7 @@ export function UserProfileModal() {
   const close = () => useUniverseStore.getState().setProfileModalOpen(false);
 
   return (
-    <ResponsiveSheet open={isOpen} onClose={close} title="User Profile" desktopVariant="center" widthClassName="w-[420px]">
+    <ResponsiveSheet open={isOpen} onClose={close} title="User Profile" desktopVariant="center" widthClassName="w-[420px]" panelVariant="solid">
       {isOpen && <ProfileForm onClose={close} />}
     </ResponsiveSheet>
   );
@@ -100,19 +100,12 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
       </div>
 
       {step === 1 ? (
-        <form onSubmit={goNext} className="flex flex-col gap-4 px-5 py-5">
+        <form onSubmit={goNext} className="flex flex-col gap-3 px-5 py-4">
           <div className="flex flex-col items-center gap-2 text-center">
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
               <User size={20} />
             </span>
             <h3 className="font-display text-lg font-semibold text-ink-0">Tell us about you</h3>
-            <Link
-              href="/my-subscriptions"
-              onClick={onClose}
-              className="text-xs font-medium text-ocean-600 underline underline-offset-2"
-            >
-              Go to My Subscriptions instead
-            </Link>
           </div>
 
           <div>
@@ -164,7 +157,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
           </Button>
         </form>
       ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-5 py-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 px-5 py-4">
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink-300">I am a</label>
             <div className="grid grid-cols-3 gap-1.5">

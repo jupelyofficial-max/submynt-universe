@@ -17,6 +17,7 @@ const CATEGORY_BEST_FOR: Record<Category, string[]> = {
   Cloud: ["Professionals", "Families"],
   Creative: ["Creators", "Designers"],
   Education: ["Students", "Lifelong learners"],
+  "Elite Access": ["High-net-worth individuals", "Executives"],
   Wellness: ["Individuals", "Fitness enthusiasts"],
   News: ["Professionals", "Avid readers"],
   Gaming: ["Gamers", "Families"],

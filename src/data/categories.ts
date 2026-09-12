@@ -7,6 +7,7 @@ export const CATEGORY_META: Record<Category, { blurb: string; color: string }> =
   "Communication": { blurb: "Calls, chat and team messaging", color: "#C07B93" },
   "Creative": { blurb: "Design, edit and build professionally", color: "#3FB0B0" },
   "Education": { blurb: "Courses, languages and lifelong learning", color: "#5B9BD9" },
+  "Elite Access": { blurb: "Private clubs, concierge care and jet-set memberships", color: "#B08D4F" },
   "Entertainment": { blurb: "Films, series, live TV and video on demand", color: "#E0566E" },
   "Gaming": { blurb: "Play libraries and cloud gaming", color: "#6B84A8" },
   "Music": { blurb: "Streaming sound, everywhere you go", color: "#4AACD6" },

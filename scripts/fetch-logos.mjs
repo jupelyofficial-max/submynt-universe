@@ -154,6 +154,27 @@ const DOMAIN_BY_NAME = {
   Blinkist: "blinkist.com",
   Scribd: "scribd.com",
   "Patreon Membership": "patreon.com",
+
+  // These live subscriptions had no entry in this dict at all (predates
+  // this change) — surfaced because re-running this script to fetch the
+  // Elite Access logos below regenerates the whole manifest, and without
+  // these their logos would have silently dropped out.
+  "Google AI Pro (Gemini)": "gemini.google.com",
+  "Disney+": "disneyplus.com",
+  "Notion Plus": "notion.so",
+  "LinkedIn Premium": "linkedin.com",
+  "HealthifyMe Premium": "healthifyme.com",
+  WHOOP: "whoop.com",
+
+  NetJets: "netjets.com",
+  "Wheels Up": "wheelsup.com",
+  "Soho House": "sohohouse.com",
+  "Aman Club": "aman.com",
+  "Sollis Health": "sollishealth.com",
+  "Fountain Life": "fountainlife.com",
+  MDVIP: "mdvip.com",
+  "Bloomberg Terminal": "bloomberg.com",
+  "Equinox All Access": "equinox.com",
 };
 
 function slugify(name) {

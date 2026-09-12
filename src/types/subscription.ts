@@ -23,7 +23,8 @@ export type Category =
   | "Travel"
   | "Reading"
   | "Productivity"
-  | "Professional Networking";
+  | "Professional Networking"
+  | "Elite Access";
 
 export type Region = "India" | "Global" | "Available in India";
 

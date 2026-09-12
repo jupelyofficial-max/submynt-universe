@@ -166,6 +166,12 @@ const DOMAIN_BY_NAME = {
   "HealthifyMe Premium": "healthifyme.com",
   WHOOP: "whoop.com",
 
+  "Tinder Platinum": "tinder.com",
+  "Bumble Premium": "bumble.com",
+  "Hinge X": "hinge.co",
+  "Aisle Premium": "aisle.co",
+  Raya: "rayatheapp.com",
+
   NetJets: "netjets.com",
   "Wheels Up": "wheelsup.com",
   "Soho House": "sohohouse.com",

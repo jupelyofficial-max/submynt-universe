@@ -24,7 +24,8 @@ export type Category =
   | "Reading"
   | "Productivity"
   | "Professional Networking"
-  | "Elite Access";
+  | "Elite Access"
+  | "Dating";
 
 export type Region = "India" | "Global" | "Available in India";
 

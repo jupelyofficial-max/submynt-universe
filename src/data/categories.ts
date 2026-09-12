@@ -6,6 +6,7 @@ export const CATEGORY_META: Record<Category, { blurb: string; color: string }> =
   "Cloud": { blurb: "Your files, synced across every device", color: "#46C08A" },
   "Communication": { blurb: "Calls, chat and team messaging", color: "#C07B93" },
   "Creative": { blurb: "Design, edit and build professionally", color: "#3FB0B0" },
+  "Dating": { blurb: "Meet people, matched to what you're looking for", color: "#E85D75" },
   "Education": { blurb: "Courses, languages and lifelong learning", color: "#5B9BD9" },
   "Elite Access": { blurb: "Private clubs, concierge care and jet-set memberships", color: "#B08D4F" },
   "Entertainment": { blurb: "Films, series, live TV and video on demand", color: "#E0566E" },

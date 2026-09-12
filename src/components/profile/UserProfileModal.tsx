@@ -7,6 +7,7 @@ import { ResponsiveSheet } from "@/components/ui/ResponsiveSheet";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
+import { useProfileSubmissionStore } from "@/store/useProfileSubmissionStore";
 
 type Profession = "Student" | "Entrepreneur" | "Working professional";
 const PROFESSIONS: Profession[] = ["Student", "Entrepreneur", "Working professional"];
@@ -31,6 +32,9 @@ export function UserProfileModal() {
 }
 
 function ProfileForm({ onClose }: { onClose: () => void }) {
+  const alreadySubmitted = useProfileSubmissionStore((s) => s.submitted);
+  const submittedEmail = useProfileSubmissionStore((s) => s.submittedEmail);
+
   const [step, setStep] = useState<1 | 2>(1);
 
   const [name, setName] = useState("");
@@ -67,6 +71,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
         body: JSON.stringify({ name, email, contactNumber, age, gender, profession, location }),
       });
       if (!res.ok) throw new Error("request failed");
+      useProfileSubmissionStore.getState().markSubmitted(email);
       setSuccess(true);
       setTimeout(onClose, 1400);
     } catch {
@@ -91,6 +96,27 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
         >
           Go to My Subscriptions
         </Link>
+      </div>
+    );
+  }
+
+  // Persisted across visits (unlike `success`, which only reflects a
+  // submission from this exact mount) — checked after `success` so a fresh
+  // submission still shows "Profile saved" first, and only shows this on a
+  // later open.
+  if (alreadySubmitted) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 px-8 py-16 text-center">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-nebula-500/15 text-nebula-400">
+          <Check size={26} />
+        </span>
+        <p className="font-display text-lg font-semibold text-ink-0">You&apos;re already registered</p>
+        {submittedEmail && (
+          <p className="text-sm text-ink-300">We already have a profile saved for {submittedEmail}.</p>
+        )}
+        <Button variant="outline" onClick={onClose} className="mt-1">
+          Close
+        </Button>
       </div>
     );
   }

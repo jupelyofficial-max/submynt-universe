@@ -1,6 +1,6 @@
 import { AlertCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { cn, formatINR } from "@/lib/utils";
+import { cn, formatINR, formatPrice } from "@/lib/utils";
 import type { Subscription } from "@/types/subscription";
 
 /** "Can I get something better or cheaper?" (part 1) — capability 3. Only
@@ -36,7 +36,7 @@ export function SavingsSection({
         </div>
         <div className="mt-2.5 flex items-center justify-between text-sm">
           <span className="text-[#6B6B6B]">{alternative.name}</span>
-          <span className={cn("font-semibold", verified ? "text-nebula-500" : "text-black")}>{formatINR(alternative.priceMonthly)}/mo</span>
+          <span className={cn("font-semibold", verified ? "text-nebula-500" : "text-black")}>{formatPrice(alternative.priceMonthly, alternative.priceLabel)}/mo</span>
         </div>
         <div className="mt-2.5 grid grid-cols-2 gap-2 border-t border-[#E5E5E5] pt-2.5">
           <div>

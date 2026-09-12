@@ -6,7 +6,7 @@ import { SubscriptionNode } from "./SubscriptionNode";
 import { matchesFilters, matchesSearch } from "@/lib/filterSubscriptions";
 import { potentialSavingsMonthly } from "@/data/subscriptions";
 import { useUniverseStore } from "@/store/useUniverseStore";
-import { formatINR } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 interface Props {
   nodes: UniverseNode[];
@@ -61,8 +61,8 @@ export function SubscriptionField({ nodes, ownedIds }: Props) {
           <div className="pointer-events-none whitespace-nowrap rounded-xl glass-panel px-3 py-1.5 text-center shadow-xl">
             <div className="text-xs font-semibold text-ink-0">{hoveredNode.subscription.name}</div>
             <div className="text-[11px] text-nebula-400">
-              {formatINR(hoveredNode.subscription.priceMonthly)}
-              {hoveredNode.subscription.priceMonthly > 0 ? "/mo" : ""}
+              {formatPrice(hoveredNode.subscription.priceMonthly, hoveredNode.subscription.priceLabel)}
+              {hoveredNode.subscription.priceMonthly !== null && hoveredNode.subscription.priceMonthly > 0 ? "/mo" : ""}
             </div>
           </div>
         </Html>

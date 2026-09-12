@@ -8,6 +8,10 @@ import type { Subscription } from "@/types/subscription";
 export function PlansSection({ sub }: { sub: Subscription }) {
   const monthlyPlan = sub.plans.find((p) => p.billing === "monthly") ?? sub.plans[0];
 
+  // Enterprise-sales-only entries have no real plan data — the "Contact
+  // for pricing" price row above already covers this, no empty grid here.
+  if (sub.plans.length === 0) return null;
+
   return (
     <div className="px-5 py-4 border-t border-[#E5E5E5]">
       <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Available plans</h4>

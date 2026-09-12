@@ -8,7 +8,7 @@ export function matchesSearch(sub: Subscription, query: string): boolean {
 
   const priceUnderMatch = q.match(/under\s*₹?\s*(\d+)/);
   if (priceUnderMatch) {
-    return sub.priceMonthly < Number(priceUnderMatch[1]);
+    return sub.priceMonthly !== null && sub.priceMonthly < Number(priceUnderMatch[1]);
   }
   if (q.includes("annual") || q.includes("yearly")) {
     return sub.billing.includes("annual");
@@ -36,6 +36,7 @@ export function matchesFilters(
     const inBand = filters.priceBands.some((id) => {
       const band = PRICE_BANDS.find((b) => b.id === id);
       if (!band) return false;
+      if (sub.priceMonthly === null) return false;
       if (band.max === null) return sub.priceMonthly >= band.min;
       if (band.id === "free") return sub.priceMonthly === 0;
       return sub.priceMonthly >= band.min && sub.priceMonthly <= band.max;
@@ -65,11 +66,20 @@ export function sortSubscriptions(
   ownedIds: Set<string>
 ): Subscription[] {
   const copy = [...subs];
+  // Unknown-price entries (priceMonthly === null) aren't meaningfully
+  // "cheap" or "expensive" — pushed to the end regardless of direction
+  // rather than pretending to rank them.
+  function byPrice(a: Subscription, b: Subscription, ascending: boolean): number {
+    if (a.priceMonthly === null && b.priceMonthly === null) return 0;
+    if (a.priceMonthly === null) return 1;
+    if (b.priceMonthly === null) return -1;
+    return ascending ? a.priceMonthly - b.priceMonthly : b.priceMonthly - a.priceMonthly;
+  }
   switch (sort) {
     case "price-low":
-      return copy.sort((a, b) => a.priceMonthly - b.priceMonthly);
+      return copy.sort((a, b) => byPrice(a, b, true));
     case "price-high":
-      return copy.sort((a, b) => b.priceMonthly - a.priceMonthly);
+      return copy.sort((a, b) => byPrice(a, b, false));
     case "savings":
       return copy.sort((a, b) => potentialSavingsMonthly(b) - potentialSavingsMonthly(a));
     case "new":

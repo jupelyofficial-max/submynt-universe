@@ -1,7 +1,7 @@
 import { Scale, Sparkle } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
-import { formatINR } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import type { RecommendationResult } from "@/types/recommendation";
 
 /**
@@ -41,7 +41,7 @@ export function RecommendationCard({
         </div>
       </div>
 
-      <div className="mt-3 text-sm font-semibold text-black">{formatINR(sub.priceMonthly)}{sub.priceMonthly > 0 && <span className="text-xs font-normal text-[#6B6B6B]">/mo</span>}</div>
+      <div className="mt-3 text-sm font-semibold text-black">{formatPrice(sub.priceMonthly, sub.priceLabel)}{sub.priceMonthly !== null && sub.priceMonthly > 0 && <span className="text-xs font-normal text-[#6B6B6B]">/mo</span>}</div>
 
       <div className="mt-3 flex gap-2">
         <Button size="sm" variant="secondary" className="flex-1" onClick={onExplore}>

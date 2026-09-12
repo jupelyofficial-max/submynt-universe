@@ -7,7 +7,7 @@ import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
-import { formatINR } from "@/lib/utils";
+import { formatINR, formatPrice } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 
@@ -48,7 +48,8 @@ export function CompareClient() {
     return SUBSCRIPTIONS.filter((s) => !ids.includes(s.id) && s.name.toLowerCase().includes(q)).slice(0, 6);
   }, [query, ids]);
 
-  const cheapest = subs.length ? Math.min(...subs.map((s) => s.priceMonthly)) : 0;
+  const knownPrices = subs.map((s) => s.priceMonthly).filter((p): p is number => p !== null);
+  const cheapest = knownPrices.length ? Math.min(...knownPrices) : null;
   const [kept, setKept] = useState<string | null>(null);
 
   return (
@@ -91,15 +92,17 @@ export function CompareClient() {
 
                 <dl className="flex flex-col gap-2.5 text-sm">
                   <Row label="Price">
-                    <span className="font-semibold text-ink-0">{formatINR(sub.priceMonthly)}</span>
-                    {sub.priceMonthly > 0 && <span className="text-ink-500">/mo</span>}
+                    <span className="font-semibold text-ink-0">{formatPrice(sub.priceMonthly, sub.priceLabel)}</span>
+                    {sub.priceMonthly !== null && sub.priceMonthly > 0 && <span className="text-ink-500">/mo</span>}
                   </Row>
-                  <Row label="Annual cost">{formatINR(sub.priceMonthly * 12)}</Row>
+                  <Row label="Annual cost">{sub.priceMonthly !== null ? formatINR(sub.priceMonthly * 12) : formatPrice(null, sub.priceLabel)}</Row>
                   <Row label="Plans">{sub.plans.length} available</Row>
                   <Row label="Value">★ {sub.rating.toFixed(1)} · {sub.popularity}% Submynt Popularity</Row>
                   <Row label="Availability">{sub.region}</Row>
                   <Row label="Vs. cheapest here">
-                    {sub.priceMonthly === cheapest ? (
+                    {sub.priceMonthly === null || cheapest === null ? (
+                      <span className="text-ink-500">—</span>
+                    ) : sub.priceMonthly === cheapest ? (
                       <span className="text-nebula-400">Cheapest</span>
                     ) : (
                       <span className="text-gold-400">+{formatINR(sub.priceMonthly - cheapest)}/mo</span>
@@ -170,7 +173,7 @@ export function CompareClient() {
                 >
                   <SubscriptionLogo subscription={s} size="xs" />
                   <span className="text-sm text-ink-0">{s.name}</span>
-                  <span className="ml-auto text-xs text-ink-500">{formatINR(s.priceMonthly)}</span>
+                  <span className="ml-auto text-xs text-ink-500">{formatPrice(s.priceMonthly, s.priceLabel)}</span>
                 </button>
               ))}
             </div>

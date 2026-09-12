@@ -25,7 +25,8 @@ export type Category =
   | "Productivity"
   | "Professional Networking"
   | "Elite Access"
-  | "Dating";
+  | "Dating"
+  | "Research & Data";
 
 export type Region = "India" | "Global" | "Available in India";
 
@@ -45,7 +46,15 @@ export interface Subscription {
   initials: string;
   /** Company domain used to look up a real logo image; empty falls back to the initials badge. */
   domain: string;
-  priceMonthly: number;
+  /** null for enterprise-sales-only products with no public price (e.g.
+   * Gartner, PitchBook) — there is no real number to put here, and 0 would
+   * collide with the existing "genuinely free" meaning used everywhere
+   * else (price bands, recommendation scoring, etc). When null, render
+   * `priceLabel` instead of a formatted price; `plans` is `[]` for these. */
+  priceMonthly: number | null;
+  /** Display string shown in place of a formatted price when priceMonthly
+   * is null, e.g. "Contact for pricing". Ignored when priceMonthly is set. */
+  priceLabel?: string;
   billing: BillingCycle[];
   plans: SubscriptionPlan[];
   popularity: number;

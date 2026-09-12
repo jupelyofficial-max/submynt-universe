@@ -166,6 +166,15 @@ const DOMAIN_BY_NAME = {
   "HealthifyMe Premium": "healthifyme.com",
   WHOOP: "whoop.com",
 
+  Gartner: "gartner.com",
+  Forrester: "forrester.com",
+  IDC: "idc.com",
+  Statista: "statista.com",
+  "Euromonitor International": "euromonitor.com",
+  Mintel: "mintel.com",
+  "CB Insights": "cbinsights.com",
+  PitchBook: "pitchbook.com",
+
   "Tinder Platinum": "tinder.com",
   "Bumble Premium": "bumble.com",
   "Hinge X": "hinge.co",

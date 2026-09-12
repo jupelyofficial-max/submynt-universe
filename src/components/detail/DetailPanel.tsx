@@ -21,7 +21,7 @@ import { VERIFICATION_BY_ID } from "@/data/verification";
 import { computeBestFor, getProviderUrl, rankAlternatives } from "@/lib/subscriptionIntelligence";
 import { getRecommendation } from "@/lib/recommendations";
 import { canClaimSavings } from "@/lib/verification/claims";
-import { cn, formatDate, formatINR } from "@/lib/utils";
+import { cn, formatDate, formatINR, formatPrice } from "@/lib/utils";
 import { BILLING_LABELS } from "@/data/categories";
 
 export function DetailPanel() {
@@ -98,6 +98,9 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
       toggleKept(owned.ownedId);
       return;
     }
+    // Enterprise-sales-only entries (no public price) have no real plan
+    // to snapshot a price/billing from — nothing to add.
+    if (sub.plans.length === 0) return;
     const plan = sub.plans[0];
     const days = plan.billing === "annual" ? 365 : plan.billing === "quarterly" ? 90 : 30;
     const nextRenewal = new Date();
@@ -153,10 +156,14 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
           </div>
           <button
             onClick={handleToggleKeep}
+            disabled={!isOwned && sub.plans.length === 0}
             aria-label={isKept ? "Remove from kept" : "Keep this subscription"}
             aria-pressed={isKept}
             className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors cursor-pointer",
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors",
+              !isOwned && sub.plans.length === 0
+                ? "cursor-not-allowed border-[#E5E5E5] bg-white text-[#D5D5D5]"
+                : "cursor-pointer",
               isKept
                 ? "border-rose-300 bg-rose-50 text-rose-500"
                 : "border-[#E5E5E5] bg-white text-[#6B6B6B] hover:border-black/20"
@@ -183,8 +190,8 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
         {/* 3. Price */}
         <div className="mt-4 flex items-end justify-between border-t border-[#E5E5E5] pt-4">
           <div>
-            <div className="font-display text-[28px] leading-none font-semibold text-black">{formatINR(sub.priceMonthly)}</div>
-            {sub.priceMonthly > 0 && <div className="mt-1 text-xs text-[#6B6B6B]">per month, {sub.billing.includes("annual") ? "billed monthly or annually" : "billed monthly"}</div>}
+            <div className="font-display text-[28px] leading-none font-semibold text-black">{formatPrice(sub.priceMonthly, sub.priceLabel)}</div>
+            {sub.priceMonthly !== null && sub.priceMonthly > 0 && <div className="mt-1 text-xs text-[#6B6B6B]">per month, {sub.billing.includes("annual") ? "billed monthly or annually" : "billed monthly"}</div>}
           </div>
           <div className="text-right">
             <div className="text-sm font-semibold text-black">★ {sub.rating.toFixed(1)}</div>

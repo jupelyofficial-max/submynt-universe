@@ -810,7 +810,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     name: "Tinder Platinum",
     provider: "Tinder Platinum",
     category: "Dating",
-    tagline: "Unlimited likes, top picks and priority visibility — from $49.99/mo (varies by age/location)",
+    tagline:
+      "Unlimited likes, top picks and priority visibility — from $49.99/mo (varies by age/location)",
     color: "#FD5068",
     initials: "TP",
     domain: "tinder.com",
@@ -827,7 +828,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     name: "Bumble Premium",
     provider: "Bumble Premium",
     category: "Dating",
-    tagline: "See who likes you, unlimited filters — from $39.99/mo (varies by market/promo)",
+    tagline:
+      "See who likes you, unlimited filters — from $39.99/mo (varies by market/promo)",
     color: "#FFC629",
     initials: "BP",
     domain: "bumble.com",
@@ -844,7 +846,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     name: "Hinge X",
     provider: "Hinge X",
     category: "Dating",
-    tagline: "Priority Likes and Skip the Line — from $49.99/mo (varies by age/location)",
+    tagline:
+      "Priority Likes and Skip the Line — from $49.99/mo (varies by age/location)",
     color: "#6E44FF",
     initials: "HX",
     domain: "hinge.co",
@@ -861,7 +864,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     name: "Aisle Premium",
     provider: "Aisle Premium",
     category: "Dating",
-    tagline: "India-focused matchmaking for serious relationships — from ₹2,499/mo",
+    tagline:
+      "India-focused matchmaking for serious relationships — from ₹2,499/mo",
     color: "#E63950",
     initials: "AI",
     domain: "aisle.co",
@@ -878,7 +882,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     name: "Raya",
     provider: "Raya",
     category: "Dating",
-    tagline: "Invite-only, application-based membership popular with entertainment and high-profile users — from $19.99/mo once accepted",
+    tagline:
+      "Invite-only, application-based membership popular with entertainment and high-profile users — from $19.99/mo once accepted",
     color: "#1A1A1A",
     initials: "RY",
     domain: "rayatheapp.com",
@@ -889,6 +894,159 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.3,
     region: "Global",
     tags: ["Dating"],
+  },
+  // Research & Data: enterprise research/analyst/data platforms. Verified
+  // via web search rather than estimated — 7 of these 8 are genuinely
+  // enterprise-sales-only with no public price (confirmed, including
+  // CB Insights, which the task assumed had public self-serve pricing but
+  // does not — flagged rather than guessed). Only Statista publishes a
+  // real self-serve price, converted from USD to INR at the same ~83
+  // INR/USD rate used elsewhere in this catalogue.
+  {
+    id: "gartner",
+    name: "Gartner",
+    provider: "Gartner",
+    category: "Research & Data",
+    tagline: "Enterprise tech research and analyst reports",
+    priceLabel: "Contact for pricing",
+    color: "#0074A6",
+    initials: "GT",
+    domain: "gartner.com",
+    priceMonthly: null,
+    billing: [],
+    plans: [],
+    popularity: 12,
+    rating: 4.5,
+    region: "Global",
+    tags: ["Research & Data"],
+  },
+  {
+    id: "forrester",
+    name: "Forrester",
+    provider: "Forrester",
+    category: "Research & Data",
+    tagline: "Enterprise tech and CX research",
+    priceLabel: "Contact for pricing",
+    color: "#7C1D6F",
+    initials: "FR",
+    domain: "forrester.com",
+    priceMonthly: null,
+    billing: [],
+    plans: [],
+    popularity: 9,
+    rating: 4.4,
+    region: "Global",
+    tags: ["Research & Data"],
+  },
+  {
+    id: "idc",
+    name: "IDC",
+    provider: "IDC",
+    category: "Research & Data",
+    tagline: "Tech market data and forecasts",
+    priceLabel: "Contact for pricing",
+    color: "#004B8D",
+    initials: "IDC",
+    domain: "idc.com",
+    priceMonthly: null,
+    billing: [],
+    plans: [],
+    popularity: 7,
+    rating: 4.3,
+    region: "Global",
+    tags: ["Research & Data"],
+  },
+  {
+    id: "statista",
+    name: "Statista",
+    provider: "Statista",
+    category: "Research & Data",
+    tagline:
+      "Market data and statistics platform — from $199/mo (Starter, billed annually)",
+    color: "#000000",
+    initials: "ST",
+    domain: "statista.com",
+    priceMonthly: 16517,
+    billing: ["annual"],
+    plans: [
+      { name: "Starter Account", priceMonthly: 16517, billing: "annual" },
+    ],
+    popularity: 18,
+    rating: 4.4,
+    region: "Global",
+    tags: ["Research & Data"],
+  },
+  {
+    id: "euromonitor-international",
+    name: "Euromonitor International",
+    provider: "Euromonitor International",
+    category: "Research & Data",
+    tagline: "Consumer and market research",
+    priceLabel: "Contact for pricing",
+    color: "#8A1538",
+    initials: "EI",
+    domain: "euromonitor.com",
+    priceMonthly: null,
+    billing: [],
+    plans: [],
+    popularity: 5,
+    rating: 4.3,
+    region: "Global",
+    tags: ["Research & Data"],
+  },
+  {
+    id: "mintel",
+    name: "Mintel",
+    provider: "Mintel",
+    category: "Research & Data",
+    tagline: "Consumer trends research",
+    priceLabel: "Contact for pricing",
+    color: "#E4002B",
+    initials: "MT",
+    domain: "mintel.com",
+    priceMonthly: null,
+    billing: [],
+    plans: [],
+    popularity: 5,
+    rating: 4.2,
+    region: "Global",
+    tags: ["Research & Data"],
+  },
+  {
+    id: "cb-insights",
+    name: "CB Insights",
+    provider: "CB Insights",
+    category: "Research & Data",
+    tagline: "Startup and market intelligence platform",
+    priceLabel: "Contact for pricing",
+    color: "#0F1F3D",
+    initials: "CB",
+    domain: "cbinsights.com",
+    priceMonthly: null,
+    billing: [],
+    plans: [],
+    popularity: 10,
+    rating: 4.5,
+    region: "Global",
+    tags: ["Research & Data"],
+  },
+  {
+    id: "pitchbook",
+    name: "PitchBook",
+    provider: "PitchBook",
+    category: "Research & Data",
+    tagline: "VC/PE deal data platform",
+    priceLabel: "Contact for pricing",
+    color: "#FF5000",
+    initials: "PB",
+    domain: "pitchbook.com",
+    priceMonthly: null,
+    billing: [],
+    plans: [],
+    popularity: 14,
+    rating: 4.6,
+    region: "Global",
+    tags: ["Research & Data"],
   },
 ];
 
@@ -903,20 +1061,26 @@ export function getAlternatives(sub: Subscription, limit = 4): Subscription[] {
     .slice(0, limit);
 }
 
-/** Cheapest comparable alternative (similar or better rating) priced lower than `sub`. */
+/** Cheapest comparable alternative (similar or better rating) priced lower
+ * than `sub`. Both sides need a known price — an entry with no public
+ * price (priceMonthly === null) can neither be compared against nor
+ * offered as a "savings" pick. */
 export function bestSavingsAlternative(sub: Subscription): Subscription | null {
+  if (sub.priceMonthly === null) return null;
+  const subPrice = sub.priceMonthly;
   const candidates = SUBSCRIPTIONS.filter(
     (s) =>
       s.id !== sub.id &&
       s.category === sub.category &&
-      s.priceMonthly < sub.priceMonthly &&
+      s.priceMonthly !== null &&
+      s.priceMonthly < subPrice &&
       s.rating >= sub.rating - 0.6,
-  ).sort((a, b) => a.priceMonthly - b.priceMonthly);
+  ).sort((a, b) => (a.priceMonthly as number) - (b.priceMonthly as number));
   return candidates[0] ?? null;
 }
 
 export function potentialSavingsMonthly(sub: Subscription): number {
   const alt = bestSavingsAlternative(sub);
-  if (!alt) return 0;
+  if (!alt || sub.priceMonthly === null || alt.priceMonthly === null) return 0;
   return Math.max(0, sub.priceMonthly - alt.priceMonthly);
 }

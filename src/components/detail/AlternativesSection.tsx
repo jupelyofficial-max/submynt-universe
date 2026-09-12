@@ -1,6 +1,6 @@
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import type { RankedAlternative } from "@/lib/subscriptionIntelligence";
-import { formatINR } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 /** "Can I get something better or cheaper?" (part 2) — capability 12.
  * Reason tags are read straight off each RankedAlternative — see
@@ -37,7 +37,7 @@ export function AlternativesSection({
                 ))}
               </div>
             </div>
-            <div className="text-sm font-semibold text-black shrink-0">{formatINR(alt.priceMonthly)}</div>
+            <div className="text-sm font-semibold text-black shrink-0">{formatPrice(alt.priceMonthly, alt.priceLabel)}</div>
           </button>
         ))}
       </div>

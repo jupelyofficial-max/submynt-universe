@@ -38,6 +38,8 @@ export interface VerifiedField<T> {
 }
 
 export interface SubscriptionVerification {
-  price: VerifiedField<number>;
+  /** null mirrors Subscription.priceMonthly for enterprise-sales-only
+   * entries with no public price. */
+  price: VerifiedField<number | null>;
   trial: VerifiedField<{ available: boolean; days?: number }>;
 }

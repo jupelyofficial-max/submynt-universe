@@ -9,7 +9,7 @@ import { SUBSCRIPTIONS, bestSavingsAlternative, potentialSavingsMonthly } from "
 import { VERIFICATION_BY_ID } from "@/data/verification";
 import { matchesFilters, matchesSearch, sortSubscriptions } from "@/lib/filterSubscriptions";
 import { canClaimSavings } from "@/lib/verification/claims";
-import { formatINR } from "@/lib/utils";
+import { formatINR, formatPrice } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 
@@ -60,8 +60,8 @@ export function ListView() {
                 <p className="mt-0.5 truncate text-xs text-ink-400">{sub.category}</p>
               </div>
               <div className="shrink-0 text-right">
-                <div className="text-sm font-semibold text-ink-0">{formatINR(sub.priceMonthly)}</div>
-                {sub.priceMonthly > 0 && <div className="text-[11px] text-ink-500">/mo</div>}
+                <div className="text-sm font-semibold text-ink-0">{formatPrice(sub.priceMonthly, sub.priceLabel)}</div>
+                {sub.priceMonthly !== null && sub.priceMonthly > 0 && <div className="text-[11px] text-ink-500">/mo</div>}
               </div>
             </div>
 

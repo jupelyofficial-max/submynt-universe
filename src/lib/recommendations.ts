@@ -53,7 +53,7 @@ export function computeRecommendationScore(sub: Subscription, context: Recommend
   // exists yet, so this factor is simply excluded (not zeroed) otherwise,
   // and the remaining weights are renormalized so its absence doesn't
   // unfairly drag every score down.
-  if (context.budgetMonthly !== undefined && context.budgetMonthly > 0) {
+  if (context.budgetMonthly !== undefined && context.budgetMonthly > 0 && sub.priceMonthly !== null) {
     const overBudgetFraction = Math.max(0, (sub.priceMonthly - context.budgetMonthly) / context.budgetMonthly);
     const budgetScore = Math.max(0, 100 - overBudgetFraction * 100);
     weightedSum += budgetScore * RECOMMENDATION_WEIGHTS.budgetMatch;
@@ -87,7 +87,7 @@ export function computeRecommendationReasons(sub: Subscription, context: Recomme
     reasons.push("Strong alternative to your current subscription");
   }
 
-  if (context.budgetMonthly !== undefined && sub.priceMonthly <= context.budgetMonthly) {
+  if (context.budgetMonthly !== undefined && sub.priceMonthly !== null && sub.priceMonthly <= context.budgetMonthly) {
     reasons.push("Fits your budget");
   }
 

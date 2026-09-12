@@ -24,7 +24,7 @@ export default function OptimizePage() {
         const sub = SUBSCRIPTIONS_BY_ID[o.subscriptionId];
         if (!sub) return null;
         const alt = bestSavingsAlternative(sub);
-        const savings = alt ? Math.max(0, o.priceMonthly - alt.priceMonthly) : 0;
+        const savings = alt && alt.priceMonthly !== null ? Math.max(0, o.priceMonthly - alt.priceMonthly) : 0;
         return { owned: o, sub, alt, savings };
       })
       .filter((x): x is NonNullable<typeof x> => x !== null)

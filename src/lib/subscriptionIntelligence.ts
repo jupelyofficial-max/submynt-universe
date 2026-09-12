@@ -30,6 +30,7 @@ const CATEGORY_BEST_FOR: Record<Category, string[]> = {
   Reading: ["Avid readers", "Commuters"],
   Productivity: ["Professionals", "Teams"],
   "Professional Networking": ["Job seekers", "Professionals"],
+  "Research & Data": ["Analysts", "Investors", "Strategy teams"],
 };
 
 const categoryAvgCache = new Map<Category, number>();
@@ -40,8 +41,8 @@ const categoryAvgCache = new Map<Category, number>();
 export function categoryAveragePrice(category: Category): number {
   const cached = categoryAvgCache.get(category);
   if (cached !== undefined) return cached;
-  const paid = SUBSCRIPTIONS.filter((s) => s.category === category && s.priceMonthly > 0);
-  const avg = paid.length ? paid.reduce((sum, s) => sum + s.priceMonthly, 0) / paid.length : 0;
+  const paid = SUBSCRIPTIONS.filter((s) => s.category === category && s.priceMonthly !== null && s.priceMonthly > 0);
+  const avg = paid.length ? paid.reduce((sum, s) => sum + (s.priceMonthly ?? 0), 0) / paid.length : 0;
   categoryAvgCache.set(category, avg);
   return avg;
 }
@@ -70,9 +71,9 @@ export function computeBestFor(sub: Subscription): string[] {
   const avg = categoryAveragePrice(sub.category);
   if (sub.priceMonthly === 0) {
     tags.push("Free-tier users");
-  } else if (avg > 0 && sub.priceMonthly < avg * 0.85) {
+  } else if (sub.priceMonthly !== null && avg > 0 && sub.priceMonthly < avg * 0.85) {
     tags.push("Budget-conscious users");
-  } else if (avg > 0 && sub.priceMonthly > avg * 1.3) {
+  } else if (sub.priceMonthly !== null && avg > 0 && sub.priceMonthly > avg * 1.3) {
     tags.push("Power users");
   }
   if (sub.rating >= 4.6 && !tags.includes("Power users")) {
@@ -102,8 +103,8 @@ export function rankAlternatives(sub: Subscription, limit = 5): RankedAlternativ
   const candidates = SUBSCRIPTIONS.filter((s) => s.id !== sub.id && s.category === sub.category);
 
   const scored = candidates.map((alt) => {
-    const priceDelta = sub.priceMonthly - alt.priceMonthly;
-    const priceScore = priceDelta > 0 ? Math.min(40, (priceDelta / Math.max(sub.priceMonthly, 1)) * 40) : 0;
+    const priceDelta = sub.priceMonthly !== null && alt.priceMonthly !== null ? sub.priceMonthly - alt.priceMonthly : null;
+    const priceScore = priceDelta !== null && priceDelta > 0 ? Math.min(40, (priceDelta / Math.max(sub.priceMonthly ?? 1, 1)) * 40) : 0;
     const ratingScore = (alt.rating - sub.rating) * 15;
     const popularityScore = (alt.popularity - sub.popularity) * 0.3;
     const regionScore = alt.region === sub.region ? 5 : 0;
@@ -112,7 +113,7 @@ export function rankAlternatives(sub: Subscription, limit = 5): RankedAlternativ
     const reasons: string[] = [];
     // "~" prefix — this is unverified catalogue pricing, not a confirmed
     // savings claim (see canClaimSavings in lib/verification/claims.ts).
-    if (priceDelta > 0) reasons.push(`~${formatINR(priceDelta)}/month cheaper`);
+    if (priceDelta !== null && priceDelta > 0) reasons.push(`~${formatINR(priceDelta)}/month cheaper`);
     if (alt.rating - sub.rating >= 0.2) reasons.push(`Higher-rated (★${alt.rating.toFixed(1)})`);
     if (alt.popularity - sub.popularity >= 10) reasons.push("Popular alternative");
     const altBestFor = computeBestFor(alt);

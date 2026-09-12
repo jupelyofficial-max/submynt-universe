@@ -23,7 +23,7 @@ const DESKTOP_GRID_COLUMNS = 4;
 // stretch things at very wide/ultra-wide viewports.
 const MAX_COLUMN_SPREAD = 3.5;
 
-// EcosystemStats/"Get Free Subscriptions" (bottom-left) and LiveInsights
+// EcosystemStats (bottom-left) and LiveInsights
 // "Top 5" (top-right) are fixed screen overlays that appear starting at the
 // same >=1024px breakpoint the grid reaches its full column count at (see
 // ExploreClient's `lg:` gating). Measured directly from the live DOM

@@ -1,13 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Gift, Rocket, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterBar, SortDropdown } from "@/components/filters/FilterBar";
-import { BoostModal } from "@/components/submissions/BoostModal";
-import { PerksModal } from "@/components/submissions/PerksModal";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
@@ -37,9 +35,7 @@ export function ExploreClient() {
   const setSearchQuery = useUniverseStore((s) => s.setSearchQuery);
   const select = useUniverseStore((s) => s.select);
   const viewMode = useUniverseStore((s) => s.viewMode);
-  const setBoostModalOpen = useUniverseStore((s) => s.setBoostModalOpen);
   const setSubmitModalOpen = useUniverseStore((s) => s.setSubmitModalOpen);
-  const setPerksModalOpen = useUniverseStore((s) => s.setPerksModalOpen);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -62,15 +58,6 @@ export function ExploreClient() {
       <div className="shrink-0">
         <ViewSwitcher />
       </div>
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-9 shrink-0 rounded-full border-[1.5px] border-ocean-600 bg-void-950 text-ocean-600 hover:bg-ocean-500/5"
-        onClick={() => setBoostModalOpen(true)}
-      >
-        <Rocket size={13} />
-        Boost
-      </Button>
       <Button size="sm" className="h-9 shrink-0 rounded-full" onClick={() => setSubmitModalOpen(true)}>
         <Upload size={13} />
         Submit
@@ -81,11 +68,11 @@ export function ExploreClient() {
   // Dedicated mobile toolbar. Search shares a row with the Categories/Price
   // chips (both h-9, align cleanly) instead of each getting its own
   // full-width row — three stacked rows read as more chrome than content
-  // above the fold. Sort ("Popular" etc.) moves to row 2, between the
-  // Universe/List toggle and Boost — row 2's own left group scrolls
-  // (min-w-0 flex-1 overflow-x-auto, same pattern as row 1's FilterBar) so
-  // Boost/Submit stay pinned and always tappable even on a narrow phone
-  // where Universe/List + Popular + Boost + Submit don't all fit at once.
+  // above the fold. Sort ("Popular" etc.) moves to row 2, next to the
+  // Universe/List toggle — row 2's own left group scrolls (min-w-0 flex-1
+  // overflow-x-auto, same pattern as row 1's FilterBar) so Submit stays
+  // pinned and always tappable even on a narrow phone where Universe/List +
+  // Popular + Submit don't all fit at once.
   const mobileToolbar = (
     <div className="flex flex-col gap-2 border-b border-line-soft bg-void-950 p-2.5 md:hidden">
       <div className="flex items-center gap-2">
@@ -102,15 +89,6 @@ export function ExploreClient() {
           <SortDropdown />
         </div>
         <div className="flex shrink-0 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 shrink-0 rounded-full border-[1.5px] border-ocean-600 bg-void-950 text-ocean-600 hover:bg-ocean-500/5"
-            onClick={() => setBoostModalOpen(true)}
-          >
-            <Rocket size={13} />
-            Boost
-          </Button>
           <Button size="sm" className="h-9 shrink-0 rounded-full" onClick={() => setSubmitModalOpen(true)}>
             <Upload size={13} />
             Submit
@@ -140,13 +118,6 @@ export function ExploreClient() {
                 <UniverseScene />
               </div>
               <div className="pointer-events-none absolute bottom-4 left-4 z-30 hidden lg:flex lg:flex-col lg:items-start lg:gap-2 lg:bottom-6 lg:left-6">
-                <button
-                  onClick={() => setPerksModalOpen(true)}
-                  className="pointer-events-auto glass-panel flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-ink-0 shadow-lg shadow-black/5 hover:border-black/20 transition-colors cursor-pointer"
-                >
-                  <Gift size={15} className="text-ocean-600" />
-                  Get Free Subscriptions
-                </button>
                 <div className="pointer-events-auto">
                   <EcosystemStats />
                 </div>
@@ -173,9 +144,7 @@ export function ExploreClient() {
         )}
       </div>
 
-      <BoostModal />
       <SubmitListingModal />
-      <PerksModal />
     </div>
   );
 }

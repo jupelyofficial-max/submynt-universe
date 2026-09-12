@@ -4,7 +4,7 @@ import Link from "next/link";
 // Universe canvas (and every other view) only ~28px of height rather than
 // competing for real layout space. The only persistent, always-visible
 // place /privacy is linked from; previously it was reachable only from
-// inside the Submit/Perks modals, easy to miss entirely.
+// inside the Submit modal, easy to miss entirely.
 export function Footer() {
   return (
     <footer

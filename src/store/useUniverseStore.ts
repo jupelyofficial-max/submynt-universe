@@ -40,12 +40,6 @@ interface UniverseUIState {
   isSubmitModalOpen: boolean;
   setSubmitModalOpen: (v: boolean) => void;
 
-  isBoostModalOpen: boolean;
-  setBoostModalOpen: (v: boolean) => void;
-
-  isPerksModalOpen: boolean;
-  setPerksModalOpen: (v: boolean) => void;
-
   isProfileModalOpen: boolean;
   setProfileModalOpen: (v: boolean) => void;
 
@@ -91,12 +85,6 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
 
   isSubmitModalOpen: false,
   setSubmitModalOpen: (v) => set({ isSubmitModalOpen: v }),
-
-  isBoostModalOpen: false,
-  setBoostModalOpen: (v) => set({ isBoostModalOpen: v }),
-
-  isPerksModalOpen: false,
-  setPerksModalOpen: (v) => set({ isPerksModalOpen: v }),
 
   isProfileModalOpen: false,
   setProfileModalOpen: (v) => set({ isProfileModalOpen: v }),

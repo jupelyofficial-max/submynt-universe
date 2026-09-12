@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Rocket, Search, Upload, User } from "lucide-react";
+import { Search, Upload, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -17,7 +17,6 @@ export function TopNav() {
   const isExplore = pathname === "/explore" || pathname?.startsWith("/explore/");
   const router = useRouter();
   const ownedCount = useMySubscriptionsStore((s) => s.owned.length);
-  const setBoostModalOpen = useUniverseStore((s) => s.setBoostModalOpen);
   const setSubmitModalOpen = useUniverseStore((s) => s.setSubmitModalOpen);
   const setProfileModalOpen = useUniverseStore((s) => s.setProfileModalOpen);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -72,15 +71,6 @@ export function TopNav() {
             <div className="shrink-0">
               <ViewSwitcher />
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 shrink-0 rounded-full border-[1.5px] border-ocean-600 bg-void-950 text-ocean-600 hover:bg-ocean-500/5"
-              onClick={() => setBoostModalOpen(true)}
-            >
-              <Rocket size={13} />
-              Boost
-            </Button>
             <Button size="sm" className="h-9 shrink-0 rounded-full" onClick={() => setSubmitModalOpen(true)}>
               <Upload size={13} />
               Submit

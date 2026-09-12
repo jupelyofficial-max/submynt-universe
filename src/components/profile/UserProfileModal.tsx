@@ -109,7 +109,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
       </div>
 
       {step === 1 ? (
-        <form onSubmit={goNext} className="flex flex-col gap-2 px-5 py-3">
+        <form onSubmit={goNext} className="flex min-h-[428px] flex-col gap-2 px-5 py-3">
           <div className="flex flex-col items-center gap-1 text-center">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
               <User size={18} />
@@ -145,7 +145,8 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
             <input
               type="tel"
               value={contactNumber}
-              onChange={(e) => setContactNumber(e.target.value)}
+              onChange={(e) => setContactNumber(e.target.value.replace(/[^\d ]/g, ""))}
+              inputMode="numeric"
               placeholder="70302 70302"
               required
               className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-ocean-500/50"
@@ -165,33 +166,12 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-ink-300">Gender</label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {GENDERS.map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => setGender(g)}
-                  className={cn(
-                    "rounded-xl border px-2 py-2 text-center text-xs font-medium transition-colors cursor-pointer",
-                    gender === g
-                      ? "border-ocean-600 bg-ocean-500/10 text-ocean-600"
-                      : "border-black/10 bg-void-900/70 text-ink-300 hover:border-black/20"
-                  )}
-                >
-                  {g}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <Button type="submit" size="lg" className="mt-1">
             Continue
           </Button>
         </form>
       ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2 px-5 py-3">
+        <form onSubmit={handleSubmit} className="flex min-h-[428px] flex-col justify-between gap-2 px-5 py-3">
           <div>
             <label className="mb-1 block text-xs font-medium text-ink-300">I am a</label>
             <div className="grid grid-cols-3 gap-1.5">
@@ -208,6 +188,27 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
                   )}
                 >
                   {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-ink-300">Gender</label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {GENDERS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setGender(g)}
+                  className={cn(
+                    "rounded-xl border px-2 py-2 text-center text-xs font-medium transition-colors cursor-pointer",
+                    gender === g
+                      ? "border-ocean-600 bg-ocean-500/10 text-ocean-600"
+                      : "border-black/10 bg-void-900/70 text-ink-300 hover:border-black/20"
+                  )}
+                >
+                  {g}
                 </button>
               ))}
             </div>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-// Server-only route handler — see src/app/api/perks/route.ts for why this
+// Server-only route handler — see src/app/api/profile/route.ts for why this
 // goes through the service-role key server-side rather than a client-side
 // anon-key insert.
 const SUPABASE_URL = process.env.SUPABASE_URL;

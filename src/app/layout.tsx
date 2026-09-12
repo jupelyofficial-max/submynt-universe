@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { TopNav } from "@/components/nav/TopNav";
 import { Footer } from "@/components/nav/Footer";
 import { DetailPanel } from "@/components/detail/DetailPanel";
+import { UserProfileModal } from "@/components/profile/UserProfileModal";
 
 // Single font for the entire app — both --font-sans (body) and
 // --font-display (headings) resolve to this in globals.css, so every
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1 flex flex-col min-h-0 overflow-y-auto no-scrollbar">{children}</main>
           <Footer />
           <DetailPanel />
+          <UserProfileModal />
         </Providers>
       </body>
     </html>

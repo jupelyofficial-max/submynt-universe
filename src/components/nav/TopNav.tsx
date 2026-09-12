@@ -19,6 +19,7 @@ export function TopNav() {
   const ownedCount = useMySubscriptionsStore((s) => s.owned.length);
   const setBoostModalOpen = useUniverseStore((s) => s.setBoostModalOpen);
   const setSubmitModalOpen = useUniverseStore((s) => s.setSubmitModalOpen);
+  const setProfileModalOpen = useUniverseStore((s) => s.setProfileModalOpen);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -107,9 +108,9 @@ export function TopNav() {
           </>
         )}
 
-        <Link
-          href="/my-subscriptions"
-          className="relative h-10 w-10 flex shrink-0 items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors"
+        <button
+          onClick={() => setProfileModalOpen(true)}
+          className="relative h-10 w-10 flex shrink-0 items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors cursor-pointer"
           aria-label="Profile"
         >
           <User size={18} />
@@ -118,7 +119,7 @@ export function TopNav() {
               {ownedCount}
             </span>
           )}
-        </Link>
+        </button>
       </div>
 
       {/* Search overlay */}

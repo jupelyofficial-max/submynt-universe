@@ -11,6 +11,14 @@ import { useUniverseStore } from "@/store/useUniverseStore";
 type Profession = "Student" | "Entrepreneur" | "Working professional";
 const PROFESSIONS: Profession[] = ["Student", "Entrepreneur", "Working professional"];
 
+// profiles.gender is a free-text column, not a DB enum — but all 87
+// existing rows use exactly these two values ("Female"/"Male"). "Other" is
+// added as a third option rather than forcing a binary choice; all three
+// are stored as plain text in the same column, consistent with the
+// existing data's own convention.
+type Gender = "Female" | "Male" | "Other";
+const GENDERS: Gender[] = ["Female", "Male", "Other"];
+
 export function UserProfileModal() {
   const isOpen = useUniverseStore((s) => s.isProfileModalOpen);
   const close = () => useUniverseStore.getState().setProfileModalOpen(false);
@@ -29,6 +37,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
   const [age, setAge] = useState("");
+  const [gender, setGender] = useState<Gender>("Female");
   const [profession, setProfession] = useState<Profession>("Student");
   const [location, setLocation] = useState("");
 
@@ -55,7 +64,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
       const res = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, contactNumber, age, profession, location }),
+        body: JSON.stringify({ name, email, contactNumber, age, gender, profession, location }),
       });
       if (!res.ok) throw new Error("request failed");
       setSuccess(true);
@@ -100,56 +109,81 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
       </div>
 
       {step === 1 ? (
-        <form onSubmit={goNext} className="flex flex-col gap-3 px-5 py-4">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
-              <User size={20} />
+        <form onSubmit={goNext} className="flex flex-col gap-2 px-5 py-3">
+          <div className="flex flex-col items-center gap-1 text-center">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
+              <User size={18} />
             </span>
-            <h3 className="font-display text-lg font-semibold text-ink-0">Tell us about you</h3>
+            <h3 className="font-display text-base font-semibold text-ink-0">Tell us about you</h3>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-300">Name</label>
+            <label className="mb-1 block text-xs font-medium text-ink-300">Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
+              required
               className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-ocean-500/50"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-300">Email</label>
+            <label className="mb-1 block text-xs font-medium text-ink-300">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
+              required
               className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-ocean-500/50"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-300">Contact number</label>
+            <label className="mb-1 block text-xs font-medium text-ink-300">Contact number</label>
             <input
               type="tel"
               value={contactNumber}
               onChange={(e) => setContactNumber(e.target.value)}
-              placeholder="+91 98765 43210"
+              placeholder="70302 70302"
+              required
               className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-ocean-500/50"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-300">Age</label>
+            <label className="mb-1 block text-xs font-medium text-ink-300">Age</label>
             <input
               type="number"
               min={0}
               value={age}
               onChange={(e) => setAge(e.target.value)}
-              placeholder="Optional"
+              placeholder="24"
+              required
               className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-ocean-500/50"
             />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-ink-300">Gender</label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {GENDERS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setGender(g)}
+                  className={cn(
+                    "rounded-xl border px-2 py-2 text-center text-xs font-medium transition-colors cursor-pointer",
+                    gender === g
+                      ? "border-ocean-600 bg-ocean-500/10 text-ocean-600"
+                      : "border-black/10 bg-void-900/70 text-ink-300 hover:border-black/20"
+                  )}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
           </div>
 
           <Button type="submit" size="lg" className="mt-1">
@@ -157,9 +191,9 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
           </Button>
         </form>
       ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 px-5 py-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2 px-5 py-3">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-300">I am a</label>
+            <label className="mb-1 block text-xs font-medium text-ink-300">I am a</label>
             <div className="grid grid-cols-3 gap-1.5">
               {PROFESSIONS.map((p) => (
                 <button
@@ -180,11 +214,12 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-300">Location</label>
+            <label className="mb-1 block text-xs font-medium text-ink-300">Location</label>
             <input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="City"
+              required
               className="w-full rounded-xl border border-black/10 bg-void-900/70 px-3 py-2.5 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-ocean-500/50"
             />
           </div>

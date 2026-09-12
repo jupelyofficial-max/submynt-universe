@@ -9,7 +9,7 @@ import type { SponsorshipStatus, VendorProfile } from "@/types/vendor";
  * data for the prototype, not a real vendor payment relationship; nothing
  * here is ever read by the recommendation scoring in lib/recommendations.ts.
  */
-const SPONSORED_DEMO_IDS = new Set(["adobe-creative-cloud", "claude-pro", "chatgpt-plus", "google-ai-pro"]);
+const SPONSORED_DEMO_IDS = new Set(["adobe-creative-cloud", "claude-pro", "chatgpt-plus", "figma-professional", "masterclass"]);
 
 /** We only know the single region field already on each subscription —
  * "Global" doesn't imply we know which specific countries, so it's kept as

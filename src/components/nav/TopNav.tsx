@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Search, Upload, User } from "lucide-react";
+import { Heart, Search, Upload, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -98,17 +98,25 @@ export function TopNav() {
           </>
         )}
 
-        <button
-          onClick={() => setProfileModalOpen(true)}
+        <Link
+          href="/my-subscriptions"
           className="relative h-10 w-10 flex shrink-0 items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors cursor-pointer"
-          aria-label="Profile"
+          aria-label="My subscriptions"
         >
-          <User size={18} />
+          <Heart size={18} />
           {ownedCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-nebula-500 text-void-950 text-[10px] font-bold flex items-center justify-center">
               {ownedCount}
             </span>
           )}
+        </Link>
+
+        <button
+          onClick={() => setProfileModalOpen(true)}
+          className="h-10 w-10 flex shrink-0 items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors cursor-pointer"
+          aria-label="Profile"
+        >
+          <User size={18} />
         </button>
       </div>
 

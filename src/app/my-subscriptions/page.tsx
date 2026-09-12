@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Orbit, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Orbit, Sparkles, Trash2 } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { SUBSCRIPTIONS_BY_ID, potentialSavingsMonthly } from "@/data/subscriptions";
@@ -37,6 +38,14 @@ export default function MySubscriptionsPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 lg:px-8">
+      <Link
+        href="/explore"
+        className="mb-4 inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm text-ink-300 transition-colors hover:bg-black/5 hover:text-ink-0"
+      >
+        <ArrowLeft size={16} />
+        Back
+      </Link>
+
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-nebula-500/15 text-nebula-400">

@@ -5,20 +5,24 @@ export const CATEGORY_META: Record<Category, { blurb: string; color: string }> =
   "Business": { blurb: "Work, collaboration and operations", color: "#4A82B8" },
   "Cloud": { blurb: "Your files, synced across every device", color: "#46C08A" },
   "Communication": { blurb: "Calls, chat and team messaging", color: "#C07B93" },
+  "Concierge Health": { blurb: "24/7 private medical and longevity care", color: "#0E7C7B" },
   "Creative": { blurb: "Design, edit and build professionally", color: "#3FB0B0" },
   "Dating": { blurb: "Meet people, matched to what you're looking for", color: "#E85D75" },
   "Education": { blurb: "Courses, languages and lifelong learning", color: "#5B9BD9" },
-  "Elite Access": { blurb: "Private clubs, concierge care and jet-set memberships", color: "#B08D4F" },
+  "Elite Fitness": { blurb: "Top-tier global fitness memberships", color: "#C1440E" },
   "Entertainment": { blurb: "Films, series, live TV and video on demand", color: "#E0566E" },
   "Gaming": { blurb: "Play libraries and cloud gaming", color: "#6B84A8" },
+  "Market Research": { blurb: "Analyst reports and consumer/market intelligence", color: "#4B5563" },
   "Music": { blurb: "Streaming sound, everywhere you go", color: "#4AACD6" },
   "News": { blurb: "Journalism and long-form writing", color: "#C24F45" },
+  "Private Aviation": { blurb: "Fractional and membership-based private flying", color: "#8A97A8" },
+  "Private Clubs": { blurb: "Members-only hospitality and social access", color: "#7A2E3D" },
   "Productivity": { blurb: "Docs, tasks and getting things done", color: "#6366F1" },
   "Professional Networking": { blurb: "Career profile and professional connections", color: "#0A66C2" },
   "Quick Commerce": { blurb: "Groceries and essentials, delivered in minutes", color: "#8B5FBF" },
   "Reading": { blurb: "Audiobooks, ebooks and long-form writing", color: "#A99C87" },
-  "Research & Data": { blurb: "Market intelligence, analyst reports and deal data", color: "#4B5563" },
   "Shopping": { blurb: "Delivery, retail and loyalty perks", color: "#DD7A48" },
+  "Startup & Deal Data": { blurb: "Startup, VC/PE and financial deal data", color: "#2C6E8C" },
   "Travel": { blurb: "Rides, stays and trip planning", color: "#D9668F" },
   "Wellness": { blurb: "Movement, mindfulness and recovery", color: "#3DAE7A" },
 };
@@ -28,7 +32,15 @@ export const CATEGORIES = Object.keys(CATEGORY_META) as Category[];
 /** The "Premium" side of the Everyday/Premium catalog toggle (see
  * useUniverseStore's catalogMode) — every other category is "Everyday".
  * Single source of truth for the split; nothing else hardcodes this list. */
-export const PREMIUM_CATEGORIES: Category[] = ["Elite Access", "Dating", "Research & Data"];
+export const PREMIUM_CATEGORIES: Category[] = [
+  "Private Aviation",
+  "Private Clubs",
+  "Concierge Health",
+  "Elite Fitness",
+  "Dating",
+  "Market Research",
+  "Startup & Deal Data",
+];
 
 export const BILLING_LABELS: Record<BillingCycle, string> = {
   monthly: "Monthly",

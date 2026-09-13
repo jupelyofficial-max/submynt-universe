@@ -18,7 +18,10 @@ const CATEGORY_BEST_FOR: Record<Category, string[]> = {
   Creative: ["Creators", "Designers"],
   Dating: ["Singles", "Young professionals"],
   Education: ["Students", "Lifelong learners"],
-  "Elite Access": ["High-net-worth individuals", "Executives"],
+  "Private Aviation": ["High-net-worth individuals", "Executives"],
+  "Private Clubs": ["High-net-worth individuals", "Executives"],
+  "Concierge Health": ["High-net-worth individuals", "Executives"],
+  "Elite Fitness": ["High-net-worth individuals", "Fitness enthusiasts"],
   Wellness: ["Individuals", "Fitness enthusiasts"],
   News: ["Professionals", "Avid readers"],
   Gaming: ["Gamers", "Families"],
@@ -30,7 +33,8 @@ const CATEGORY_BEST_FOR: Record<Category, string[]> = {
   Reading: ["Avid readers", "Commuters"],
   Productivity: ["Professionals", "Teams"],
   "Professional Networking": ["Job seekers", "Professionals"],
-  "Research & Data": ["Analysts", "Investors", "Strategy teams"],
+  "Market Research": ["Analysts", "Strategy teams"],
+  "Startup & Deal Data": ["Investors", "Analysts"],
 };
 
 const categoryAvgCache = new Map<Category, number>();

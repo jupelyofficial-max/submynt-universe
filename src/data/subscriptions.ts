@@ -637,7 +637,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     id: "netjets",
     name: "NetJets",
     provider: "NetJets",
-    category: "Elite Access",
+    category: "Private Aviation",
     tagline:
       "Private aviation — 25-hour jet card from $208,050/yr, not a monthly subscription",
     color: "#003DA5",
@@ -651,13 +651,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 3,
     rating: 4.6,
     region: "Global",
-    tags: ["Elite Access"],
+    tags: ["Private Aviation"],
   },
   {
     id: "wheels-up",
     name: "Wheels Up",
     provider: "Wheels Up",
-    category: "Elite Access",
+    category: "Private Aviation",
     tagline:
       "Private aviation membership — from $2,995/yr (Connect tier, entry price)",
     color: "#5B2A86",
@@ -669,13 +669,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 4,
     rating: 4.3,
     region: "Global",
-    tags: ["Elite Access"],
+    tags: ["Private Aviation"],
   },
   {
     id: "soho-house",
     name: "Soho House",
     provider: "Soho House",
-    category: "Elite Access",
+    category: "Private Clubs",
     tagline:
       "Private members' club for creatives — from ~$1,656/yr (Under 27 tier, entry price, varies by city)",
     color: "#1A1A1A",
@@ -687,13 +687,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 8,
     rating: 4.4,
     region: "Global",
-    tags: ["Elite Access"],
+    tags: ["Private Clubs"],
   },
   {
     id: "aman-club",
     name: "Aman Club",
     provider: "Aman Club",
-    category: "Elite Access",
+    category: "Private Clubs",
     tagline:
       "Ultra-luxury hospitality club — reported $200,000 one-time initiation + $15,000/yr dues",
     color: "#A9822F",
@@ -707,13 +707,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 2,
     rating: 4.8,
     region: "Global",
-    tags: ["Elite Access"],
+    tags: ["Private Clubs"],
   },
   {
     id: "sollis-health",
     name: "Sollis Health",
     provider: "Sollis Health",
-    category: "Elite Access",
+    category: "Concierge Health",
     tagline:
       "24/7 concierge private medical membership — from $290/mo (Standard tier, entry price)",
     color: "#0B3D62",
@@ -725,13 +725,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 5,
     rating: 4.6,
     region: "Global",
-    tags: ["Elite Access"],
+    tags: ["Concierge Health"],
   },
   {
     id: "fountain-life",
     name: "Fountain Life",
     provider: "Fountain Life",
-    category: "Elite Access",
+    category: "Concierge Health",
     tagline:
       "Longevity diagnostics + concierge health membership — from $2,995/yr (Core tier, entry price)",
     color: "#0FA37F",
@@ -743,13 +743,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 5,
     rating: 4.5,
     region: "Global",
-    tags: ["Elite Access"],
+    tags: ["Concierge Health"],
   },
   {
     id: "mdvip",
     name: "MDVIP",
     provider: "MDVIP",
-    category: "Elite Access",
+    category: "Concierge Health",
     tagline:
       "Concierge primary care membership — from $1,800/yr (most common price point, varies by physician)",
     color: "#0B4C8C",
@@ -761,13 +761,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 6,
     rating: 4.4,
     region: "Global",
-    tags: ["Elite Access"],
+    tags: ["Concierge Health"],
   },
   {
     id: "bloomberg-terminal",
     name: "Bloomberg Terminal",
     provider: "Bloomberg Terminal",
-    category: "Elite Access",
+    category: "Startup & Deal Data",
     tagline:
       "Real-time financial data terminal — $2,665/mo per seat (multi-year contract, not month-to-month)",
     color: "#F58220",
@@ -781,13 +781,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 7,
     rating: 4.7,
     region: "Global",
-    tags: ["Elite Access"],
+    tags: ["Startup & Deal Data"],
   },
   {
     id: "equinox-all-access",
     name: "Equinox All Access",
     provider: "Equinox All Access",
-    category: "Elite Access",
+    category: "Elite Fitness",
     tagline:
       "Global luxury fitness clubs — from ~$200/mo (rough starting estimate, varies significantly by city)",
     color: "#000000",
@@ -799,12 +799,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 9,
     rating: 4.5,
     region: "Global",
-    tags: ["Elite Access"],
+    tags: ["Elite Fitness"],
   },
-  // Dating: real public prices, converted from USD to INR at the same
-  // approximate ~83 INR/USD rate used for Elite Access — not a live FX
-  // rate, and dating-app pricing itself is dynamic by age/location/promo
-  // on every one of these platforms, so treat these as dated snapshots.
   {
     id: "tinder-platinum",
     name: "Tinder Platinum",
@@ -895,18 +891,11 @@ export const SUBSCRIPTIONS: Subscription[] = [
     region: "Global",
     tags: ["Dating"],
   },
-  // Research & Data: enterprise research/analyst/data platforms. Verified
-  // via web search rather than estimated — 7 of these 8 are genuinely
-  // enterprise-sales-only with no public price (confirmed, including
-  // CB Insights, which the task assumed had public self-serve pricing but
-  // does not — flagged rather than guessed). Only Statista publishes a
-  // real self-serve price, converted from USD to INR at the same ~83
-  // INR/USD rate used elsewhere in this catalogue.
   {
     id: "gartner",
     name: "Gartner",
     provider: "Gartner",
-    category: "Research & Data",
+    category: "Market Research",
     tagline: "Enterprise tech research and analyst reports",
     priceLabel: "Contact for pricing",
     color: "#0074A6",
@@ -918,13 +907,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 12,
     rating: 4.5,
     region: "Global",
-    tags: ["Research & Data"],
+    tags: ["Market Research"],
   },
   {
     id: "forrester",
     name: "Forrester",
     provider: "Forrester",
-    category: "Research & Data",
+    category: "Market Research",
     tagline: "Enterprise tech and CX research",
     priceLabel: "Contact for pricing",
     color: "#7C1D6F",
@@ -936,13 +925,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 9,
     rating: 4.4,
     region: "Global",
-    tags: ["Research & Data"],
+    tags: ["Market Research"],
   },
   {
     id: "idc",
     name: "IDC",
     provider: "IDC",
-    category: "Research & Data",
+    category: "Market Research",
     tagline: "Tech market data and forecasts",
     priceLabel: "Contact for pricing",
     color: "#004B8D",
@@ -954,13 +943,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 7,
     rating: 4.3,
     region: "Global",
-    tags: ["Research & Data"],
+    tags: ["Market Research"],
   },
   {
     id: "statista",
     name: "Statista",
     provider: "Statista",
-    category: "Research & Data",
+    category: "Market Research",
     tagline:
       "Market data and statistics platform — from $199/mo (Starter, billed annually)",
     color: "#000000",
@@ -974,13 +963,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 18,
     rating: 4.4,
     region: "Global",
-    tags: ["Research & Data"],
+    tags: ["Market Research"],
   },
   {
     id: "euromonitor-international",
     name: "Euromonitor International",
     provider: "Euromonitor International",
-    category: "Research & Data",
+    category: "Market Research",
     tagline: "Consumer and market research",
     priceLabel: "Contact for pricing",
     color: "#8A1538",
@@ -992,13 +981,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 5,
     rating: 4.3,
     region: "Global",
-    tags: ["Research & Data"],
+    tags: ["Market Research"],
   },
   {
     id: "mintel",
     name: "Mintel",
     provider: "Mintel",
-    category: "Research & Data",
+    category: "Market Research",
     tagline: "Consumer trends research",
     priceLabel: "Contact for pricing",
     color: "#E4002B",
@@ -1010,13 +999,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 5,
     rating: 4.2,
     region: "Global",
-    tags: ["Research & Data"],
+    tags: ["Market Research"],
   },
   {
     id: "cb-insights",
     name: "CB Insights",
     provider: "CB Insights",
-    category: "Research & Data",
+    category: "Startup & Deal Data",
     tagline: "Startup and market intelligence platform",
     priceLabel: "Contact for pricing",
     color: "#0F1F3D",
@@ -1028,13 +1017,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 10,
     rating: 4.5,
     region: "Global",
-    tags: ["Research & Data"],
+    tags: ["Startup & Deal Data"],
   },
   {
     id: "pitchbook",
     name: "PitchBook",
     provider: "PitchBook",
-    category: "Research & Data",
+    category: "Startup & Deal Data",
     tagline: "VC/PE deal data platform",
     priceLabel: "Contact for pricing",
     color: "#FF5000",
@@ -1046,16 +1035,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     popularity: 14,
     rating: 4.6,
     region: "Global",
-    tags: ["Research & Data"],
+    tags: ["Startup & Deal Data"],
   },
-  // Restored/added to Music, Gaming, Cloud, Wellness — real, currently
-  // verified India pricing (web search, not estimated), so several
-  // numbers differ from this catalogue's own earlier (illustrative)
-  // values for the same brands: Apple Music (price hike, ₹99->₹139),
-  // Xbox Game Pass Ultimate (₹750->₹1,089), PlayStation Plus Essential
-  // (₹500->₹649, plus a real 12-month price), EA Play (₹420->₹399).
-  // Apple Music, Xbox Game Pass and iCloud+ have no real annual plan, so
-  // billing is monthly-only for those rather than inventing one.
   {
     id: "youtube-music-premium",
     name: "YouTube Music Premium",

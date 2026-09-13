@@ -18,6 +18,11 @@ interface ResponsiveSheetProps {
    * hairline border, for surfaces that need to read as flat/editorial
    * rather than translucent. */
   panelVariant?: "glass" | "solid";
+  /** Skips the default title/close header bar entirely — for content that
+   * supplies its own top area (e.g. DetailPanel's banner hero with its own
+   * close button). `title` is ignored when true. Default false — every
+   * other consumer of this component is unaffected. */
+  hideHeader?: boolean;
 }
 
 export function ResponsiveSheet({
@@ -28,6 +33,7 @@ export function ResponsiveSheet({
   desktopVariant = "side",
   widthClassName = "w-[440px]",
   panelVariant = "glass",
+  hideHeader = false,
 }: ResponsiveSheetProps) {
   const isDesktop = useIsDesktop();
 
@@ -90,16 +96,18 @@ export function ResponsiveSheet({
                     : "w-full rounded-t-2xl max-h-[86vh]"
               )}
             >
-              <div className={cn("flex items-center justify-between px-5 py-4 border-b shrink-0", panelVariant === "solid" ? "border-[#E5E5E5]" : "border-line-soft")}>
-                <div className="text-sm font-semibold text-ink-0 font-display tracking-wide">{title}</div>
-                <button
-                  onClick={onClose}
-                  className="h-8 w-8 rounded-lg flex items-center justify-center text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors cursor-pointer"
-                  aria-label="Close"
-                >
-                  <X size={18} />
-                </button>
-              </div>
+              {!hideHeader && (
+                <div className={cn("flex items-center justify-between px-5 py-4 border-b shrink-0", panelVariant === "solid" ? "border-[#E5E5E5]" : "border-line-soft")}>
+                  <div className="text-sm font-semibold text-ink-0 font-display tracking-wide">{title}</div>
+                  <button
+                    onClick={onClose}
+                    className="h-8 w-8 rounded-lg flex items-center justify-center text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors cursor-pointer"
+                    aria-label="Close"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              )}
               <div className="overflow-y-auto no-scrollbar flex-1 min-h-0">{children}</div>
             </motion.div>
           </div>

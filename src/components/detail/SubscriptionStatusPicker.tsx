@@ -64,7 +64,7 @@ export function SubscriptionStatusPicker({ sub }: { sub: Subscription }) {
   }
 
   return (
-    <div className="px-5 py-4 border-t border-[#E5E5E5]">
+    <div>
       <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Add to My Subscriptions</h4>
       <div className="grid grid-cols-2 gap-1.5">
         {OPTIONS.map((opt) => {

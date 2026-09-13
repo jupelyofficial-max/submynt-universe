@@ -26,7 +26,7 @@ export function SavingsSection({
   const annualSavings = monthlySavings * 12;
 
   return (
-    <div className="px-5 py-4 border-t border-[#E5E5E5]">
+    <div className="px-5 py-4">
       <div
         className={cn("rounded-xl border bg-white p-4", verified ? "border-nebula-500/40" : "border-gold-500/40")}
       >

@@ -16,7 +16,7 @@ export function AlternativesSection({
   if (alternatives.length === 0) return null;
 
   return (
-    <div id="alt-section" className="px-5 py-4 border-t border-[#E5E5E5]">
+    <div id="alt-section" className="px-5 py-4">
       <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Alternatives &amp; related</h4>
       <div className="flex flex-col gap-1">
         {alternatives.map(({ subscription: alt, reasons }) => (

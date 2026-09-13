@@ -13,7 +13,7 @@ export function PlansSection({ sub }: { sub: Subscription }) {
   if (sub.plans.length === 0) return null;
 
   return (
-    <div className="px-5 py-4 border-t border-[#E5E5E5]">
+    <div className="px-5 py-4">
       <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Available plans</h4>
       <div className="grid grid-cols-2 gap-1.5">
         {sub.plans.map((plan) => {

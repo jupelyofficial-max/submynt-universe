@@ -53,7 +53,7 @@ function InsightRow({ sub, badge, onClick }: { sub: Subscription; badge?: string
         <div className="truncate text-[10px] text-ink-500">{sub.category}</div>
       </div>
       {badge && (
-        <span className="shrink-0 rounded-full bg-aurora-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-aurora-500">
+        <span className="shrink-0 rounded-full bg-aurora-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-aurora-500">
           {badge}
         </span>
       )}

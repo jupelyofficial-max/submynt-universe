@@ -190,7 +190,7 @@ function DetailContent({ subscriptionId }: { subscriptionId: string }) {
         {/* 3. Price */}
         <div className="mt-4 flex items-end justify-between border-t border-[#E5E5E5] pt-4">
           <div>
-            <div className="font-display text-[28px] leading-none font-semibold text-black">{formatPrice(sub.priceMonthly, sub.priceLabel)}</div>
+            <div className="font-display text-3xl leading-none font-semibold text-black">{formatPrice(sub.priceMonthly, sub.priceLabel)}</div>
             {sub.priceMonthly !== null && sub.priceMonthly > 0 && <div className="mt-1 text-xs text-[#6B6B6B]">per month, {sub.billing.includes("annual") ? "billed monthly or annually" : "billed monthly"}</div>}
           </div>
           <div className="text-right">

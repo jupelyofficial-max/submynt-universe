@@ -144,7 +144,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink-300">Name</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-300">Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -155,7 +155,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink-300">Email</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-300">Email</label>
             <input
               type="email"
               value={email}
@@ -167,7 +167,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink-300">Contact number</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-300">Contact number</label>
             <input
               type="tel"
               value={contactNumber}
@@ -180,7 +180,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink-300">Age</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-300">Age</label>
             <input
               type="number"
               min={0}
@@ -199,7 +199,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
       ) : (
         <form onSubmit={handleSubmit} className="flex min-h-[428px] flex-col justify-between gap-2 px-5 py-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink-300">I am a</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-300">I am a</label>
             <div className="grid grid-cols-3 gap-1.5">
               {PROFESSIONS.map((p) => (
                 <button
@@ -220,7 +220,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink-300">Gender</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-300">Gender</label>
             <div className="grid grid-cols-3 gap-1.5">
               {GENDERS.map((g) => (
                 <button
@@ -241,7 +241,7 @@ function ProfileForm({ onClose }: { onClose: () => void }) {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink-300">Location</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-300">Location</label>
             <input
               value={location}
               onChange={(e) => setLocation(e.target.value)}

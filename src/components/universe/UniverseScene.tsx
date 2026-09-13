@@ -24,6 +24,23 @@ const DESKTOP_GRID_COLUMNS = 4;
 // stretch things at very wide/ultra-wide viewports.
 const MAX_COLUMN_SPREAD = 3.5;
 
+// drei's <Html distanceFactor> scales its overlay by (distanceFactor /
+// camera-to-object distance) — a closer camera makes a fixed distanceFactor
+// render BIGGER, the normal perspective behavior for a world-anchored
+// overlay. A FIXED distanceFactor (the old value here was a hardcoded 34)
+// therefore makes the on-screen label size depend on how far away the
+// camera sits, which itself depends on how wide the visible composition
+// is. Premium mode's much smaller catalogue packs into a far narrower
+// composition than Everyday's, so the camera sits closer, and the same
+// hardcoded distanceFactor made category header labels visibly bigger
+// there — same className, different apparent size. CATEGORY_LABEL_SCALE is
+// the target apparent size instead (measured from the pre-fix Everyday
+// baseline: 34/distance ≈ 0.817), and distanceFactor is derived from it
+// per-render (distance * CATEGORY_LABEL_SCALE) so the resulting scale
+// (distanceFactor / distance = CATEGORY_LABEL_SCALE) stays constant
+// regardless of catalogMode or composition width.
+const CATEGORY_LABEL_SCALE = 0.817;
+
 // EcosystemStats (bottom-left) and LiveInsights
 // "Top 5" (top-right) are fixed screen overlays that appear starting at the
 // same >=1024px breakpoint the grid reaches its full column count at (see
@@ -193,6 +210,7 @@ export function UniverseScene() {
     [visibleSubscriptions, columns, columnSpread]
   );
   const bounds = useMemo(() => computeUniverseBounds(clusters), [clusters]);
+  const categoryLabelDistanceFactor = distance * CATEGORY_LABEL_SCALE;
   const owned = useMySubscriptionsStore((s) => s.owned);
   const ownedIds = useMemo(() => new Set(owned.map((o) => o.subscriptionId)), [owned]);
 
@@ -283,7 +301,7 @@ export function UniverseScene() {
           >
             <ambientLight intensity={0.7} />
             <UniverseCanvasBackground clusters={clusters} />
-            <CategoryLabels clusters={clusters} />
+            <CategoryLabels clusters={clusters} distanceFactor={categoryLabelDistanceFactor} />
             <SubscriptionField nodes={nodes} ownedIds={ownedIds} />
             <CameraController cameraX={bounds.centerX} cameraZ={distance} scrollWorldYRef={scrollWorldYRef} />
           </Canvas>

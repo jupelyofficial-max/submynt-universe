@@ -4,7 +4,7 @@ import { Html } from "@react-three/drei";
 import type { CategoryCluster } from "@/lib/universeLayout";
 import { useUniverseStore } from "@/store/useUniverseStore";
 
-export function CategoryLabels({ clusters }: { clusters: CategoryCluster[] }) {
+export function CategoryLabels({ clusters, distanceFactor }: { clusters: CategoryCluster[]; distanceFactor: number }) {
   const hoveredCategory = useUniverseStore((s) => s.hoveredCategory);
   const setHoveredCategory = useUniverseStore((s) => s.setHoveredCategory);
 
@@ -19,7 +19,7 @@ export function CategoryLabels({ clusters }: { clusters: CategoryCluster[] }) {
           // to ROW_GAP so it stays clear of the row above as that gap tightens.
           position={[cluster.center.x, cluster.center.y + cluster.radius + 0.3, 3]}
           center
-          distanceFactor={34}
+          distanceFactor={distanceFactor}
           zIndexRange={[3, 0]}
           className="select-none"
         >
@@ -65,7 +65,7 @@ export function CategoryLabels({ clusters }: { clusters: CategoryCluster[] }) {
                 3,
               ]}
               center
-              distanceFactor={34}
+              distanceFactor={distanceFactor}
               zIndexRange={[2, 0]}
               className="pointer-events-none select-none"
             >

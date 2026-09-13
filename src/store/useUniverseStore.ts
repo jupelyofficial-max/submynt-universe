@@ -3,6 +3,12 @@ import type { Category, FilterState, SortOption, UserStatusFilter } from "@/type
 
 export type ViewMode = "universe" | "list";
 
+/** "everyday" = every category except PREMIUM_CATEGORIES (data/categories.ts);
+ * "premium" = only those. Single source of truth every catalog-consuming
+ * view/component reads from the store, rather than each computing its own
+ * notion of what's currently visible. */
+export type CatalogMode = "everyday" | "premium";
+
 export type CameraCommand =
   | { type: "reset" }
   | { type: "focus-node"; id: string }
@@ -28,6 +34,10 @@ interface UniverseUIState {
 
   viewMode: ViewMode;
   setViewMode: (v: ViewMode) => void;
+
+  /** Defaults to "everyday" — Premium is opt-in, never the default view. */
+  catalogMode: CatalogMode;
+  setCatalogMode: (m: CatalogMode) => void;
 
   filters: FilterState;
   toggleCategory: (c: Category) => void;
@@ -71,6 +81,12 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
 
   viewMode: "universe",
   setViewMode: (v) => set({ viewMode: v }),
+
+  catalogMode: "everyday",
+  // Clears any selected category filter on switch — a stale Everyday
+  // category (e.g. "Music") left selected while switching to Premium would
+  // otherwise silently filter the whole catalog down to zero results.
+  setCatalogMode: (m) => set((s) => ({ catalogMode: m, filters: { ...s.filters, categories: [] } })),
 
   filters: EMPTY_FILTERS,
   toggleCategory: (c) =>

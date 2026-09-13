@@ -6,7 +6,7 @@ import { MobileCategoryCard } from "./MobileCategoryCard";
 import { SponsoredStrip } from "./SponsoredStrip";
 import { buildUniverse } from "@/lib/universeLayout";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
-import { matchesFilters, matchesSearch } from "@/lib/filterSubscriptions";
+import { filterByCatalogMode, matchesFilters, matchesSearch } from "@/lib/filterSubscriptions";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
 
@@ -21,7 +21,9 @@ import { useUniverseStore } from "@/store/useUniverseStore";
 export function MobileUniverse() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef(new Map<string, HTMLDivElement>());
-  const { clusters } = useMemo(() => buildUniverse(SUBSCRIPTIONS), []);
+  const catalogMode = useUniverseStore((s) => s.catalogMode);
+  const visibleSubscriptions = useMemo(() => filterByCatalogMode(SUBSCRIPTIONS, catalogMode), [catalogMode]);
+  const { clusters } = useMemo(() => buildUniverse(visibleSubscriptions), [visibleSubscriptions]);
   const owned = useMySubscriptionsStore((s) => s.owned);
   const ownedIds = useMemo(() => new Set(owned.map((o) => o.subscriptionId)), [owned]);
   const searchQuery = useUniverseStore((s) => s.searchQuery);
@@ -33,7 +35,7 @@ export function MobileUniverse() {
 
   const byCategory = useMemo(() => {
     const map = new Map<string, typeof SUBSCRIPTIONS>();
-    SUBSCRIPTIONS.forEach((s) => {
+    visibleSubscriptions.forEach((s) => {
       if ((hasQuery && !matchesSearch(s, searchQuery)) || (hasFilters && !matchesFilters(s, filters, ownedIds))) return;
       const arr = map.get(s.category) ?? [];
       arr.push(s);
@@ -41,7 +43,7 @@ export function MobileUniverse() {
     });
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, filters, ownedIds]);
+  }, [visibleSubscriptions, searchQuery, filters, ownedIds]);
 
   const ordered = useMemo(
     () =>

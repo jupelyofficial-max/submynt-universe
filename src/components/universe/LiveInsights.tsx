@@ -5,6 +5,7 @@ import { GraduationCap, Lightbulb, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
+import { filterByCatalogMode } from "@/lib/filterSubscriptions";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { cn } from "@/lib/utils";
 import type { Subscription } from "@/types/subscription";
@@ -17,16 +18,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "tips", label: "Tips" },
 ];
 
-// A wider candidate pool than the 5 shown — every reshuffle draws a fresh
-// 5 from here, so the list visibly changes over time without ever surfacing
-// something genuinely unpopular.
-const TOP_POOL = [...SUBSCRIPTIONS].sort((a, b) => b.popularity - a.popularity).slice(0, 14);
-
-const FREE_FOR_STUDENTS = [...SUBSCRIPTIONS]
-  .filter((s) => s.priceMonthly === 0)
-  .sort((a, b) => b.popularity - a.popularity)
-  .slice(0, 5);
-
 const TIPS = [
   "Cancel a free trial a day early — billing usually starts at midnight, not the hour you signed up.",
   "Annual plans typically save 15–20% over paying the same subscription monthly.",
@@ -36,8 +27,8 @@ const TIPS = [
 
 /** Deterministic shuffle keyed by a rotating seed — changes every reshuffle
  * without relying on Math.random, so it stays stable within a single render. */
-function pickFive(seed: number): Subscription[] {
-  const arr = [...TOP_POOL];
+function pickFive(pool: Subscription[], seed: number): Subscription[] {
+  const arr = [...pool];
   let s = seed || 1;
   function rand() {
     s = (s * 1103515245 + 12345) & 0x7fffffff;
@@ -73,6 +64,7 @@ function InsightRow({ sub, badge, onClick }: { sub: Subscription; badge?: string
 export function LiveInsights() {
   const select = useUniverseStore((s) => s.select);
   const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
+  const catalogMode = useUniverseStore((s) => s.catalogMode);
   const [tab, setTab] = useState<Tab>("top5");
   const [tick, setTick] = useState(0);
 
@@ -81,7 +73,25 @@ export function LiveInsights() {
     return () => clearInterval(interval);
   }, []);
 
-  const top5 = useMemo(() => pickFive(tick + 1), [tick]);
+  const visibleSubscriptions = useMemo(() => filterByCatalogMode(SUBSCRIPTIONS, catalogMode), [catalogMode]);
+
+  // A wider candidate pool than the 5 shown — every reshuffle draws a fresh
+  // 5 from here, so the list visibly changes over time without ever
+  // surfacing something genuinely unpopular.
+  const topPool = useMemo(
+    () => [...visibleSubscriptions].sort((a, b) => b.popularity - a.popularity).slice(0, 14),
+    [visibleSubscriptions]
+  );
+  const freeForStudents = useMemo(
+    () =>
+      [...visibleSubscriptions]
+        .filter((s) => s.priceMonthly === 0)
+        .sort((a, b) => b.popularity - a.popularity)
+        .slice(0, 5),
+    [visibleSubscriptions]
+  );
+
+  const top5 = useMemo(() => pickFive(topPool, tick + 1), [topPool, tick]);
 
   function focusItem(id: string) {
     select(id);
@@ -140,7 +150,7 @@ export function LiveInsights() {
             Free for students
           </div>
           <div className="flex flex-col gap-1">
-            {FREE_FOR_STUDENTS.map((sub) => (
+            {freeForStudents.map((sub) => (
               <InsightRow key={sub.id} sub={sub} badge="Free" onClick={() => focusItem(sub.id)} />
             ))}
           </div>

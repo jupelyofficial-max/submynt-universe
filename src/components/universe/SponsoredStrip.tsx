@@ -1,13 +1,19 @@
+"use client";
+
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
 import { getSponsoredSubscriptionIds } from "@/data/vendors";
+import { isPremiumCategory } from "@/lib/filterSubscriptions";
+import { useUniverseStore } from "@/store/useUniverseStore";
 
 export function SponsoredStrip({ compact }: { compact?: boolean }) {
+  const catalogMode = useUniverseStore((s) => s.catalogMode);
   // Real structured vendor/sponsorship data (data/vendors.ts) — not a
   // hardcoded id list — is the single source of truth for what's sponsored.
   const items = getSponsoredSubscriptionIds()
     .map((id) => SUBSCRIPTIONS.find((s) => s.id === id))
-    .filter((s) => s !== undefined);
+    .filter((s) => s !== undefined)
+    .filter((s) => isPremiumCategory(s.category) === (catalogMode === "premium"));
   if (items.length === 0) return null;
 
   return (

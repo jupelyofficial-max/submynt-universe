@@ -15,6 +15,7 @@ import { MobileUniverse } from "@/components/universe/MobileUniverse";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ListView } from "@/components/views/ListView";
 import { ViewSwitcher } from "@/components/views/ViewSwitcher";
+import { CatalogModeToggle } from "@/components/views/CatalogModeToggle";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 
@@ -56,6 +57,9 @@ export function ExploreClient() {
       </div>
       <FilterBar className="flex-wrap xl:flex-nowrap" />
       <div className="shrink-0">
+        <CatalogModeToggle />
+      </div>
+      <div className="shrink-0">
         <ViewSwitcher />
       </div>
       <Button size="sm" className="h-9 shrink-0 rounded-full" onClick={() => setSubmitModalOpen(true)}>
@@ -85,6 +89,7 @@ export function ExploreClient() {
       </div>
       <div className="flex items-center gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
+          <CatalogModeToggle />
           <ViewSwitcher />
           <SortDropdown />
         </div>

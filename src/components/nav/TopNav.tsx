@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ViewSwitcher } from "@/components/views/ViewSwitcher";
+import { CatalogModeToggle } from "@/components/views/CatalogModeToggle";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
 
@@ -68,6 +69,9 @@ export function TopNav() {
               <SearchBar compact />
             </div>
             <FilterBar className="flex-nowrap shrink-0" />
+            <div className="shrink-0">
+              <CatalogModeToggle />
+            </div>
             <div className="shrink-0">
               <ViewSwitcher />
             </div>

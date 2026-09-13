@@ -7,6 +7,7 @@ import { SubscriptionField } from "./SubscriptionField";
 import { CategoryLabels } from "./CategoryLabels";
 import { CameraController, CAMERA_FOV_DEG } from "./CameraController";
 import { buildUniverse, computeUniverseBounds } from "@/lib/universeLayout";
+import { filterByCatalogMode } from "@/lib/filterSubscriptions";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
@@ -155,10 +156,11 @@ export function UniverseScene() {
   const columns = isDesktop ? DESKTOP_GRID_COLUMNS : TABLET_GRID_COLUMNS;
   const viewport = useViewportSize();
   const viewportHeightPx = Math.max(1, viewport.height - HEADER_PX);
+  const catalogMode = useUniverseStore((s) => s.catalogMode);
+  const visibleSubscriptions = useMemo(() => filterByCatalogMode(SUBSCRIPTIONS, catalogMode), [catalogMode]);
 
-  // First pass at the natural (unspread) packed size, purely to measure it —
-  // cheap given the catalogue's size (124 subscriptions, 16 categories).
-  const naturalClusters = useMemo(() => buildUniverse(SUBSCRIPTIONS, columns).clusters, [columns]);
+  // First pass at the natural (unspread) packed size, purely to measure it.
+  const naturalClusters = useMemo(() => buildUniverse(visibleSubscriptions, columns).clusters, [visibleSubscriptions, columns]);
   const naturalBounds = useMemo(() => computeUniverseBounds(naturalClusters), [naturalClusters]);
 
   // The camera's zoom is driven by WIDTH alone — never by the composition's
@@ -182,13 +184,13 @@ export function UniverseScene() {
   );
 
   const columnSpread = useMemo(() => {
-    const widthAtSpread = (spread: number) => computeUniverseBounds(buildUniverse(SUBSCRIPTIONS, columns, spread).clusters).width;
+    const widthAtSpread = (spread: number) => computeUniverseBounds(buildUniverse(visibleSubscriptions, columns, spread).clusters).width;
     return computeColumnSpread(naturalBounds.width, distance, viewport.width, viewportHeightPx, widthAtSpread);
-  }, [naturalBounds.width, distance, viewport.width, viewportHeightPx, columns]);
+  }, [visibleSubscriptions, naturalBounds.width, distance, viewport.width, viewportHeightPx, columns]);
 
   const { nodes, clusters } = useMemo(
-    () => buildUniverse(SUBSCRIPTIONS, columns, columnSpread),
-    [columns, columnSpread]
+    () => buildUniverse(visibleSubscriptions, columns, columnSpread),
+    [visibleSubscriptions, columns, columnSpread]
   );
   const bounds = useMemo(() => computeUniverseBounds(clusters), [clusters]);
   const owned = useMySubscriptionsStore((s) => s.owned);

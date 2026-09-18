@@ -62,12 +62,18 @@ function SignInButton() {
       return;
     }
 
-    // Safety net: if navigation hasn't actually happened within 5s (blocked
-    // redirect, browser extension, etc.), stop hanging silently.
-    setTimeout(() => {
+    // Safety net: if navigation hasn't actually happened within 8s (blocked
+    // redirect, browser extension, etc.), stop hanging silently. The Google
+    // redirect is a two-hop chain (this page -> Supabase's /authorize ->
+    // Google) and the address bar can show the intermediate Supabase hop
+    // for a few seconds on a cold start — bail out of the fallback the
+    // moment the page actually starts navigating away instead of firing a
+    // false "didn't start" error mid-redirect.
+    const timeoutId = setTimeout(() => {
       setSigningIn(false);
       setError("Redirect to Google didn't start. Please try again.");
-    }, 5000);
+    }, 8000);
+    window.addEventListener("pagehide", () => clearTimeout(timeoutId));
 
     window.location.href = data.url;
   }

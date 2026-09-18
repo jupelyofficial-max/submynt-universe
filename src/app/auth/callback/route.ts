@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-/** Magic-link callback — Supabase redirects here with a `code` param after
- * the user clicks the email link. Exchanges it for a session (sets the
- * auth cookies via the server client's cookie adapter), then routes
- * first-time users to the optional demographic step and everyone else
- * back to where they came from (or /explore by default). */
+/** OAuth callback — Supabase redirects here with a `code` param after the
+ * provider (Google) sends the user back. exchangeCodeForSession is the
+ * same PKCE code exchange regardless of which provider issued the code
+ * (this route started as magic-link-only but needs no change for OAuth —
+ * confirmed against Supabase's own docs, not assumed). Sets the auth
+ * cookies via the server client's cookie adapter, then routes first-time
+ * users to the optional demographic step and everyone else back to where
+ * they came from (or /explore by default). */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");

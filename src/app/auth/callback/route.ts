@@ -19,7 +19,10 @@ export async function GET(request: Request) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error || !data.user) {
-    return NextResponse.redirect(`${origin}/explore?auth_error=1`);
+    // TEMP: surfacing the real error message to diagnose a live prod bug
+    // (session exchange failing silently) — remove once resolved.
+    const reason = encodeURIComponent(error?.message ?? "no user in exchange response");
+    return NextResponse.redirect(`${origin}/explore?auth_error=1&reason=${reason}`);
   }
 
   // First login = no profiles row with a name yet for this user_id (the

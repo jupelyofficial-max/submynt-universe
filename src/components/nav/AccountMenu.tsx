@@ -8,28 +8,92 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useUniverseStore } from "@/store/useUniverseStore";
 import { createClient } from "@/lib/supabase/client";
 
-/** Signed out: a labeled "Sign in" button (an icon-only trigger tested as
- * too easy to miss) that opens AuthModal's Google sign-in sheet. Signed
- * in: initial-letter avatar that opens a dropdown (same portaled/
- * positioned pattern as FilterDropdown), not the modal sheet — matches
- * the avatar->dropdown structure of the reference, styled with Submynt's
+/** Signed out: a labeled "Sign in" button that calls signInWithOAuth
+ * directly — no confirmation modal in between, since that extra step
+ * (AuthModal, now removed) just added friction before the real Google
+ * redirect. Signed in: initial-letter avatar that opens a dropdown (same
+ * portaled/positioned pattern as FilterDropdown), styled with Submynt's
  * own tokens. */
 export function AccountMenu() {
   const user = useAuthStore((s) => s.user);
-  const setAuthModalOpen = useUniverseStore((s) => s.setAuthModalOpen);
 
   if (!user) {
-    return (
-      <Button variant="outline" size="sm" className="h-9 shrink-0 rounded-full" onClick={() => setAuthModalOpen(true)}>
-        Sign in
-      </Button>
-    );
+    return <SignInButton />;
   }
 
   return <LoggedInMenu email={user.email ?? ""} />;
+}
+
+function SignInButton() {
+  const [signingIn, setSigningIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+  const [errorPos, setErrorPos] = useState({ top: 0, right: 0 });
+  const outsideRefs = useMemo(() => [triggerRef, errorRef], []);
+  useOnClickOutside(outsideRefs, () => setError(null));
+
+  useLayoutEffect(() => {
+    if (!error) return;
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (rect) setErrorPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+  }, [error]);
+
+  async function handleGoogleSignIn() {
+    setSigningIn(true);
+    setError(null);
+    const supabase = createClient();
+    const { data, error: signInError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+
+    if (signInError) {
+      setSigningIn(false);
+      setError(signInError.message);
+      return;
+    }
+
+    if (!data?.url) {
+      setSigningIn(false);
+      setError("Google sign-in didn't return a redirect URL. Please try again.");
+      return;
+    }
+
+    // Safety net: if navigation hasn't actually happened within 5s (blocked
+    // redirect, browser extension, etc.), stop hanging silently.
+    setTimeout(() => {
+      setSigningIn(false);
+      setError("Redirect to Google didn't start. Please try again.");
+    }, 5000);
+
+    window.location.href = data.url;
+  }
+
+  return (
+    <>
+      <div ref={triggerRef} className="shrink-0">
+        <Button variant="outline" size="sm" className="h-9 rounded-full" onClick={handleGoogleSignIn} disabled={signingIn}>
+          {signingIn ? "Redirecting…" : "Sign in"}
+        </Button>
+      </div>
+
+      {error &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={errorRef}
+            style={{ position: "fixed", top: errorPos.top, right: errorPos.right }}
+            className="z-50 w-64 rounded-xl border border-red-500/20 bg-void-900 p-3 text-xs text-rose-400 shadow-xl shadow-black/40"
+          >
+            {error}
+          </div>,
+          document.body
+        )}
+    </>
+  );
 }
 
 function LoggedInMenu({ email }: { email: string }) {

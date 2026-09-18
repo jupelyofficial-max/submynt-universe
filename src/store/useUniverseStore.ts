@@ -50,9 +50,6 @@ interface UniverseUIState {
   isSubmitModalOpen: boolean;
   setSubmitModalOpen: (v: boolean) => void;
 
-  isAuthModalOpen: boolean;
-  setAuthModalOpen: (v: boolean) => void;
-
   selectedId: string | null;
   select: (id: string | null) => void;
   hoveredId: string | null;
@@ -101,9 +98,6 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
 
   isSubmitModalOpen: false,
   setSubmitModalOpen: (v) => set({ isSubmitModalOpen: v }),
-
-  isAuthModalOpen: false,
-  setAuthModalOpen: (v) => set({ isAuthModalOpen: v }),
 
   selectedId: null,
   select: (id) => set({ selectedId: id }),

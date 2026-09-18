@@ -89,16 +89,19 @@ export function OnboardingClient() {
     setSaving(true);
     setError(null);
     const supabase = createClient();
-    const { error: upsertError } = await supabase.from("profiles").upsert({
-      user_id: user.id,
-      email: user.email,
-      name,
-      contact_number: contactNumber || null,
-      age: age ? Number(age) : null,
-      gender,
-      profession,
-      location: location || null,
-    });
+    const { error: upsertError } = await supabase.from("profiles").upsert(
+      {
+        user_id: user.id,
+        email: user.email,
+        name,
+        contact_number: contactNumber || null,
+        age: age ? Number(age) : null,
+        gender,
+        profession,
+        location: location || null,
+      },
+      { onConflict: "user_id" }
+    );
     setSaving(false);
     if (upsertError) {
       setError(upsertError.message);

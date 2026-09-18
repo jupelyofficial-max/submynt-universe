@@ -10,9 +10,19 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
+  // Fail OPEN, not closed: this runs on every single request site-wide (see
+  // matcher below), so a missing/misconfigured env var must never take the
+  // whole app down — worst case here is a visitor's session just doesn't
+  // get refreshed, not a 500 on every page.
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return response;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {

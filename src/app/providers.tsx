@@ -22,6 +22,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
     useDemandSignalsStore.persist.rehydrate();
     useDemandSignalsStore.getState().setHydrated();
 
+    // Fail open, not closed: if the Supabase env vars aren't set (e.g. not
+    // yet added to this deploy target), the rest of the app must still
+    // render — auth just stays signed-out rather than crashing after
+    // hydration. useAuthStore.hydrated flips true either way so UI never
+    // hangs on a "checking session" state.
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      useAuthStore.getState().setSession(null);
+      return;
+    }
+
     const supabase = createClient();
     supabase.auth.getSession().then(({ data }) => useAuthStore.getState().setSession(data.session));
     const {

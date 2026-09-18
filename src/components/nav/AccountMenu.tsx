@@ -23,7 +23,11 @@ export function AccountMenu() {
     return <SignInButton />;
   }
 
-  return <LoggedInMenu email={user.email ?? ""} />;
+  // Google's OAuth response already carries the account's display name in
+  // user_metadata (full_name, or name as a fallback for some providers) —
+  // no extra profiles fetch needed just for the avatar initial/label.
+  const name = (user.user_metadata?.full_name as string | undefined) ?? (user.user_metadata?.name as string | undefined);
+  return <LoggedInMenu email={user.email ?? ""} name={name} />;
 }
 
 function SignInButton() {
@@ -102,7 +106,8 @@ function SignInButton() {
   );
 }
 
-function LoggedInMenu({ email }: { email: string }) {
+function LoggedInMenu({ email, name }: { email: string; name?: string }) {
+  const initial = (name || email || "?")[0]!.toUpperCase();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
@@ -150,7 +155,7 @@ function LoggedInMenu({ email }: { email: string }) {
         className="h-10 w-10 flex shrink-0 items-center justify-center rounded-xl hover:bg-black/5 transition-colors cursor-pointer"
       >
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ocean-600 text-xs font-semibold text-white">
-          {(email || "?")[0]!.toUpperCase()}
+          {initial}
         </span>
       </button>
 
@@ -162,7 +167,10 @@ function LoggedInMenu({ email }: { email: string }) {
             style={{ position: "fixed", top: menuPos.top, right: menuPos.right }}
             className="z-50 w-56 overflow-hidden rounded-xl border border-black/10 bg-void-900 p-1.5 shadow-xl shadow-black/40"
           >
-            <div className="truncate px-2.5 py-1.5 text-xs text-ink-500">{email}</div>
+            <div className="px-2.5 py-1.5">
+              {name && <div className="truncate text-xs font-medium text-ink-0">{name}</div>}
+              <div className="truncate text-xs text-ink-500">{email}</div>
+            </div>
             <div className="my-1 h-px bg-black/10" />
             <MenuItem icon={<Sparkles size={14} />} label="For you" onClick={() => go("/for-you")} />
             <MenuItem icon={<Heart size={14} />} label="Saved subscriptions" onClick={() => go("/my-subscriptions")} />

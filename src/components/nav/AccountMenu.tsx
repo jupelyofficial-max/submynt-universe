@@ -3,31 +3,29 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { Heart, LogOut, Sparkles, SlidersHorizontal, User } from "lucide-react";
+import { Heart, LogOut, Sparkles, SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { createClient } from "@/lib/supabase/client";
 
-/** Signed out: the existing plain-icon trigger that opens AuthModal's
- * Google sign-in sheet — unchanged. Signed in: initial-letter avatar that
- * opens a dropdown (same portaled/positioned pattern as FilterDropdown),
- * not the modal sheet — matches the avatar->dropdown structure of the
- * reference, styled with Submynt's own tokens. */
+/** Signed out: a labeled "Sign in" button (an icon-only trigger tested as
+ * too easy to miss) that opens AuthModal's Google sign-in sheet. Signed
+ * in: initial-letter avatar that opens a dropdown (same portaled/
+ * positioned pattern as FilterDropdown), not the modal sheet — matches
+ * the avatar->dropdown structure of the reference, styled with Submynt's
+ * own tokens. */
 export function AccountMenu() {
   const user = useAuthStore((s) => s.user);
   const setAuthModalOpen = useUniverseStore((s) => s.setAuthModalOpen);
 
   if (!user) {
     return (
-      <button
-        onClick={() => setAuthModalOpen(true)}
-        className="h-10 w-10 flex shrink-0 items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors cursor-pointer"
-        aria-label="Sign in"
-      >
-        <User size={18} />
-      </button>
+      <Button variant="outline" size="sm" className="h-9 shrink-0 rounded-full" onClick={() => setAuthModalOpen(true)}>
+        Sign in
+      </Button>
     );
   }
 

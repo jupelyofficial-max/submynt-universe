@@ -1,26 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { LogOut, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { User } from "lucide-react";
 import { ResponsiveSheet } from "@/components/ui/ResponsiveSheet";
-import { Button } from "@/components/ui/Button";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
 
-/** Replaces the old fake-data UserProfileModal — real Supabase Auth
- * (Google OAuth) instead of a demographic form with no real identity
- * behind it. Logged out: "Sign in with Google". Logged in: account
- * summary + sign out. */
+/** Sign-in sheet only — the logged-in case (account summary, sign out) is
+ * AccountMenu's dropdown (nav/AccountMenu.tsx), not this modal. Only ever
+ * opened while signed out, but auto-closes itself if a session appears
+ * while it happens to be open (e.g. a stale tab), rather than assuming
+ * that can't happen. */
 export function AuthModal() {
   const isOpen = useUniverseStore((s) => s.isAuthModalOpen);
   const close = () => useUniverseStore.getState().setAuthModalOpen(false);
   const user = useAuthStore((s) => s.user);
 
+  useEffect(() => {
+    if (isOpen && user) close();
+  }, [isOpen, user]);
+
   return (
-    <ResponsiveSheet open={isOpen} onClose={close} title={user ? "Account" : "Sign in"} desktopVariant="center" widthClassName="w-[380px]" panelVariant="solid">
-      {isOpen && (user ? <AccountView email={user.email ?? ""} onClose={close} /> : <SignInPanel />)}
+    <ResponsiveSheet open={isOpen} onClose={close} title="Sign in" desktopVariant="center" widthClassName="w-[380px]" panelVariant="solid">
+      {isOpen && <SignInPanel />}
     </ResponsiveSheet>
   );
 }
@@ -46,16 +49,40 @@ function SignInPanel() {
     setSigningIn(true);
     setError(null);
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithOAuth({
+    // signInWithOAuth is documented to redirect the browser itself when
+    // skipBrowserRedirect isn't set — in practice that didn't fire (the
+    // button hung on "Redirecting…" forever on the live site), and the
+    // previous version of this code discarded `data` entirely, so there
+    // was no fallback and no way to ever see it fail. Navigating via
+    // data.url explicitly removes the dependency on that implicit
+    // behavior; a timeout below is the fallback if even this doesn't fire.
+    const { data, error: signInError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
-    // On success this navigates away to Google immediately — signingIn only
-    // gets reset if signInWithOAuth itself fails before that redirect.
+
     if (signInError) {
       setSigningIn(false);
       setError(signInError.message);
+      return;
     }
+
+    if (!data?.url) {
+      setSigningIn(false);
+      setError("Google sign-in didn't return a redirect URL. Please try again.");
+      return;
+    }
+
+    // Safety net: if navigation hasn't actually happened within 5s (blocked
+    // redirect, browser extension, etc.), stop showing "Redirecting…"
+    // forever and surface it instead of hanging silently. Never fires on
+    // the normal path — the page unloads before the timer completes.
+    setTimeout(() => {
+      setSigningIn(false);
+      setError("Redirect to Google didn't start. Please try again.");
+    }, 5000);
+
+    window.location.href = data.url;
   }
 
   return (
@@ -81,34 +108,6 @@ function SignInPanel() {
       </button>
 
       {error && <p className="text-center text-xs text-rose-400">{error}</p>}
-    </div>
-  );
-}
-
-function AccountView({ email, onClose }: { email: string; onClose: () => void }) {
-  const [signingOut, setSigningOut] = useState(false);
-
-  async function handleSignOut() {
-    setSigningOut(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    setSigningOut(false);
-    onClose();
-  }
-
-  return (
-    <div className="flex flex-col items-center gap-3 px-8 py-10 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
-        <User size={24} />
-      </span>
-      <p className="font-display text-base font-semibold text-ink-0">{email}</p>
-      <Link href="/onboarding" onClick={onClose} className="text-xs font-medium text-ocean-600 underline underline-offset-2">
-        Update profile details
-      </Link>
-      <Button variant="outline" onClick={handleSignOut} disabled={signingOut} className="mt-2 w-full">
-        <LogOut size={14} />
-        {signingOut ? "Signing out…" : "Sign out"}
-      </Button>
     </div>
   );
 }

@@ -17,11 +17,16 @@ const PROFESSIONS: Profession[] = ["Student", "Entrepreneur", "Working professio
 type Gender = "Female" | "Male" | "Other";
 const GENDERS: Gender[] = ["Female", "Male", "Other"];
 
-/** Optional, skippable one-step profile completion shown once after a
- * user's first magic-link login (see the redirect logic in
- * app/auth/callback/route.ts). Writes directly to `profiles` as the
- * authenticated user via the browser Supabase client — RLS (Phase 2)
- * scopes this to auth.uid() = user_id, no server route needed. */
+/** Optional, skippable profile step — shown once after a user's first
+ * Google sign-in (see the redirect logic in app/auth/callback/route.ts),
+ * and reused as the "Preferences" destination from AccountMenu for
+ * returning users who want to view/edit what they already saved. Fetches
+ * the existing profiles row on mount and pre-fills the form when one
+ * exists, so opening this as "Preferences" shows real saved values
+ * instead of a blank form that would silently overwrite them with nulls
+ * on save. Writes directly to `profiles` as the authenticated user via
+ * the browser Supabase client — RLS (Phase 2) scopes this to
+ * auth.uid() = user_id, no server route needed. */
 export function OnboardingClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,6 +41,8 @@ export function OnboardingClient() {
   const [profession, setProfession] = useState<Profession>("Student");
   const [location, setLocation] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(true);
+  const [isReturning, setIsReturning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
@@ -44,6 +51,37 @@ export function OnboardingClient() {
   useEffect(() => {
     if (hydrated && !user) router.replace(next);
   }, [hydrated, user, next, router]);
+
+  // Pre-fill from the existing row, if any — first-time users simply get
+  // no match (maybeSingle returns null) and see the same blank form as
+  // before.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const supabase = createClient();
+    supabase
+      .from("profiles")
+      .select("name, contact_number, age, gender, profession, location")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) {
+          setLoadingExisting(false);
+          return;
+        }
+        if (data.name) setName(data.name);
+        if (data.contact_number) setContactNumber(data.contact_number);
+        if (data.age !== null && data.age !== undefined) setAge(String(data.age));
+        if (data.gender && GENDERS.includes(data.gender as Gender)) setGender(data.gender as Gender);
+        if (data.profession && PROFESSIONS.includes(data.profession as Profession)) setProfession(data.profession as Profession);
+        if (data.location) setLocation(data.location);
+        setIsReturning(true);
+        setLoadingExisting(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -85,14 +123,21 @@ export function OnboardingClient() {
     );
   }
 
+  // Avoids a flash of the blank form before the prefill fetch resolves —
+  // the whole point of prefilling is that a returning user never sees an
+  // empty form for their already-saved fields, even briefly.
+  if (loadingExisting) {
+    return <div className="flex-1" />;
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 py-10">
       <div className="mb-6 flex flex-col items-center gap-1 text-center">
         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
           <User size={20} />
         </span>
-        <h1 className="font-display text-lg font-semibold text-ink-0">Tell us about you</h1>
-        <p className="text-xs text-ink-500">Optional — skip if you&apos;d rather not.</p>
+        <h1 className="font-display text-lg font-semibold text-ink-0">{isReturning ? "Your preferences" : "Tell us about you"}</h1>
+        <p className="text-xs text-ink-500">{isReturning ? "Update any of these, or leave them as they are." : "Optional — skip if you’d rather not."}</p>
       </div>
 
       <form onSubmit={handleSave} className="flex flex-col gap-3">

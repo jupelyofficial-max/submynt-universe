@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Heart, Search, Upload, User } from "lucide-react";
+import { Heart, Search, Upload } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,9 +10,9 @@ import { FilterBar } from "@/components/filters/FilterBar";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ViewSwitcher } from "@/components/views/ViewSwitcher";
 import { CatalogModeToggle } from "@/components/views/CatalogModeToggle";
+import { AccountMenu } from "@/components/nav/AccountMenu";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
-import { useAuthStore } from "@/store/useAuthStore";
 
 export function TopNav() {
   const pathname = usePathname();
@@ -20,8 +20,6 @@ export function TopNav() {
   const router = useRouter();
   const ownedCount = useMySubscriptionsStore((s) => s.owned.length);
   const setSubmitModalOpen = useUniverseStore((s) => s.setSubmitModalOpen);
-  const setAuthModalOpen = useUniverseStore((s) => s.setAuthModalOpen);
-  const user = useAuthStore((s) => s.user);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -117,19 +115,7 @@ export function TopNav() {
           )}
         </Link>
 
-        <button
-          onClick={() => setAuthModalOpen(true)}
-          className="h-10 w-10 flex shrink-0 items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors cursor-pointer"
-          aria-label={user ? "Account" : "Sign in"}
-        >
-          {user ? (
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ocean-600 text-xs font-semibold text-white">
-              {(user.email ?? "?")[0]!.toUpperCase()}
-            </span>
-          ) : (
-            <User size={18} />
-          )}
-        </button>
+        <AccountMenu />
       </div>
 
       {/* Search overlay */}

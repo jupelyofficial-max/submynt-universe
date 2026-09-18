@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-// Server-only route handler — see src/app/api/profile/route.ts for why this
-// goes through the service-role key server-side rather than a client-side
-// anon-key insert.
+// Server-only route handler — anonymous submitters have no Supabase
+// session, so this goes through the service-role key server-side rather
+// than a client-side anon-key insert (which RLS would reject anyway).
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 

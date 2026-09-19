@@ -55,24 +55,42 @@ export function HeroCarousel() {
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const scrollSyncTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const touchResumeTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // Set right before a setIndex call that crosses an edge (index 0 -> last,
+  // or last -> 0), so the scroll effect below animates a short hop to the
+  // cloned edge card instead of sliding across the entire real track.
+  const wrapRef = useRef<"prev" | "next" | null>(null);
 
   const items = FEATURED_IDS.map((id) => SUBSCRIPTIONS_BY_ID[id]).filter((s) => s !== undefined);
   const itemCount = items.length;
+  // Infinite-loop illusion: clone the last item before the first and the
+  // first item after the last, so there's always a real-looking banner
+  // peeking at both edges (e.g. Microsoft 365 as the leftmost real card
+  // still has the cloned last banner peeking further left) instead of
+  // empty space. Extended position e maps to real index e-1, except
+  // e=0 (clone of the last item) and e=itemCount+1 (clone of the first).
+  const extendedItems = itemCount > 0 ? [items[itemCount - 1]!, ...items, items[0]!] : [];
 
   useEffect(() => {
     if (paused || itemCount === 0) return;
     const id = setInterval(() => {
-      setIndex((i) => (i + 1) % itemCount);
+      goTo(index + 1);
     }, AUTO_ADVANCE_MS);
     return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paused, itemCount, index]);
 
   // Keep the scroll position in sync whenever `index` changes, whether
   // that came from autoplay, an arrow/dot click, or a user swipe (see
   // handleScroll below) — scrollIntoView is a no-op if already centered.
   useEffect(() => {
-    cardRefs.current[index]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [index]);
+    const dir = wrapRef.current;
+    wrapRef.current = null;
+    let target: HTMLButtonElement | null | undefined;
+    if (dir === "prev") target = cardRefs.current[0];
+    else if (dir === "next") target = cardRefs.current[extendedItems.length - 1];
+    else target = cardRefs.current[index + 1];
+    target?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [index, extendedItems.length]);
 
   useEffect(() => {
     return () => {
@@ -88,7 +106,8 @@ export function HeroCarousel() {
     scrollSyncTimeout.current = setTimeout(() => {
       const track = trackRef.current;
       if (!track) return;
-      const centerX = track.getBoundingClientRect().left + track.getBoundingClientRect().width / 2;
+      const trackRect = track.getBoundingClientRect();
+      const centerX = trackRect.left + trackRect.width / 2;
       let closest = 0;
       let closestDist = Infinity;
       cardRefs.current.forEach((el, i) => {
@@ -100,12 +119,54 @@ export function HeroCarousel() {
           closest = i;
         }
       });
-      setIndex((i) => (i === closest ? i : closest));
+
+      // Resting on a cloned edge card (from a wrap-hop or a plain user
+      // swipe past the real boundary) — silently re-anchor to the real
+      // equivalent (visually identical, so the jump is imperceptible)
+      // so the next wrap in either direction still has a clone to hop to.
+      // scrollLeft assignment still animates under CSS scroll-behavior:
+      // smooth, so scroll-behavior is forced to "auto" for this one jump
+      // — otherwise it's a second, long, visible slide across the track.
+      if (closest === 0) {
+        const real = cardRefs.current[itemCount];
+        const clone = cardRefs.current[0];
+        if (real && clone) {
+          const delta = real.getBoundingClientRect().left - clone.getBoundingClientRect().left;
+          track.style.scrollBehavior = "auto";
+          track.scrollLeft += delta;
+          requestAnimationFrame(() => {
+            track.style.scrollBehavior = "";
+          });
+        }
+        setIndex((i) => (i === itemCount - 1 ? i : itemCount - 1));
+        return;
+      }
+      if (closest === extendedItems.length - 1) {
+        const real = cardRefs.current[1];
+        const clone = cardRefs.current[closest];
+        if (real && clone) {
+          const delta = real.getBoundingClientRect().left - clone.getBoundingClientRect().left;
+          track.style.scrollBehavior = "auto";
+          track.scrollLeft += delta;
+          requestAnimationFrame(() => {
+            track.style.scrollBehavior = "";
+          });
+        }
+        setIndex((i) => (i === 0 ? i : 0));
+        return;
+      }
+
+      const realIndex = closest - 1;
+      setIndex((i) => (i === realIndex ? i : realIndex));
     }, 120);
   }
 
-  function goTo(i: number) {
-    setIndex((i + itemCount) % itemCount);
+  function goTo(target: number) {
+    const wrapped = ((target % itemCount) + itemCount) % itemCount;
+    if (index === itemCount - 1 && wrapped === 0) wrapRef.current = "next";
+    else if (index === 0 && wrapped === itemCount - 1) wrapRef.current = "prev";
+    else wrapRef.current = null;
+    setIndex(wrapped);
   }
 
   return (
@@ -145,19 +206,23 @@ export function HeroCarousel() {
             TRACK_PADDING_CLASS
           )}
         >
-          {items.map((item, i) => {
+          {extendedItems.map((item, i) => {
             const banner = BANNER_IMAGE[item.id];
-            const active = i === index;
+            const active = i === index + 1;
+            const isClone = i === 0 || i === extendedItems.length - 1;
+            const realIndexForClick = i === 0 ? itemCount - 1 : i === extendedItems.length - 1 ? 0 : i - 1;
 
             return (
               <button
-                key={item.id}
+                key={`slide-${i}`}
                 type="button"
                 ref={(el) => {
                   cardRefs.current[i] = el;
                 }}
-                onClick={() => (active ? select(item.id) : goTo(i))}
+                onClick={() => (active ? select(item.id) : goTo(realIndexForClick))}
                 aria-label={`${item.name} — View details`}
+                aria-hidden={isClone || undefined}
+                tabIndex={isClone ? -1 : undefined}
                 className={cn(
                   // Container ratio matches the uploaded PNGs' actual
                   // dimensions (~2048x768, i.e. ~8:3) rather than the

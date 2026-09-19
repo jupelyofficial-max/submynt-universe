@@ -105,7 +105,7 @@ export function HeroCarousel() {
 
   return (
     <div className="px-4 pt-4 lg:px-8">
-      <div className="relative mx-auto max-w-[92rem]">
+      <div className="relative mx-auto max-w-[145rem]">
         <button
           type="button"
           onClick={() => goTo(index - 1)}

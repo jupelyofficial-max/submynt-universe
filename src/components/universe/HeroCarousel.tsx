@@ -10,7 +10,12 @@ import { useUniverseStore } from "@/store/useUniverseStore";
 // featured subscription, uploaded to public/hero-banners/. Real
 // headline/tagline/price/CTA are baked into each image; the card itself
 // is the click target rather than duplicating that text on top of it.
+// Microsoft 365 moved to the front so it's the peeking "previous" card
+// when Netflix (the default active slide) is centered — otherwise
+// there's nothing before Netflix to peek from and the left side shows
+// empty whitespace instead of a card.
 const FEATURED_IDS = [
+  "microsoft-365",
   "netflix",
   "spotify-premium",
   "youtube-premium",
@@ -18,8 +23,8 @@ const FEATURED_IDS = [
   "canva-pro",
   "linkedin-premium",
   "coursera-plus",
-  "microsoft-365",
 ];
+const DEFAULT_ACTIVE_ID = "netflix";
 
 const BANNER_IMAGE: Record<string, string> = {
   netflix: "/hero-banners/netflix.png",
@@ -43,7 +48,7 @@ const AUTO_ADVANCE_MS = 4000;
 const TRACK_PADDING_CLASS = "px-[9%] sm:px-[15%] lg:px-[18.5%]";
 
 export function HeroCarousel() {
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(() => Math.max(0, FEATURED_IDS.indexOf(DEFAULT_ACTIVE_ID)));
   const [paused, setPaused] = useState(false);
   const select = useUniverseStore((s) => s.select);
   const trackRef = useRef<HTMLDivElement | null>(null);

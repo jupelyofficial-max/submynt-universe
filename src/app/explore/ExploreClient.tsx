@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterBar, SortDropdown } from "@/components/filters/FilterBar";
 import { HeroCarousel } from "@/components/universe/HeroCarousel";
+import { EcosystemsRow } from "@/components/universe/EcosystemsRow";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
@@ -110,6 +111,7 @@ export function ExploreClient() {
 
       <div className="relative z-10 flex flex-1 flex-col min-h-0">
         <HeroCarousel />
+        <EcosystemsRow />
         {viewMode === "universe" ? (
           isMobile ? (
             <>

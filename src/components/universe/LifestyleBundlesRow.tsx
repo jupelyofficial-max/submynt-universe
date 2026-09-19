@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { LIFESTYLE_BUNDLES, NOT_SURE_BUNDLE_IMAGE } from "@/data/bundles";
 
-// All 5 banners share the same real pixel dimensions (2172x724, i.e. 3:1)
-// — verified directly rather than assumed — so a single aspect-ratio box
-// with object-contain shows each one fully, uncropped, unstretched.
+// All 5 banners share the same real pixel dimensions (2172x724, i.e. 3:1).
+// The card box is intentionally shorter than the banner's own ratio
+// (6:1 vs the banner's 3:1) to halve card height at the same width;
+// object-contain still renders the full banner uncropped/unstretched,
+// just letterboxed left/right at its native 3:1 shape within the box.
 const CARDS: { key: string; image: string; alt: string; href: string }[] = [
   ...LIFESTYLE_BUNDLES.map((b) => ({ key: b.slug, image: b.image, alt: b.title, href: `/bundles/${b.slug}` })),
   { key: "not-sure", image: NOT_SURE_BUNDLE_IMAGE, alt: "Not sure which bundle is right for you?", href: "/explore" },
@@ -22,7 +24,7 @@ export function LifestyleBundlesRow() {
               key={card.key}
               href={card.href}
               aria-label={card.alt}
-              className="relative aspect-[3/1] w-full overflow-hidden rounded-2xl transition-transform duration-200 hover:scale-[1.005]"
+              className="relative aspect-[6/1] w-full overflow-hidden rounded-2xl transition-transform duration-200 hover:scale-[1.005]"
               style={{ border: "1px solid rgba(0,0,0,0.06)" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention */}

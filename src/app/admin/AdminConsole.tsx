@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Heart, ShieldCheck, Users } from "lucide-react";
 import { CATEGORIES } from "@/data/categories";
 import { formatDate, formatINR } from "@/lib/utils";
+import { useAuthStore } from "@/store/useAuthStore";
 import type { Category } from "@/types/subscription";
 import type { AdminUser, AdminUsersResponse } from "@/app/api/admin/users/route";
 
@@ -15,24 +17,64 @@ export function AdminConsole() {
   const [error, setError] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [categoryFilter, setCategoryFilter] = useState<Category | "all">("all");
+  const router = useRouter();
+  // Keyed on id, not the whole user object — onAuthStateChange fires a new
+  // object reference on plain token refreshes too, which would otherwise
+  // re-run this on a schedule that has nothing to do with who's signed in.
+  const userId = useAuthStore((s) => s.user?.id ?? null);
+  const authHydrated = useAuthStore((s) => s.hydrated);
 
+  // The server-side gate in page.tsx only runs once, at the initial page
+  // load — it does nothing for a sign-out (or a switch to a different,
+  // non-admin account) that happens while already sitting on this page.
+  // Without this, the already-fetched user table just stays rendered in
+  // React state indefinitely after the viewer stops being an admin, which
+  // is exactly the kind of thing an admin console can't get away with.
+  // Re-verifying (not just checking "still signed in") on every identity
+  // change, then only fetching the actual data once that passes, covers
+  // sign-out, switching accounts, and a session simply expiring.
   useEffect(() => {
+    if (!authHydrated) return;
     let cancelled = false;
-    fetch("/api/admin/users")
-      .then(async (res) => {
-        if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `Request failed (${res.status})`);
-        return res.json() as Promise<AdminUsersResponse>;
-      })
-      .then((json) => {
+
+    (async () => {
+      // Ensures every setState below runs from a genuine async callback,
+      // not synchronously within the effect body (react-hooks/set-state-in-effect).
+      await Promise.resolve();
+      if (cancelled) return;
+
+      if (!userId) {
+        setData(null);
+        router.replace("/explore");
+        return;
+      }
+
+      try {
+        const checkRes = await fetch("/api/admin/check");
+        const { isAdmin } = (await checkRes.json()) as { isAdmin: boolean };
+        if (cancelled) return;
+        if (!isAdmin) {
+          setData(null);
+          router.replace("/explore");
+          return;
+        }
+
+        const usersRes = await fetch("/api/admin/users");
+        if (!usersRes.ok) {
+          const body = await usersRes.json().catch(() => null);
+          throw new Error(body?.error ?? `Request failed (${usersRes.status})`);
+        }
+        const json = (await usersRes.json()) as AdminUsersResponse;
         if (!cancelled) setData(json);
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setError(err.message);
-      });
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load");
+      }
+    })();
+
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [userId, authHydrated, router]);
 
   const users = useMemo(() => {
     if (!data) return [];

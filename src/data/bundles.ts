@@ -1,10 +1,16 @@
 /** Lifestyle bundle banners (public/bundles/*.png, see chat) paired with
- * REAL catalog subscription ids only — each id below was cross-checked
- * against the banner's own "Popular apps in this bundle" icons and
- * against src/data/subscriptions.ts; an icon with no real catalog match
- * (e.g. Notion, not in the catalog) is left out rather than fabricated.
+ * REAL catalog subscription ids only, cross-checked against
+ * src/data/subscriptions.ts; an id with no real catalog match is left
+ * out rather than fabricated (e.g. "Apple TV+" isn't in the catalog —
+ * only Apple Music/Arcade are — so it's omitted from Family below).
  * Bundle pricing/savings copy lives on the banner image itself — this
- * file never restates or recomputes it. */
+ * file never restates or recomputes it.
+ *
+ * NOTE: as of the 2026-09-19 update, these ids intentionally no longer
+ * match the icon row baked into each banner PNG's pixels (the images
+ * predate this data change and can't be edited/regenerated here) —
+ * they drive the real, live subscription grid on each bundle's own
+ * detail page (/bundles/[slug]) instead. */
 export interface LifestyleBundle {
   slug: string;
   title: string;
@@ -20,21 +26,23 @@ export const LIFESTYLE_BUNDLES: LifestyleBundle[] = [
     title: "Student Bundle",
     tagline: "Everything you need to study, learn, create and stay ahead.",
     image: "/bundles/student-essentials.png",
-    subscriptionIds: ["chatgpt-plus", "canva-pro", "coursera-plus", "youtube-premium", "google-one"],
+    subscriptionIds: ["chatgpt-plus", "youtube-premium", "spotify-premium", "microsoft-365", "canva-pro", "coursera-plus"],
   },
   {
     slug: "working-professional",
     title: "Working Professional Bundle",
     tagline: "Essential tools for productivity, communication, AI and career growth.",
     image: "/bundles/working-professional.png",
-    subscriptionIds: ["chatgpt-plus", "linkedin-premium", "grammarly-premium", "google-one"],
+    subscriptionIds: ["chatgpt-plus", "microsoft-365", "linkedin-premium", "spotify-premium", "netflix", "amazon-prime"],
   },
   {
     slug: "family-bundle",
     title: "Family Bundle",
     tagline: "Entertainment, learning and everyday digital services for the whole family.",
     image: "/bundles/family-bundle.png",
-    subscriptionIds: ["netflix", "amazon-prime-video", "jiohotstar", "youtube-premium", "spotify-premium", "google-one"],
+    // Apple TV+ requested but dropped — not a real catalog entry (see
+    // file header note).
+    subscriptionIds: ["netflix", "amazon-prime", "jiohotstar", "youtube-premium", "spotify-premium", "canva-pro"],
   },
 ];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SUBSCRIPTIONS_BY_ID, getPriceForward } from "@/data/subscriptions";
 import { cn, formatINR } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
@@ -58,11 +58,24 @@ const SLIDE_ART: Record<string, SlideArt> = {
   },
 };
 
+const AUTO_ADVANCE_MS = 4000;
+
 export function HeroCarousel() {
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
   const select = useUniverseStore((s) => s.select);
 
   const items = FEATURED_IDS.map((id) => SUBSCRIPTIONS_BY_ID[id]).filter((s) => s !== undefined);
+  const itemCount = items.length;
+
+  useEffect(() => {
+    if (paused || itemCount === 0) return;
+    const id = setInterval(() => {
+      setIndex((i) => (i + 1) % itemCount);
+    }, AUTO_ADVANCE_MS);
+    return () => clearInterval(id);
+  }, [paused, itemCount, index]);
+
   if (items.length === 0) return null;
 
   const sub = items[Math.min(index, items.length - 1)]!;
@@ -78,6 +91,8 @@ export function HeroCarousel() {
           art.bgClass
         )}
         style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
       >
         {sub.id === "bloomberg-terminal" && <div className="hero-ticker-line" aria-hidden />}
 

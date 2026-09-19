@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterBar, SortDropdown } from "@/components/filters/FilterBar";
-import { BrandLogoFilters } from "@/components/subscriptions/BrandLogoFilters";
 import { HeroCarousel } from "@/components/universe/HeroCarousel";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
@@ -115,9 +114,6 @@ export function ExploreClient() {
           isMobile ? (
             <>
               {mobileToolbar}
-              <div className="border-b border-line-soft bg-void-950 px-3 py-1.5">
-                <BrandLogoFilters />
-              </div>
               <MobileUniverse />
             </>
           ) : (
@@ -125,14 +121,11 @@ export function ExploreClient() {
               <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex justify-center p-4 md:hidden">
                 <div className="pointer-events-auto flex justify-center">{toolbar}</div>
               </div>
-              <div className="border-b border-line-soft bg-void-950 px-4 py-1.5">
-                <BrandLogoFilters />
-              </div>
               {/* Floating widgets anchor to this canvas wrapper, not the
                   whole page column — so their absolute offsets (top-20 etc.)
                   stay correct regardless of how much real space HeroCarousel
-                  and BrandLogoFilters take above, instead of a hardcoded
-                  guess that breaks the moment either grows/shrinks. */}
+                  takes above, instead of a hardcoded guess that breaks the
+                  moment it grows/shrinks. */}
               <div className="relative flex flex-1 min-h-0">
                 <UniverseScene />
                 <div className="pointer-events-none absolute bottom-4 left-4 z-30 hidden lg:flex lg:flex-col lg:items-start lg:gap-2 lg:bottom-6 lg:left-6">
@@ -169,9 +162,6 @@ export function ExploreClient() {
         ) : (
           <div className="flex flex-1 min-h-0 flex-col">
             {isMobile ? mobileToolbar : <div className="flex justify-center border-b border-line-soft p-4 md:hidden">{toolbar}</div>}
-            <div className="border-b border-line-soft bg-void-950 px-4 py-1.5">
-              <BrandLogoFilters />
-            </div>
             <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
               <ListView />
             </div>

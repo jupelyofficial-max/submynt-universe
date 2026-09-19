@@ -42,10 +42,12 @@ const AUTO_ADVANCE_MS = 4000;
 // padding % is the peek fraction of the full track width — the card
 // itself is w-full of what padding leaves behind, so it isn't
 // re-shrunk by a second, compounding percentage). sm/lg target the
-// requested 15-20% peek; mobile stays narrower (~9%) so the active
-// banner doesn't shrink into illegibility on small screens, since
-// height is now driven by width (aspect-ratio, no crop).
-const TRACK_PADDING_CLASS = "px-[9%] sm:px-[15%] lg:px-[18.5%]";
+// requested 15-20% peek; mobile uses a narrower peek (~6%, was ~9%) so
+// the active card is wider — since height is driven by width via a
+// fixed aspect-ratio (no crop), a wider active card is also a taller
+// one, keeping the banner readable/prominent while the 3-card peek
+// (prev/next cards still visibly peeking) is unchanged.
+const TRACK_PADDING_CLASS = "px-[6%] sm:px-[15%] lg:px-[18.5%]";
 
 export function HeroCarousel() {
   const [index, setIndex] = useState(() => Math.max(0, FEATURED_IDS.indexOf(DEFAULT_ACTIVE_ID)));

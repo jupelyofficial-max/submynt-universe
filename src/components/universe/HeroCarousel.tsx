@@ -33,10 +33,14 @@ const BANNER_IMAGE: Record<string, string> = {
 };
 
 const AUTO_ADVANCE_MS = 4000;
-// (100 - cardWidth%) / 2 per breakpoint — keeps the active card centered
-// while leaving the matching peek strip for prev/next on each side.
-const TRACK_PADDING_CLASS = "px-[9%] sm:px-[14%] lg:px-[19%]";
-const CARD_WIDTH_CLASS = "w-[82%] sm:w-[72%] lg:w-[62%]";
+// Peek is controlled by the track's own padding alone (each side's
+// padding % is the peek fraction of the full track width — the card
+// itself is w-full of what padding leaves behind, so it isn't
+// re-shrunk by a second, compounding percentage). sm/lg target the
+// requested 15-20% peek; mobile stays narrower (~9%) so the active
+// banner doesn't shrink into illegibility on small screens, since
+// height is now driven by width (aspect-ratio, no crop).
+const TRACK_PADDING_CLASS = "px-[9%] sm:px-[15%] lg:px-[18.5%]";
 
 export function HeroCarousel() {
   const [index, setIndex] = useState(0);
@@ -101,7 +105,7 @@ export function HeroCarousel() {
 
   return (
     <div className="px-4 pt-4 lg:px-8">
-      <div className="relative mx-auto max-w-6xl">
+      <div className="relative mx-auto max-w-[92rem]">
         <button
           type="button"
           onClick={() => goTo(index - 1)}
@@ -156,8 +160,7 @@ export function HeroCarousel() {
                   // that ratio, and locking to 1340:360 here would
                   // pillarbox them under object-contain instead of
                   // showing the full design edge-to-edge.
-                  "relative aspect-[8/3] shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer",
-                  CARD_WIDTH_CLASS,
+                  "relative aspect-[8/3] w-full shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer",
                   active ? "opacity-100" : "opacity-55 scale-[0.94]"
                 )}
                 style={{ border: "1px solid rgba(255,255,255,0.08)" }}

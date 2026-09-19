@@ -3,7 +3,6 @@
 import { useMemo, useRef } from "react";
 import { ArrowUp, SearchX, Target } from "lucide-react";
 import { MobileCategoryCard } from "./MobileCategoryCard";
-import { SponsoredStrip } from "./SponsoredStrip";
 import { buildUniverse } from "@/lib/universeLayout";
 import { SUBSCRIPTIONS } from "@/data/subscriptions";
 import { filterByCatalogMode, matchesFilters, matchesSearch } from "@/lib/filterSubscriptions";
@@ -79,9 +78,10 @@ export function MobileUniverse() {
             <p className="text-xs text-ink-500">Try a different search term or clear your filters.</p>
           </div>
         ) : (
-          // Bottom padding clears the fixed sponsored bar below so the last
-          // row of categories is never hidden behind it.
-          <div className="relative grid grid-cols-2 gap-2 p-2" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 76px)" }}>
+          // Bottom padding clears the global footer (layout.tsx), which
+          // sits below this whole scroll container regardless of scroll
+          // position, so the last row of categories is never hidden behind it.
+          <div className="relative grid grid-cols-2 gap-2 p-2" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 34px)" }}>
             {ordered.map((cluster) => (
               <div key={cluster.name} ref={(el) => { if (el) cardRefs.current.set(cluster.name, el); }}>
                 <MobileCategoryCard cluster={cluster} subs={byCategory.get(cluster.name) ?? []} />
@@ -92,14 +92,12 @@ export function MobileUniverse() {
       </div>
 
       {/* Floating action stack — fixed to the viewport (not the scroll
-          container) so it stays put above the sponsored bar regardless of
-          scroll position, safe-area aware for the home indicator. */}
+          container) so it stays put above the global footer (layout.tsx)
+          regardless of scroll position, safe-area aware for the home
+          indicator. */}
       <div
         className="pointer-events-none fixed right-3 z-20 flex flex-col gap-2"
-        // +28px on top of the previous 88px offset — the global footer
-        // (layout.tsx) now sits below this whole fixed-bottom cluster and
-        // needs the same clearance the Sponsored/Featured strip below gets.
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 116px)" }}
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 34px)" }}
       >
         {owned.length > 0 && (
           <button
@@ -117,27 +115,6 @@ export function MobileUniverse() {
         >
           <ArrowUp size={18} />
         </button>
-      </div>
-
-      <div
-        className="pointer-events-none fixed inset-x-0 z-20 px-3"
-        // 34px clears the footer's own 28px height (env(safe-area-inset-bottom)
-        // cancels out of the gap math the same way regardless of device, since
-        // both this offset and the footer's own padding-bottom include it) with
-        // a steady ~6px to spare — nudged down slightly from the original 38px
-        // fix, still safely short of colliding with the footer below it.
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 34px)" }}
-      >
-        {/* w-full so this box is genuinely bounded by the wrapper's own
-            padding, and deliberately NOT centered — a flex `justify-center`
-            child that overflows a scroll container clips its start edge
-            with no way to scroll back to it in most browsers (content is
-            centered using the container's full intrinsic width, not its
-            visible/scrollable width). Left-aligned + overflow-x-auto is the
-            one layout that's actually reachable end-to-end by scrolling. */}
-        <div className="pointer-events-auto w-full overflow-x-auto no-scrollbar">
-          <SponsoredStrip compact />
-        </div>
       </div>
     </div>
   );

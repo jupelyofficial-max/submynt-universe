@@ -11,7 +11,6 @@ import { EcosystemsRow } from "@/components/universe/EcosystemsRow";
 import { LifestyleBundlesRow } from "@/components/universe/LifestyleBundlesRow";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
-import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
 import { MobileUniverse } from "@/components/universe/MobileUniverse";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ListView } from "@/components/views/ListView";
@@ -133,11 +132,6 @@ export function ExploreClient() {
                   one viewport when needed and <main> (layout.tsx) scrolls it. */}
               <div className="relative flex h-[70vh] min-h-[420px] shrink-0">
                 <UniverseScene />
-                <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center lg:bottom-4">
-                  <div className="pointer-events-auto">
-                    <SponsoredStrip />
-                  </div>
-                </div>
               </div>
             </>
           )

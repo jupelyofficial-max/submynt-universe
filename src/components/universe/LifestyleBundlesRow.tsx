@@ -20,7 +20,7 @@ export function LifestyleBundlesRow() {
     <div className="px-4 pb-2 pt-5 lg:px-8">
       <div className="mx-auto max-w-[1340px]">
         <h2 className="mb-3 text-lg font-semibold text-ink-0">Lifestyle Subscriptions</h2>
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {CARDS.map((card) => (
             <Link
               key={card.key}

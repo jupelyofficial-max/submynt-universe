@@ -150,7 +150,13 @@ export function HeroCarousel() {
                 onClick={() => (active ? select(item.id) : goTo(i))}
                 aria-label={`${item.name} — View details`}
                 className={cn(
-                  "relative h-64 shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 sm:h-72 lg:h-80 cursor-pointer",
+                  // Container ratio matches the uploaded PNGs' actual
+                  // dimensions (~2048x768, i.e. ~8:3) rather than the
+                  // nominal 1340x360 spec — the real files aren't quite
+                  // that ratio, and locking to 1340:360 here would
+                  // pillarbox them under object-contain instead of
+                  // showing the full design edge-to-edge.
+                  "relative aspect-[8/3] shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer",
                   CARD_WIDTH_CLASS,
                   active ? "opacity-100" : "opacity-55 scale-[0.94]"
                 )}
@@ -158,7 +164,7 @@ export function HeroCarousel() {
               >
                 {banner && (
                   // eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention
-                  <img src={banner} alt={item.name} className="h-full w-full object-cover" />
+                  <img src={banner} alt={item.name} className="h-full w-full object-contain" />
                 )}
               </button>
             );

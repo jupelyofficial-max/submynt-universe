@@ -45,7 +45,7 @@ export function EcosystemsRow() {
                   className={cn(
                     "flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-md shadow-black/5 transition-all duration-200 sm:h-20 sm:w-20",
                     "group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:shadow-black/10 group-active:translate-y-0",
-                    active ? "ring-2 ring-ocean-500" : "group-hover:ring-2 group-hover:ring-ocean-300"
+                    active && "ring-2 ring-ocean-500"
                   )}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention */}

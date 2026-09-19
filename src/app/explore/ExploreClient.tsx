@@ -12,7 +12,6 @@ import { LifestyleBundlesRow } from "@/components/universe/LifestyleBundlesRow";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
-import { EcosystemStats } from "@/components/universe/EcosystemStats";
 import { MobileUniverse } from "@/components/universe/MobileUniverse";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ListView } from "@/components/views/ListView";
@@ -106,10 +105,10 @@ export function ExploreClient() {
   );
 
   return (
-    <div className="relative flex flex-1 flex-col min-h-0 bg-void-950">
+    <div className="relative flex flex-1 flex-col bg-void-950">
       {viewMode === "universe" && !isMobile && <NebulaBackdrop />}
 
-      <div className="relative z-10 flex flex-1 flex-col min-h-0">
+      <div className="relative z-10 flex flex-1 flex-col">
         <HeroCarousel />
         <EcosystemsRow />
         <LifestyleBundlesRow />
@@ -128,27 +127,12 @@ export function ExploreClient() {
                   whole page column — so their absolute offsets (top-20 etc.)
                   stay correct regardless of how much real space HeroCarousel
                   takes above, instead of a hardcoded guess that breaks the
-                  moment it grows/shrinks. */}
-              <div className="relative flex flex-1 min-h-0">
+                  moment it grows/shrinks. Fixed height (not flex-1/min-h-0)
+                  so the 3D scene keeps a stable size instead of being
+                  squeezed by the rows above it — the page grows taller than
+                  one viewport when needed and <main> (layout.tsx) scrolls it. */}
+              <div className="relative flex h-[70vh] min-h-[420px] shrink-0">
                 <UniverseScene />
-                <div className="pointer-events-none absolute bottom-4 left-4 z-30 hidden lg:flex lg:flex-col lg:items-start lg:gap-2 lg:bottom-6 lg:left-6">
-                  <div className="pointer-events-auto">
-                    <EcosystemStats />
-                  </div>
-                  <div className="pointer-events-auto">
-                    <button
-                      type="button"
-                      onClick={() => setSubmitModalOpen(true)}
-                      aria-label="Suggest a subscription"
-                      className="glass-panel flex items-center gap-3 rounded-2xl px-4 py-3 shadow-lg shadow-black/5 transition-[filter] hover:brightness-95 active:brightness-90 cursor-pointer"
-                    >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
-                        <Upload size={17} />
-                      </div>
-                      <div className="text-sm font-semibold text-ink-0">Suggest a subscription</div>
-                    </button>
-                  </div>
-                </div>
                 <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center lg:bottom-4">
                   <div className="pointer-events-auto">
                     <SponsoredStrip />

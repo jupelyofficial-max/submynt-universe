@@ -16,7 +16,7 @@ export function LifestyleBundlesRow() {
     <div className="px-4 pb-2 pt-5 lg:px-8">
       <div className="mx-auto max-w-[92rem]">
         <h2 className="mb-3 text-lg font-semibold text-ink-0">Lifestyle Subscriptions</h2>
-        <div className="mx-auto flex max-w-2xl flex-col gap-3">
+        <div className="mx-auto flex max-w-[1340px] flex-col gap-3">
           {CARDS.map((card) => (
             <Link
               key={card.key}

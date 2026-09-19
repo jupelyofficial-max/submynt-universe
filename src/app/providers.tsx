@@ -11,8 +11,15 @@ import { createClient } from "@/lib/supabase/client";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    useMySubscriptionsStore.persist.rehydrate();
-    useMySubscriptionsStore.getState().setHydrated();
+    // Awaited (unlike the other stores' fire-and-forget rehydrate calls
+    // below) so any pre-sign-in localStorage items are actually loaded
+    // into `owned` before the auth-driven sync effect can read them for
+    // migration — otherwise a fast sign-in could race ahead of rehydrate
+    // and migrate nothing.
+    (async () => {
+      await useMySubscriptionsStore.persist.rehydrate();
+      useMySubscriptionsStore.getState().setHydrated();
+    })();
     useSubmissionsStore.persist.rehydrate();
     useSubmissionsStore.getState().setHydrated();
     useSubscriptionStatusStore.persist.rehydrate();
@@ -39,6 +46,23 @@ export function Providers({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => useAuthStore.getState().setSession(session));
     return () => subscription.unsubscribe();
   }, []);
+
+  const userId = useAuthStore((s) => s.user?.id ?? null);
+  const authHydrated = useAuthStore((s) => s.hydrated);
+  const subscriptionsHydrated = useMySubscriptionsStore((s) => s.hydrated);
+
+  // Drives My Subscriptions between its two backends: signed in migrates
+  // whatever's in localStorage up to Supabase and switches to it as the
+  // source of truth; signed out drops back to a clean, localStorage-only
+  // anonymous slate instead of leaving the previous account's list visible.
+  useEffect(() => {
+    if (!authHydrated || !subscriptionsHydrated) return;
+    if (userId) {
+      useMySubscriptionsStore.getState().syncToUser(userId);
+    } else if (useMySubscriptionsStore.getState().userId) {
+      useMySubscriptionsStore.getState().clearUser();
+    }
+  }, [userId, authHydrated, subscriptionsHydrated]);
 
   return <>{children}</>;
 }

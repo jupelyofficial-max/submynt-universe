@@ -14,7 +14,7 @@ export function SubmitListingModal() {
   const close = () => useUniverseStore.getState().setSubmitModalOpen(false);
 
   return (
-    <ResponsiveSheet open={isOpen} onClose={close} title="Submit a subscription" desktopVariant="center" widthClassName="w-[480px]">
+    <ResponsiveSheet open={isOpen} onClose={close} title="Suggest a subscription" desktopVariant="center" widthClassName="w-[480px]">
       {isOpen && <SubmitListingForm onClose={close} />}
     </ResponsiveSheet>
   );

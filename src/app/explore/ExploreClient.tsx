@@ -12,7 +12,6 @@ import { SubmitListingModal } from "@/components/submissions/SubmitListingModal"
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
 import { EcosystemStats } from "@/components/universe/EcosystemStats";
-import { LiveInsights } from "@/components/universe/LiveInsights";
 import { MobileUniverse } from "@/components/universe/MobileUniverse";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ListView } from "@/components/views/ListView";
@@ -146,11 +145,6 @@ export function ExploreClient() {
                       </div>
                       <div className="text-sm font-semibold text-ink-0">Suggest a subscription</div>
                     </button>
-                  </div>
-                </div>
-                <div className="pointer-events-none absolute right-4 top-4 z-30 hidden lg:block lg:right-6">
-                  <div className="pointer-events-auto">
-                    <LiveInsights />
                   </div>
                 </div>
                 <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center lg:bottom-4">

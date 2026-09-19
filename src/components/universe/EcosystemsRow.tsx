@@ -28,8 +28,8 @@ export function EcosystemsRow() {
   return (
     <div className="px-4 pb-2 pt-5 lg:px-8">
       <div className="mx-auto max-w-[92rem]">
-        <h2 className="font-editorial mb-3 text-lg text-ink-0">Subscription Ecosystems</h2>
-        <div className="flex items-center gap-5 overflow-x-auto no-scrollbar pb-1 sm:gap-7">
+        <h2 className="mb-3 text-center text-lg font-semibold text-ink-0">Subscription Ecosystems</h2>
+        <div className="flex items-center justify-center gap-5 overflow-x-auto no-scrollbar pb-1 sm:gap-7">
           {ECOSYSTEMS.map((eco) => {
             const active = searchQuery.toLowerCase() === eco.name.toLowerCase();
             return (
@@ -43,9 +43,9 @@ export function EcosystemsRow() {
               >
                 <div
                   className={cn(
-                    "flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-md shadow-black/5 ring-1 ring-line-soft transition-all duration-200 sm:h-20 sm:w-20",
+                    "flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-md shadow-black/5 transition-all duration-200 sm:h-20 sm:w-20",
                     "group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:shadow-black/10 group-active:translate-y-0",
-                    active ? "ring-2 ring-ocean-500" : "group-hover:ring-ocean-300"
+                    active ? "ring-2 ring-ocean-500" : "group-hover:ring-2 group-hover:ring-ocean-300"
                   )}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention */}

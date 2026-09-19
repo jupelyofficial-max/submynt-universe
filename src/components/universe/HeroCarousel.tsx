@@ -81,7 +81,14 @@ export function HeroCarousel() {
 
   // Keep the scroll position in sync whenever `index` changes, whether
   // that came from autoplay, an arrow/dot click, or a user swipe (see
-  // handleScroll below) — scrollIntoView is a no-op if already centered.
+  // handleScroll below) — no-op if already centered. This scrolls only
+  // the carousel's own horizontal track (trackRef.scrollTo), computed
+  // manually, rather than target.scrollIntoView(): scrollIntoView walks
+  // every scrollable ancestor, including the page's own <main> — with
+  // the page scrolled down past the carousel (e.g. to Lifestyle
+  // Subscriptions), its "nearest" vertical fallback would drag <main>
+  // itself back up to the carousel every 4s on autoplay, hijacking
+  // wherever the user actually is on the page.
   useEffect(() => {
     const dir = wrapRef.current;
     wrapRef.current = null;
@@ -89,7 +96,13 @@ export function HeroCarousel() {
     if (dir === "prev") target = cardRefs.current[0];
     else if (dir === "next") target = cardRefs.current[extendedItems.length - 1];
     else target = cardRefs.current[index + 1];
-    target?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    const track = trackRef.current;
+    if (!track || !target) return;
+    const trackRect = track.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const delta = targetRect.left + targetRect.width / 2 - (trackRect.left + trackRect.width / 2);
+    if (delta === 0) return;
+    track.scrollTo({ left: track.scrollLeft + delta, behavior: "smooth" });
   }, [index, extendedItems.length]);
 
   useEffect(() => {

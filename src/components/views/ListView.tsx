@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { SUBSCRIPTIONS, bestSavingsAlternative, potentialSavingsMonthly } from "@/data/subscriptions";
+import { SUBSCRIPTIONS, bestSavingsAlternative, getPriceForward, isRecentlyAdded, potentialSavingsMonthly } from "@/data/subscriptions";
 import { VERIFICATION_BY_ID } from "@/data/verification";
 import { filterByCatalogMode, matchesFilters, matchesSearch, sortSubscriptions } from "@/lib/filterSubscriptions";
 import { canClaimSavings } from "@/lib/verification/claims";
@@ -44,6 +44,7 @@ export function ListView() {
         const savings = potentialSavingsMonthly(sub);
         const savingsAlt = savings > 0 ? bestSavingsAlternative(sub) : null;
         const savingsVerified = savingsAlt ? canClaimSavings(VERIFICATION_BY_ID[sub.id], VERIFICATION_BY_ID[savingsAlt.id]) : false;
+        const priceInfo = getPriceForward(sub);
         return (
           <div
             key={sub.id}
@@ -55,14 +56,28 @@ export function ListView() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <h3 className="truncate text-sm font-semibold text-ink-0">{sub.name}</h3>
-                  {sub.isNew && <Badge tone="nebula">New</Badge>}
+                  {isRecentlyAdded(sub) && <Badge tone="nebula">New</Badge>}
                   {sub.trialDays && <Badge tone="nebula">{sub.trialDays}d trial</Badge>}
                 </div>
                 <p className="mt-0.5 truncate text-xs text-ink-400">{sub.category}</p>
               </div>
               <div className="shrink-0 text-right">
-                <div className="text-sm font-semibold text-ink-0">{formatPrice(sub.priceMonthly, sub.priceLabel)}</div>
-                {sub.priceMonthly !== null && sub.priceMonthly > 0 && <div className="text-[11px] text-ink-500">/mo</div>}
+                {priceInfo.fromPrice === null ? (
+                  <div className="text-sm font-bold text-ink-0">{formatPrice(sub.priceMonthly, sub.priceLabel)}</div>
+                ) : (
+                  <>
+                    <div className="text-sm font-bold text-ink-0">
+                      {priceInfo.strikePrice !== null && "From "}
+                      {formatINR(priceInfo.fromPrice)}
+                    </div>
+                    <div className="flex items-center justify-end gap-1">
+                      {priceInfo.strikePrice !== null && (
+                        <span className="text-[11px] text-ink-500 line-through">{formatINR(priceInfo.strikePrice)}</span>
+                      )}
+                      {priceInfo.fromPrice > 0 && <span className="text-[11px] text-ink-500">/mo</span>}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

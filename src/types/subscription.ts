@@ -65,7 +65,14 @@ export interface Subscription {
   rating: number;
   region: Region;
   tags: string[];
-  isNew?: boolean;
+  /** ISO date this entry was actually added to the catalogue — only set
+   * where the real addition date is known (from git history, not a
+   * guess), currently the four Sept 2026 batches: Elite Access, Dating,
+   * Research & Data, and the Music/Gaming/Cloud/Wellness restore. Left
+   * undefined for the rest of the catalogue rather than backfilled with
+   * a fabricated date. Drives the "New" badge — see isRecentlyAdded in
+   * data/subscriptions.ts. */
+  addedAt?: string;
   /** Length of the free trial in days, if this plan offers one. */
   trialDays?: number;
   /** Affiliate/deal URL, only set when a real deal relationship exists.

@@ -237,7 +237,6 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.8,
     region: "Available in India",
     tags: ["AI Tools"],
-    isNew: true,
   },
   {
     id: "adobe-creative-cloud",
@@ -652,6 +651,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.6,
     region: "Global",
     tags: ["Private Aviation"],
+    addedAt: "2026-09-12T13:15:49Z",
   },
   {
     id: "wheels-up",
@@ -670,6 +670,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.3,
     region: "Global",
     tags: ["Private Aviation"],
+    addedAt: "2026-09-12T13:15:49Z",
   },
   {
     id: "soho-house",
@@ -688,6 +689,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.4,
     region: "Global",
     tags: ["Private Clubs"],
+    addedAt: "2026-09-12T13:15:49Z",
   },
   {
     id: "aman-club",
@@ -708,6 +710,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.8,
     region: "Global",
     tags: ["Private Clubs"],
+    addedAt: "2026-09-12T13:15:49Z",
   },
   {
     id: "sollis-health",
@@ -726,6 +729,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.6,
     region: "Global",
     tags: ["Concierge Health"],
+    addedAt: "2026-09-12T13:15:49Z",
   },
   {
     id: "fountain-life",
@@ -744,6 +748,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.5,
     region: "Global",
     tags: ["Concierge Health"],
+    addedAt: "2026-09-12T13:15:49Z",
   },
   {
     id: "mdvip",
@@ -762,6 +767,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.4,
     region: "Global",
     tags: ["Concierge Health"],
+    addedAt: "2026-09-12T13:15:49Z",
   },
   {
     id: "bloomberg-terminal",
@@ -782,6 +788,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.7,
     region: "Global",
     tags: ["Startup & Deal Data"],
+    addedAt: "2026-09-12T13:15:49Z",
   },
   {
     id: "equinox-all-access",
@@ -800,6 +807,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.5,
     region: "Global",
     tags: ["Elite Fitness"],
+    addedAt: "2026-09-12T13:15:49Z",
   },
   {
     id: "tinder-platinum",
@@ -818,6 +826,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.0,
     region: "Global",
     tags: ["Dating"],
+    addedAt: "2026-09-12T14:15:43Z",
   },
   {
     id: "bumble-premium",
@@ -836,6 +845,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.1,
     region: "Global",
     tags: ["Dating"],
+    addedAt: "2026-09-12T14:15:43Z",
   },
   {
     id: "hinge-x",
@@ -854,6 +864,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.2,
     region: "Global",
     tags: ["Dating"],
+    addedAt: "2026-09-12T14:15:43Z",
   },
   {
     id: "aisle-premium",
@@ -872,6 +883,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.0,
     region: "India",
     tags: ["Dating"],
+    addedAt: "2026-09-12T14:15:43Z",
   },
   {
     id: "raya",
@@ -890,6 +902,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.3,
     region: "Global",
     tags: ["Dating"],
+    addedAt: "2026-09-12T14:15:43Z",
   },
   {
     id: "gartner",
@@ -908,6 +921,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.5,
     region: "Global",
     tags: ["Market Research"],
+    addedAt: "2026-09-12T16:23:56Z",
   },
   {
     id: "forrester",
@@ -926,6 +940,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.4,
     region: "Global",
     tags: ["Market Research"],
+    addedAt: "2026-09-12T16:23:56Z",
   },
   {
     id: "idc",
@@ -944,6 +959,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.3,
     region: "Global",
     tags: ["Market Research"],
+    addedAt: "2026-09-12T16:23:56Z",
   },
   {
     id: "statista",
@@ -964,6 +980,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.4,
     region: "Global",
     tags: ["Market Research"],
+    addedAt: "2026-09-12T16:23:56Z",
   },
   {
     id: "euromonitor-international",
@@ -982,6 +999,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.3,
     region: "Global",
     tags: ["Market Research"],
+    addedAt: "2026-09-12T16:23:56Z",
   },
   {
     id: "mintel",
@@ -1000,6 +1018,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.2,
     region: "Global",
     tags: ["Market Research"],
+    addedAt: "2026-09-12T16:23:56Z",
   },
   {
     id: "cb-insights",
@@ -1018,6 +1037,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.5,
     region: "Global",
     tags: ["Startup & Deal Data"],
+    addedAt: "2026-09-12T16:23:56Z",
   },
   {
     id: "pitchbook",
@@ -1036,6 +1056,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.6,
     region: "Global",
     tags: ["Startup & Deal Data"],
+    addedAt: "2026-09-12T16:23:56Z",
   },
   {
     id: "youtube-music-premium",
@@ -1053,6 +1074,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.2,
     region: "Available in India",
     tags: ["Music"],
+    addedAt: "2026-09-13T05:01:10Z",
   },
   {
     id: "apple-music",
@@ -1070,6 +1092,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.5,
     region: "Available in India",
     tags: ["Music"],
+    addedAt: "2026-09-13T05:01:10Z",
   },
   {
     id: "jiosaavn-pro",
@@ -1087,6 +1110,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.0,
     region: "India",
     tags: ["Music"],
+    addedAt: "2026-09-13T05:01:10Z",
   },
   {
     id: "xbox-game-pass",
@@ -1104,6 +1128,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.6,
     region: "Available in India",
     tags: ["Gaming"],
+    addedAt: "2026-09-13T05:01:10Z",
     trialDays: 7,
   },
   {
@@ -1125,6 +1150,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.4,
     region: "Available in India",
     tags: ["Gaming"],
+    addedAt: "2026-09-13T05:01:10Z",
     trialDays: 7,
   },
   {
@@ -1146,6 +1172,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.0,
     region: "Available in India",
     tags: ["Gaming"],
+    addedAt: "2026-09-13T05:01:10Z",
     trialDays: 14,
   },
   {
@@ -1167,6 +1194,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.2,
     region: "Available in India",
     tags: ["Gaming"],
+    addedAt: "2026-09-13T05:01:10Z",
     trialDays: 7,
   },
   {
@@ -1188,6 +1216,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.4,
     region: "Available in India",
     tags: ["Cloud"],
+    addedAt: "2026-09-13T05:01:10Z",
     trialDays: 14,
   },
   {
@@ -1206,6 +1235,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.3,
     region: "Available in India",
     tags: ["Cloud"],
+    addedAt: "2026-09-13T05:01:10Z",
     trialDays: 30,
   },
   {
@@ -1224,6 +1254,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.2,
     region: "Global",
     tags: ["Cloud"],
+    addedAt: "2026-09-13T05:01:10Z",
     trialDays: 14,
   },
   {
@@ -1245,6 +1276,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.6,
     region: "Global",
     tags: ["Wellness"],
+    addedAt: "2026-09-13T05:01:10Z",
     trialDays: 7,
   },
   {
@@ -1266,6 +1298,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     rating: 4.5,
     region: "Global",
     tags: ["Wellness"],
+    addedAt: "2026-09-13T05:01:10Z",
     trialDays: 30,
   },
 ];
@@ -1303,4 +1336,32 @@ export function potentialSavingsMonthly(sub: Subscription): number {
   const alt = bestSavingsAlternative(sub);
   if (!alt || sub.priceMonthly === null || alt.priceMonthly === null) return 0;
   return Math.max(0, sub.priceMonthly - alt.priceMonthly);
+}
+
+/** Drives the "New" badge — true only for entries with a real, known
+ * addition date (see Subscription.addedAt), not a rolling time window. */
+export function isRecentlyAdded(sub: Subscription): boolean {
+  return sub.addedAt !== undefined;
+}
+
+export interface PriceForward {
+  /** Lowest real monthly-equivalent price across this subscription's own
+   * plans — what "From ₹X/mo" shows. Falls back to priceMonthly when
+   * there's no plan-level data to compare. */
+  fromPrice: number | null;
+  /** A genuinely higher price already present in this subscription's own
+   * plan data (e.g. the plain monthly plan, when an annual plan works out
+   * cheaper per month) — only set when a real spread exists in `plans`,
+   * never fabricated as a fake "was" price. */
+  strikePrice: number | null;
+}
+
+export function getPriceForward(sub: Subscription): PriceForward {
+  if (sub.plans.length < 2) {
+    return { fromPrice: sub.priceMonthly, strikePrice: null };
+  }
+  const prices = sub.plans.map((p) => p.priceMonthly);
+  const fromPrice = Math.min(...prices);
+  const highest = Math.max(...prices);
+  return { fromPrice, strikePrice: highest > fromPrice ? highest : null };
 }

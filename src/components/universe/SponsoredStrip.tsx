@@ -29,9 +29,7 @@ export function SponsoredStrip({ compact }: { compact?: boolean }) {
           : "glass-panel flex items-center gap-3 rounded-full px-4 py-2 shadow-lg shadow-black/5"
       }
     >
-      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-ink-500">
-        Featured
-      </span>
+      <span className="font-editorial shrink-0 text-xs font-semibold text-ink-500">Featured</span>
       <div className={compact ? "flex flex-1 items-center justify-between gap-1.5" : "flex items-center gap-2"}>
         {items.map((sub) => (
           <SubscriptionLogo

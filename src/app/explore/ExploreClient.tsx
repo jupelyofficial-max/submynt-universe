@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterBar, SortDropdown } from "@/components/filters/FilterBar";
+import { BrandLogoFilters } from "@/components/subscriptions/BrandLogoFilters";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
@@ -112,12 +113,18 @@ export function ExploreClient() {
           isMobile ? (
             <>
               {mobileToolbar}
+              <div className="border-b border-line-soft bg-void-950 px-3 py-1.5">
+                <BrandLogoFilters />
+              </div>
               <MobileUniverse />
             </>
           ) : (
             <>
               <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex justify-center p-4 md:hidden">
                 <div className="pointer-events-auto flex justify-center">{toolbar}</div>
+              </div>
+              <div className="border-b border-line-soft bg-void-950 px-4 py-1.5">
+                <BrandLogoFilters />
               </div>
               <div className="flex flex-1 min-h-0">
                 <UniverseScene />
@@ -155,6 +162,9 @@ export function ExploreClient() {
         ) : (
           <div className="flex flex-1 min-h-0 flex-col">
             {isMobile ? mobileToolbar : <div className="flex justify-center border-b border-line-soft p-4 md:hidden">{toolbar}</div>}
+            <div className="border-b border-line-soft bg-void-950 px-4 py-1.5">
+              <BrandLogoFilters />
+            </div>
             <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
               <ListView />
             </div>

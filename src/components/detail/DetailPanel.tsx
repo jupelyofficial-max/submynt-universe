@@ -16,7 +16,7 @@ import { RecommendationCard } from "@/components/recommendations/RecommendationC
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useDemandSignalsStore } from "@/store/useDemandSignalsStore";
-import { SUBSCRIPTIONS_BY_ID, bestSavingsAlternative, potentialSavingsMonthly } from "@/data/subscriptions";
+import { SUBSCRIPTIONS_BY_ID, bestSavingsAlternative, isRecentlyAdded, potentialSavingsMonthly } from "@/data/subscriptions";
 import { VERIFICATION_BY_ID } from "@/data/verification";
 import { computeBestFor, getProviderUrl, rankAlternatives } from "@/lib/subscriptionIntelligence";
 import { getRecommendation } from "@/lib/recommendations";
@@ -315,9 +315,9 @@ function OverviewTab({ sub, bestFor, isOwned }: { sub: Subscription; bestFor: st
         </div>
       </div>
 
-      {(sub.isNew || isOwned) && (
+      {(isRecentlyAdded(sub) || isOwned) && (
         <div className="flex flex-wrap gap-1.5">
-          {sub.isNew && <Badge tone="nebula">New</Badge>}
+          {isRecentlyAdded(sub) && <Badge tone="nebula">New</Badge>}
           {isOwned && <Badge tone="nebula">In your universe</Badge>}
         </div>
       )}

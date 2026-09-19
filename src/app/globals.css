@@ -111,6 +111,14 @@ body {
   font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
 }
 
+/** Editorial section-header accent (e.g. "Top rated", "Featured") — see
+ * layout.tsx's playfairItalic for why this is a real serif italic rather
+ * than an `italic` class on Bricolage Grotesque. */
+.font-editorial {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-style: italic;
+}
+
 .glass-panel {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(247, 242, 231, 0.92));
   backdrop-filter: blur(20px);

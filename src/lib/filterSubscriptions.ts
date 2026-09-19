@@ -1,5 +1,5 @@
 import { PREMIUM_CATEGORIES, PRICE_BANDS } from "@/data/categories";
-import { potentialSavingsMonthly } from "@/data/subscriptions";
+import { isRecentlyAdded, potentialSavingsMonthly } from "@/data/subscriptions";
 import type { CatalogMode } from "@/store/useUniverseStore";
 import type { Category, FilterState, Subscription } from "@/types/subscription";
 
@@ -94,7 +94,7 @@ export function sortSubscriptions(
     case "savings":
       return copy.sort((a, b) => potentialSavingsMonthly(b) - potentialSavingsMonthly(a));
     case "new":
-      return copy.sort((a, b) => Number(b.isNew ?? false) - Number(a.isNew ?? false) || b.popularity - a.popularity);
+      return copy.sort((a, b) => Number(isRecentlyAdded(b)) - Number(isRecentlyAdded(a)) || b.popularity - a.popularity);
     case "most-subscribed":
       return copy.sort((a, b) => Number(ownedIds.has(b.id)) - Number(ownedIds.has(a.id)) || b.popularity - a.popularity);
     case "recommended":

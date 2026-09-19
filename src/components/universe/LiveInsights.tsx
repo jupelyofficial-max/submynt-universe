@@ -122,9 +122,9 @@ export function LiveInsights() {
               (TOP_POOL above), not live data, so this header doesn't claim
               otherwise. Same icon+text treatment as the students/tips tabs
               below, not a pulsing "live" indicator. */}
-          <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10px] font-semibold uppercase tracking-wider text-ink-500">
+          <div className="mb-1.5 flex items-center gap-1.5 px-1 text-xs font-semibold tracking-wide text-ink-500">
             <Star size={12} className="text-aurora-500" />
-            Top rated
+            <span className="font-editorial">Top rated</span>
           </div>
           <AnimatePresence mode="wait">
             <motion.div

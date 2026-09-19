@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterBar, SortDropdown } from "@/components/filters/FilterBar";
 import { BrandLogoFilters } from "@/components/subscriptions/BrandLogoFilters";
+import { HeroCarousel } from "@/components/universe/HeroCarousel";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { SponsoredStrip } from "@/components/universe/SponsoredStrip";
@@ -109,6 +110,7 @@ export function ExploreClient() {
       {viewMode === "universe" && !isMobile && <NebulaBackdrop />}
 
       <div className="relative z-10 flex flex-1 flex-col min-h-0">
+        <HeroCarousel />
         {viewMode === "universe" ? (
           isMobile ? (
             <>
@@ -126,35 +128,40 @@ export function ExploreClient() {
               <div className="border-b border-line-soft bg-void-950 px-4 py-1.5">
                 <BrandLogoFilters />
               </div>
-              <div className="flex flex-1 min-h-0">
+              {/* Floating widgets anchor to this canvas wrapper, not the
+                  whole page column — so their absolute offsets (top-20 etc.)
+                  stay correct regardless of how much real space HeroCarousel
+                  and BrandLogoFilters take above, instead of a hardcoded
+                  guess that breaks the moment either grows/shrinks. */}
+              <div className="relative flex flex-1 min-h-0">
                 <UniverseScene />
-              </div>
-              <div className="pointer-events-none absolute bottom-4 left-4 z-30 hidden lg:flex lg:flex-col lg:items-start lg:gap-2 lg:bottom-6 lg:left-6">
-                <div className="pointer-events-auto">
-                  <EcosystemStats />
+                <div className="pointer-events-none absolute bottom-4 left-4 z-30 hidden lg:flex lg:flex-col lg:items-start lg:gap-2 lg:bottom-6 lg:left-6">
+                  <div className="pointer-events-auto">
+                    <EcosystemStats />
+                  </div>
+                  <div className="pointer-events-auto">
+                    <button
+                      type="button"
+                      onClick={() => setSubmitModalOpen(true)}
+                      aria-label="Suggest a subscription"
+                      className="glass-panel flex items-center gap-3 rounded-2xl px-4 py-3 shadow-lg shadow-black/5 transition-[filter] hover:brightness-95 active:brightness-90 cursor-pointer"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
+                        <Upload size={17} />
+                      </div>
+                      <div className="text-sm font-semibold text-ink-0">Suggest a subscription</div>
+                    </button>
+                  </div>
                 </div>
-                <div className="pointer-events-auto">
-                  <button
-                    type="button"
-                    onClick={() => setSubmitModalOpen(true)}
-                    aria-label="Suggest a subscription"
-                    className="glass-panel flex items-center gap-3 rounded-2xl px-4 py-3 shadow-lg shadow-black/5 transition-[filter] hover:brightness-95 active:brightness-90 cursor-pointer"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
-                      <Upload size={17} />
-                    </div>
-                    <div className="text-sm font-semibold text-ink-0">Suggest a subscription</div>
-                  </button>
+                <div className="pointer-events-none absolute right-4 top-4 z-30 hidden lg:block lg:right-6">
+                  <div className="pointer-events-auto">
+                    <LiveInsights />
+                  </div>
                 </div>
-              </div>
-              <div className="pointer-events-none absolute right-4 top-20 z-30 hidden lg:block lg:right-6 lg:top-24">
-                <div className="pointer-events-auto">
-                  <LiveInsights />
-                </div>
-              </div>
-              <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center lg:bottom-4">
-                <div className="pointer-events-auto">
-                  <SponsoredStrip />
+                <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center lg:bottom-4">
+                  <div className="pointer-events-auto">
+                    <SponsoredStrip />
+                  </div>
                 </div>
               </div>
             </>

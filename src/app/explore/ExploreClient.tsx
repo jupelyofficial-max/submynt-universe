@@ -126,6 +126,19 @@ export function ExploreClient() {
                 <div className="pointer-events-auto">
                   <EcosystemStats />
                 </div>
+                <div className="pointer-events-auto">
+                  <button
+                    type="button"
+                    onClick={() => setSubmitModalOpen(true)}
+                    aria-label="Suggest a subscription"
+                    className="glass-panel flex items-center gap-3 rounded-2xl px-4 py-3 shadow-lg shadow-black/5 transition-[filter] hover:brightness-95 active:brightness-90 cursor-pointer"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ocean-500/10 text-ocean-600">
+                      <Upload size={17} />
+                    </div>
+                    <div className="text-sm font-semibold text-ink-0">Suggest a subscription</div>
+                  </button>
+                </div>
               </div>
               <div className="pointer-events-none absolute right-4 top-20 z-30 hidden lg:block lg:right-6 lg:top-24">
                 <div className="pointer-events-auto">

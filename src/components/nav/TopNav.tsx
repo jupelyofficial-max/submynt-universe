@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Heart, Search, Upload } from "lucide-react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,15 +11,11 @@ import { SearchBar } from "@/components/search/SearchBar";
 import { ViewSwitcher } from "@/components/views/ViewSwitcher";
 import { CatalogModeToggle } from "@/components/views/CatalogModeToggle";
 import { AccountMenu } from "@/components/nav/AccountMenu";
-import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
-import { useUniverseStore } from "@/store/useUniverseStore";
 
 export function TopNav() {
   const pathname = usePathname();
   const isExplore = pathname === "/explore" || pathname?.startsWith("/explore/");
   const router = useRouter();
-  const ownedCount = useMySubscriptionsStore((s) => s.owned.length);
-  const setSubmitModalOpen = useUniverseStore((s) => s.setSubmitModalOpen);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -75,10 +71,6 @@ export function TopNav() {
             <div className="shrink-0">
               <ViewSwitcher />
             </div>
-            <Button size="sm" className="h-9 shrink-0 rounded-full" onClick={() => setSubmitModalOpen(true)}>
-              <Upload size={13} />
-              Submit
-            </Button>
           </div>
         )}
 
@@ -101,19 +93,6 @@ export function TopNav() {
             </button>
           </>
         )}
-
-        <Link
-          href="/my-subscriptions"
-          className="relative h-10 w-10 flex shrink-0 items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors cursor-pointer"
-          aria-label="My subscriptions"
-        >
-          <Heart size={18} />
-          {ownedCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-nebula-500 text-void-950 text-[10px] font-bold flex items-center justify-center">
-              {ownedCount}
-            </span>
-          )}
-        </Link>
 
         <AccountMenu />
       </div>

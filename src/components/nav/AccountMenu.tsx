@@ -1,9 +1,9 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { Heart, LogOut, Sparkles, SlidersHorizontal } from "lucide-react";
+import { Heart, LogOut, ShieldCheck, Sparkles, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
@@ -111,10 +111,27 @@ function LoggedInMenu({ email, name }: { email: string; name?: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
+  const [isAdmin, setIsAdmin] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const outsideRefs = useMemo(() => [triggerRef, menuRef], []);
   useOnClickOutside(outsideRefs, () => setOpen(false));
+
+  // Server-checked rather than derived from anything already on hand
+  // client-side — keeps the admin allowlist itself out of the client
+  // bundle. A signed-in non-admin just never sees this state flip.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/check")
+      .then((res) => res.json())
+      .then((json: { isAdmin: boolean }) => {
+        if (!cancelled) setIsAdmin(json.isAdmin);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Right-edge-anchored (not left, like FilterDropdown) — this trigger sits
   // at the far right of the nav, so a left-aligned menu would overflow off
@@ -175,6 +192,12 @@ function LoggedInMenu({ email, name }: { email: string; name?: string }) {
             <MenuItem icon={<Sparkles size={14} />} label="For you" onClick={() => go("/for-you")} />
             <MenuItem icon={<Heart size={14} />} label="Saved subscriptions" onClick={() => go("/my-subscriptions")} />
             <MenuItem icon={<SlidersHorizontal size={14} />} label="Preferences" onClick={() => go("/onboarding")} />
+            {isAdmin && (
+              <>
+                <div className="my-1 h-px bg-black/10" />
+                <MenuItem icon={<ShieldCheck size={14} />} label="Admin console" onClick={() => go("/admin")} />
+              </>
+            )}
             <div className="my-1 h-px bg-black/10" />
             <MenuItem icon={<LogOut size={14} />} label="Sign out" onClick={handleSignOut} tone="danger" />
           </div>,

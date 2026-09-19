@@ -14,12 +14,7 @@ export default async function AdminPage() {
   const supabase = await createClient();
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser();
-
-  // TEMP: diagnosing a live "always redirects" report — remove once
-  // resolved. Server-side only, never reaches the client.
-  console.log("[admin gate]", { email: user?.email ?? null, error: error?.message ?? null });
 
   if (!isAdminEmail(user?.email)) {
     redirect("/explore");

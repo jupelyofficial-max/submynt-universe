@@ -16,13 +16,13 @@ export function LifestyleBundlesRow() {
     <div className="px-4 pb-2 pt-5 lg:px-8">
       <div className="mx-auto max-w-[92rem]">
         <h2 className="mb-3 text-lg font-semibold text-ink-0">Lifestyle Subscriptions</h2>
-        <div className="flex flex-col gap-4">
+        <div className="mx-auto flex max-w-2xl flex-col gap-3">
           {CARDS.map((card) => (
             <Link
               key={card.key}
               href={card.href}
               aria-label={card.alt}
-              className="relative aspect-[3/1] w-full overflow-hidden rounded-3xl transition-transform duration-200 hover:scale-[1.005]"
+              className="relative aspect-[3/1] w-full overflow-hidden rounded-2xl transition-transform duration-200 hover:scale-[1.005]"
               style={{ border: "1px solid rgba(0,0,0,0.06)" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention */}

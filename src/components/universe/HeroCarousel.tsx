@@ -263,13 +263,13 @@ export function HeroCarousel() {
                   // see its declaration above) rather than a CSS vw calc.
                   // w-full here is just the pre-hydration/sm+ fallback;
                   // max-w-none is a static safety net either way.
-                  // Mobile aspect is 12:5 (2.4), a modest bump over the
-                  // real banner PNGs' native 8:3 (2.667) so the baked-in
-                  // text/CTA get a little more room — object-contain below
-                  // now letterboxes a small amount on the sides again
-                  // (the trade-off for extra height with no crop). sm/lg
-                  // stay at the asset's exact native 8:3, unchanged.
-                  "relative aspect-[12/5] w-full max-w-none shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer sm:aspect-[8/3]",
+                  // aspect-[8/3] now applies at every breakpoint (was
+                  // 1340:360 on mobile only) — matches the real banner
+                  // PNGs' native ratio exactly, so object-contain below
+                  // renders with zero letterboxing *and* zero crop, and
+                  // gives mobile more height so the baked-in text/CTA
+                  // aren't cramped, per explicit request.
+                  "relative aspect-[8/3] w-full max-w-none shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer",
                   active ? "opacity-100" : "opacity-55 scale-[0.94]"
                 )}
                 style={{ border: "1px solid rgba(255,255,255,0.08)", ...mobileCardStyle }}

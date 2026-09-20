@@ -57,7 +57,8 @@ export function ExploreClient() {
   // Dedicated mobile toolbar. Search shares a row with the Categories/Price
   // chips (both h-9, align cleanly) instead of each getting its own
   // full-width row — three stacked rows read as more chrome than content
-  // above the fold. Sort ("Popular" etc.) moves to row 2, next to Submit.
+  // above the fold. Sort ("Popular" etc.) moves to row 2. No Submit button
+  // here — mobile-only, desktop toolbar keeps it.
   const mobileToolbar = (
     <div className="flex flex-col gap-2 border-b border-line-soft bg-void-950 p-2.5 md:hidden">
       <div className="flex items-center gap-2">
@@ -71,12 +72,6 @@ export function ExploreClient() {
       <div className="flex items-center gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
           <SortDropdown />
-        </div>
-        <div className="flex shrink-0 gap-2">
-          <Button size="sm" className="h-9 shrink-0 rounded-full" onClick={() => setSubmitModalOpen(true)}>
-            <Upload size={13} />
-            Submit
-          </Button>
         </div>
       </div>
     </div>

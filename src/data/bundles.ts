@@ -25,14 +25,14 @@ export const LIFESTYLE_BUNDLES: LifestyleBundle[] = [
     slug: "student-essentials",
     title: "Student Bundle",
     tagline: "Everything you need to study, learn, create and stay ahead.",
-    image: "/bundles/student-essentials.png",
+    image: "/bundles/student-bundle.png",
     subscriptionIds: ["chatgpt-plus", "youtube-premium", "spotify-premium", "microsoft-365", "canva-pro", "coursera-plus"],
   },
   {
     slug: "working-professional",
     title: "Working Professional Bundle",
     tagline: "Essential tools for productivity, communication, AI and career growth.",
-    image: "/bundles/working-professional.png",
+    image: "/bundles/working-professional-bundle.png",
     subscriptionIds: ["chatgpt-plus", "microsoft-365", "linkedin-premium", "spotify-premium", "netflix", "amazon-prime"],
   },
   {
@@ -46,4 +46,4 @@ export const LIFESTYLE_BUNDLES: LifestyleBundle[] = [
   },
 ];
 
-export const NOT_SURE_BUNDLE_IMAGE = "/bundles/not-sure-bundle.png";
+export const NOT_SURE_BUNDLE_IMAGE = "/bundles/find-your-bundle.png";

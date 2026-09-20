@@ -11,6 +11,9 @@ import type { Subscription } from "@/types/subscription";
 
 export const SUBSCRIPTIONS: Subscription[] = [
   {
+    // Verified 2026-09-20: ₹649/mo (Premium tier) is real; the previous
+    // "Annual" plan (₹519/mo) is fabricated — Netflix India sells no
+    // annual plan at all, so it's removed rather than left unverified.
     id: "netflix",
     name: "Netflix",
     provider: "Netflix",
@@ -20,11 +23,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     initials: "NE",
     domain: "netflix.com",
     priceMonthly: 649,
-    billing: ["monthly", "annual"],
-    plans: [
-      { name: "Standard", priceMonthly: 649, billing: "monthly" },
-      { name: "Annual", priceMonthly: 519, billing: "annual" },
-    ],
+    billing: ["monthly"],
+    plans: [{ name: "Standard", priceMonthly: 649, billing: "monthly" }],
     popularity: 98,
     rating: 4.6,
     region: "Available in India",
@@ -32,6 +32,9 @@ export const SUBSCRIPTIONS: Subscription[] = [
     trialDays: 14,
   },
   {
+    // Updated 2026-09-20: ₹149/mo -> ₹139/mo, ₹119/mo annual-equivalent
+    // -> ₹67/mo (₹799/yr ÷ 12), per spotify.com/in-en/premium's own
+    // pricing page.
     id: "spotify-premium",
     name: "Spotify Premium",
     provider: "Spotify Premium",
@@ -40,11 +43,11 @@ export const SUBSCRIPTIONS: Subscription[] = [
     color: "#3fd4e1",
     initials: "SP",
     domain: "spotify.com",
-    priceMonthly: 149,
+    priceMonthly: 139,
     billing: ["monthly", "annual"],
     plans: [
-      { name: "Standard", priceMonthly: 149, billing: "monthly" },
-      { name: "Annual", priceMonthly: 119, billing: "annual" },
+      { name: "Standard", priceMonthly: 139, billing: "monthly" },
+      { name: "Annual", priceMonthly: 67, billing: "annual" },
     ],
     popularity: 95,
     rating: 4.7,
@@ -73,6 +76,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     tags: ["Shopping"],
   },
   {
+    // Verified 2026-09-20: ₹299/mo Premium confirmed real. Annual corrected
+    // ₹239/mo -> ₹183/mo (₹2,199/yr ÷ 12) to match the real annual price.
     id: "jiohotstar",
     name: "JioHotstar",
     provider: "JioHotstar",
@@ -85,7 +90,7 @@ export const SUBSCRIPTIONS: Subscription[] = [
     billing: ["monthly", "annual"],
     plans: [
       { name: "Standard", priceMonthly: 299, billing: "monthly" },
-      { name: "Annual", priceMonthly: 239, billing: "annual" },
+      { name: "Annual", priceMonthly: 183, billing: "annual" },
     ],
     popularity: 92,
     rating: 4.2,
@@ -94,6 +99,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     trialDays: 14,
   },
   {
+    // Verified 2026-09-20: ₹299/mo confirmed real. Annual corrected
+    // ₹239/mo -> ₹125/mo (₹1,499/yr ÷ 12) to match the real annual price.
     id: "amazon-prime-video",
     name: "Amazon Prime Video",
     provider: "Amazon Prime Video",
@@ -106,13 +113,80 @@ export const SUBSCRIPTIONS: Subscription[] = [
     billing: ["monthly", "annual"],
     plans: [
       { name: "Standard", priceMonthly: 299, billing: "monthly" },
-      { name: "Annual", priceMonthly: 239, billing: "annual" },
+      { name: "Annual", priceMonthly: 125, billing: "annual" },
     ],
     popularity: 90,
     rating: 4.3,
     region: "Available in India",
     tags: ["Entertainment"],
     trialDays: 14,
+  },
+  {
+    // Added 2026-09-20, verified: ₹399/mo confirmed; Annual ₹125/mo
+    // (₹1,499/yr ÷ 12).
+    id: "sonyliv",
+    name: "SonyLIV",
+    provider: "SonyLIV",
+    category: "Entertainment",
+    tagline: "Sports, originals and live TV streaming",
+    color: "#00A0DC",
+    initials: "SL",
+    domain: "sonyliv.com",
+    priceMonthly: 399,
+    billing: ["monthly", "annual"],
+    plans: [
+      { name: "Standard", priceMonthly: 399, billing: "monthly" },
+      { name: "Annual", priceMonthly: 125, billing: "annual" },
+    ],
+    popularity: 60,
+    rating: 4.0,
+    region: "Available in India",
+    tags: ["Entertainment"],
+    addedAt: "2026-09-20T01:11:10Z",
+  },
+  {
+    // Added 2026-09-20, verified: ₹199/mo HD plan; Annual (HD) ₹83/mo
+    // (₹999/yr ÷ 12).
+    id: "zee5",
+    name: "ZEE5",
+    provider: "ZEE5",
+    category: "Entertainment",
+    tagline: "Movies, shows and originals across Indian languages",
+    color: "#8E24AA",
+    initials: "Z5",
+    domain: "zee5.com",
+    priceMonthly: 199,
+    billing: ["monthly", "annual"],
+    plans: [
+      { name: "Standard", priceMonthly: 199, billing: "monthly" },
+      { name: "Annual", priceMonthly: 83, billing: "annual" },
+    ],
+    popularity: 58,
+    rating: 3.9,
+    region: "Available in India",
+    tags: ["Entertainment"],
+    addedAt: "2026-09-20T01:11:10Z",
+  },
+  {
+    // Added 2026-09-20, verified via official tv.apple.com/in: ₹75/mo,
+    // 7-day free trial confirmed on that page; no India annual option shown.
+    id: "apple-tv",
+    name: "Apple TV+",
+    provider: "Apple TV+",
+    category: "Entertainment",
+    tagline: "Apple Original films and series",
+    color: "#000000",
+    initials: "AT",
+    domain: "tv.apple.com",
+    priceMonthly: 75,
+    billing: ["monthly"],
+    plans: [{ name: "Standard", priceMonthly: 75, billing: "monthly" }],
+    popularity: 40,
+    rating: 4.4,
+    region: "Available in India",
+    tags: ["Entertainment"],
+    trialDays: 7,
+    addedAt: "2026-09-20T01:11:10Z",
   },
   {
     id: "canva-pro",
@@ -1146,6 +1220,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     addedAt: "2026-09-12T16:23:56Z",
   },
   {
+    // Updated 2026-09-20: ₹99/mo -> ₹89/mo, verified current standalone
+    // price (distinct from the bundled YouTube Premium video plan).
     id: "youtube-music-premium",
     name: "YouTube Music Premium",
     provider: "YouTube Music Premium",
@@ -1154,9 +1230,9 @@ export const SUBSCRIPTIONS: Subscription[] = [
     color: "#3fbee1",
     initials: "YM",
     domain: "music.youtube.com",
-    priceMonthly: 99,
+    priceMonthly: 89,
     billing: ["monthly"],
-    plans: [{ name: "Standard", priceMonthly: 99, billing: "monthly" }],
+    plans: [{ name: "Standard", priceMonthly: 89, billing: "monthly" }],
     popularity: 70,
     rating: 4.2,
     region: "Available in India",
@@ -1198,6 +1274,52 @@ export const SUBSCRIPTIONS: Subscription[] = [
     region: "India",
     tags: ["Music"],
     addedAt: "2026-09-13T05:01:10Z",
+  },
+  {
+    // Added 2026-09-20, verified: ₹119/mo is the standalone non-Prime
+    // price (₹99/mo is a separate Prime-member-linked rate, not used here
+    // to keep this a standalone price like every other entry). New users
+    // get a real 3-month free trial per aboutamazon.in's own announcement.
+    id: "amazon-music-unlimited",
+    name: "Amazon Music Unlimited",
+    provider: "Amazon Music Unlimited",
+    category: "Music",
+    tagline: "Streaming sound, everywhere you go",
+    color: "#25D1DA",
+    initials: "AM",
+    domain: "music.amazon.com",
+    priceMonthly: 119,
+    billing: ["monthly"],
+    plans: [{ name: "Standard", priceMonthly: 119, billing: "monthly" }],
+    popularity: 42,
+    rating: 4.1,
+    region: "Available in India",
+    tags: ["Music"],
+    trialNote: "3-month free trial",
+    addedAt: "2026-09-20T01:11:10Z",
+  },
+  {
+    // Added 2026-09-20, verified: ₹99/mo confirmed; Annual ₹50/mo
+    // (₹599/yr ÷ 12).
+    id: "gaana-plus",
+    name: "Gaana Plus",
+    provider: "Gaana Plus",
+    category: "Music",
+    tagline: "Streaming sound, everywhere you go",
+    color: "#E4322C",
+    initials: "GP",
+    domain: "gaana.com",
+    priceMonthly: 99,
+    billing: ["monthly", "annual"],
+    plans: [
+      { name: "Standard", priceMonthly: 99, billing: "monthly" },
+      { name: "Annual", priceMonthly: 50, billing: "annual" },
+    ],
+    popularity: 38,
+    rating: 3.8,
+    region: "India",
+    tags: ["Music"],
+    addedAt: "2026-09-20T01:11:10Z",
   },
   {
     id: "xbox-game-pass",

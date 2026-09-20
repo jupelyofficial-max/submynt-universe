@@ -85,7 +85,18 @@ function SignInButton() {
   return (
     <>
       <div ref={triggerRef} className="shrink-0">
-        <Button variant="outline" size="sm" className="h-9 rounded-full" onClick={handleGoogleSignIn} disabled={signingIn}>
+        {/* bg-[#22c55e] — same hex the "mynt" wordmark uses (TopNav.tsx) and
+            the removed Universe/List switcher used to use, not a theme
+            token. ink-0 text (not white) for contrast on this green — white
+            measures ~2.0-2.3:1 against it (WCAG AA needs 4.5:1), ink-0
+            measures ~7.9-8.9:1. */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9 rounded-full border-transparent bg-[#22c55e] text-ink-0 hover:bg-[#22c55e]/90"
+          onClick={handleGoogleSignIn}
+          disabled={signingIn}
+        >
           {signingIn ? "Redirecting…" : "Sign in"}
         </Button>
       </div>

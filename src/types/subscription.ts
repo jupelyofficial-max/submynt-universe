@@ -24,13 +24,6 @@ export type Category =
   | "Reading"
   | "Productivity"
   | "Professional Networking"
-  | "Private Aviation"
-  | "Private Clubs"
-  | "Concierge Health"
-  | "Elite Fitness"
-  | "Dating"
-  | "Market Research"
-  | "Startup & Deal Data"
   | "Telecom";
 
 export type Region = "India" | "Global" | "Available in India";

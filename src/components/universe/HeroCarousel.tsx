@@ -42,11 +42,14 @@ const AUTO_ADVANCE_MS = 4000;
 // padding % is the peek fraction of the full track width — the card
 // itself is w-full of what padding leaves behind, so it isn't
 // re-shrunk by a second, compounding percentage). sm/lg target the
-// requested 15-20% peek; mobile uses a narrower peek (~2%, was ~6%),
-// tuned together with the outer wrapper's tighter mobile padding below
-// so the active card lands at ~90-94% of the viewport width with only
-// a subtle sliver of the next banner showing — sm/lg unchanged.
-const TRACK_PADDING_CLASS = "px-[2%] sm:px-[15%] lg:px-[18.5%]";
+// requested 15-20% peek. Mobile's outer wrapper below has zero padding
+// (full 100vw track), so this 3.5% is the *only* mobile margin —
+// serving as both the requested "minimal margin" and the peek —
+// landing the active card at a consistent ~93vw at any mobile width
+// (a pure percentage of the track, unlike a fixed-px outer margin,
+// which would drift as a % of viewport across screen sizes). sm/lg
+// unchanged.
+const TRACK_PADDING_CLASS = "px-[3.5%] sm:px-[15%] lg:px-[18.5%]";
 
 export function HeroCarousel() {
   const [index, setIndex] = useState(() => Math.max(0, FEATURED_IDS.indexOf(DEFAULT_ACTIVE_ID)));
@@ -184,7 +187,7 @@ export function HeroCarousel() {
   }
 
   return (
-    <div className="px-2 pt-4 sm:px-4 lg:px-8">
+    <div className="px-0 pt-4 sm:px-4 lg:px-8">
       <div className="relative mx-auto max-w-[145rem]">
         <button
           type="button"

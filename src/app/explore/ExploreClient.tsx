@@ -19,7 +19,6 @@ import { GamingRow } from "@/components/universe/GamingRow";
 import { TelecomRow } from "@/components/universe/TelecomRow";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { SearchBar } from "@/components/search/SearchBar";
-import { ListView } from "@/components/views/ListView";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 
@@ -97,12 +96,7 @@ export function ExploreClient() {
         <CreativeRow />
         <GamingRow />
         <TelecomRow />
-        <div className="flex flex-1 min-h-0 flex-col">
-          {isMobile ? mobileToolbar : <div className="flex justify-center border-b border-line-soft p-4 md:hidden">{toolbar}</div>}
-          <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
-            <ListView />
-          </div>
-        </div>
+        {isMobile ? mobileToolbar : <div className="flex justify-center border-b border-line-soft p-4 md:hidden">{toolbar}</div>}
       </div>
 
       <SubmitListingModal />

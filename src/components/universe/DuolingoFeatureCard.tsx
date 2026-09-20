@@ -13,7 +13,11 @@ import { useUniverseStore } from "@/store/useUniverseStore";
  * ratio (2:3, taller than this box is) means it can't fill that box without
  * cropping or stretching, so it's scaled down to fit fully inside via
  * object-contain — some empty space left/right of the image is the
- * unavoidable result of "same footprint" + "no crop/stretch" together. */
+ * unavoidable result of "same footprint" + "no crop/stretch" together.
+ * A glass-panel background (same chrome as every other card here) fills
+ * that leftover space so the full 208px-wide footprint reads visually as
+ * one card, instead of the letterboxed white margins disappearing into the
+ * page background and making the card look narrower than it actually is. */
 export function DuolingoFeatureCard() {
   const select = useUniverseStore((s) => s.select);
   const sub = SUBSCRIPTIONS_BY_ID["duolingo-super"];
@@ -23,13 +27,13 @@ export function DuolingoFeatureCard() {
     <button
       type="button"
       onClick={() => select(sub.id)}
-      className="group flex h-[179px] w-44 shrink-0 items-center justify-center overflow-hidden rounded-2xl transition-opacity hover:opacity-90 cursor-pointer sm:w-52"
+      className="glass-panel group flex h-[179px] w-44 shrink-0 items-center justify-center overflow-hidden rounded-2xl p-1.5 transition-colors hover:border-black/20 cursor-pointer sm:w-52"
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention */}
       <img
         src="/subscriptions/duolingo-super-card.png"
         alt="Duolingo Super — From ₹336/mo, 7-day trial"
-        className="h-full w-full object-contain"
+        className="h-full w-full rounded-xl object-contain"
       />
     </button>
   );

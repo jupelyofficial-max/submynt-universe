@@ -17,6 +17,7 @@ import { ProductivityRow } from "@/components/universe/ProductivityRow";
 import { CreativeRow } from "@/components/universe/CreativeRow";
 import { GamingRow } from "@/components/universe/GamingRow";
 import { TelecomRow } from "@/components/universe/TelecomRow";
+import { FAQSection } from "@/components/universe/FAQSection";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { SearchBar } from "@/components/search/SearchBar";
 import { useUniverseStore } from "@/store/useUniverseStore";
@@ -97,6 +98,7 @@ export function ExploreClient() {
         <GamingRow />
         <TelecomRow />
         {isMobile ? mobileToolbar : <div className="flex justify-center border-b border-line-soft p-4 md:hidden">{toolbar}</div>}
+        <FAQSection />
       </div>
 
       <SubmitListingModal />

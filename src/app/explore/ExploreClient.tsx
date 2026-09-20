@@ -13,6 +13,7 @@ import { EducationRow } from "@/components/universe/EducationRow";
 import { AIToolsRow } from "@/components/universe/AIToolsRow";
 import { EntertainmentRow } from "@/components/universe/EntertainmentRow";
 import { MusicRow } from "@/components/universe/MusicRow";
+import { WellnessRow } from "@/components/universe/WellnessRow";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { MobileUniverse } from "@/components/universe/MobileUniverse";
@@ -119,6 +120,7 @@ export function ExploreClient() {
         <AIToolsRow />
         <EntertainmentRow />
         <MusicRow />
+        <WellnessRow />
         {viewMode === "universe" ? (
           isMobile ? (
             <>

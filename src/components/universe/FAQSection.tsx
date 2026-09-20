@@ -41,7 +41,7 @@ export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="px-4 py-8 lg:px-8">
+    <div id="faq" className="scroll-mt-20 px-4 py-8 lg:px-8">
       <div className="mx-auto max-w-[1340px]">
         <h2 className="mb-3 text-lg font-semibold text-ink-0">Frequently asked questions</h2>
         <div className="mx-auto flex max-w-2xl flex-col gap-2">

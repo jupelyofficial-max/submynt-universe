@@ -57,8 +57,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="h-full flex flex-col bg-void-950 text-ink-0 overflow-hidden">
         <Providers>
           <TopNav />
-          <main className="flex-1 flex flex-col min-h-0 overflow-y-auto no-scrollbar">{children}</main>
-          <Footer />
+          <main className="flex-1 flex flex-col min-h-0 overflow-y-auto no-scrollbar">
+            {children}
+            <Footer />
+          </main>
           <DetailPanel />
         </Providers>
       </body>

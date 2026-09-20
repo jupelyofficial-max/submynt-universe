@@ -85,6 +85,11 @@ export function ExploreClient() {
   return (
     <div className="relative flex flex-1 flex-col bg-void-950">
       <div className="relative z-10 flex flex-1 flex-col">
+        {/* Mobile only: toolbar sits directly below TopNav (the logo/header
+            bar), above all content — moved from its previous spot after
+            TelecomRow. Desktop/tablet keeps the fallback toolbar exactly
+            where it was, unaffected. */}
+        {isMobile && mobileToolbar}
         <HeroCarousel />
         <EcosystemsRow />
         <LifestyleBundlesRow />
@@ -97,7 +102,7 @@ export function ExploreClient() {
         <CreativeRow />
         <GamingRow />
         <TelecomRow />
-        {isMobile ? mobileToolbar : <div className="flex justify-center border-b border-line-soft p-4 md:hidden">{toolbar}</div>}
+        {!isMobile && <div className="flex justify-center border-b border-line-soft p-4 md:hidden">{toolbar}</div>}
         <FAQSection />
       </div>
 

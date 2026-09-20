@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRight } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Badge } from "@/components/ui/Badge";
 import { getPriceForward, isRecentlyAdded, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
@@ -28,15 +29,21 @@ export function EducationRow() {
                 key={sub.id}
                 type="button"
                 onClick={() => select(sub.id)}
-                className="glass-panel flex w-44 shrink-0 flex-col gap-3 rounded-2xl p-4 text-left transition-colors hover:border-black/20 cursor-pointer sm:w-52"
+                className="glass-panel group flex w-44 shrink-0 flex-col gap-2 rounded-2xl p-3 text-left transition-colors hover:border-black/20 cursor-pointer sm:w-52"
               >
-                <SubscriptionLogo subscription={sub} size="lg" bare />
+                {/* Fixed neutral backing, logo inset within it — normalizes
+                    apparent size across favicons whose own padding/fill
+                    ratio varies (e.g. a small mark on a mostly-transparent
+                    canvas vs one that fills its canvas edge-to-edge), since
+                    every card now anchors to the same backing footprint
+                    rather than each raw image's own bounding box. */}
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-black/[0.03]">
+                  <SubscriptionLogo subscription={sub} size="sm" bare />
+                </div>
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-1">
-                    <h3 className="truncate text-sm font-semibold text-ink-0">{sub.name}</h3>
-                  </div>
+                  <h3 className="truncate text-sm font-semibold text-ink-0">{sub.name}</h3>
                   {(isRecentlyAdded(sub) || sub.trialDays || sub.trialNote) && (
-                    <div className="mt-1 flex flex-wrap gap-1">
+                    <div className="mt-0.5 flex flex-wrap gap-1">
                       {isRecentlyAdded(sub) && <Badge tone="nebula">New</Badge>}
                       {sub.trialNote ? (
                         <Badge tone="aurora">{sub.trialNote}</Badge>
@@ -46,23 +53,29 @@ export function EducationRow() {
                     </div>
                   )}
                 </div>
-                <div>
-                  {priceInfo.fromPrice === null ? (
-                    <div className="text-sm font-bold text-ink-0">{formatPrice(sub.priceMonthly, sub.priceLabel)}</div>
-                  ) : (
-                    <>
-                      <div className="text-sm font-bold text-ink-0">
-                        {priceInfo.strikePrice !== null && "From "}
-                        {formatINR(priceInfo.fromPrice)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {priceInfo.strikePrice !== null && (
-                          <span className="text-[11px] text-ink-500 line-through">{formatINR(priceInfo.strikePrice)}</span>
-                        )}
-                        {priceInfo.fromPrice > 0 && <span className="text-[11px] text-ink-500">/mo</span>}
-                      </div>
-                    </>
-                  )}
+                <div className="mt-auto flex items-end justify-between gap-2">
+                  <div>
+                    {priceInfo.fromPrice === null ? (
+                      <div className="text-sm font-bold text-ink-0">{formatPrice(sub.priceMonthly, sub.priceLabel)}</div>
+                    ) : (
+                      <>
+                        <div className="text-sm font-bold text-ink-0">
+                          {priceInfo.strikePrice !== null && "From "}
+                          {formatINR(priceInfo.fromPrice)}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {priceInfo.strikePrice !== null && (
+                            <span className="text-[11px] text-ink-500 line-through">{formatINR(priceInfo.strikePrice)}</span>
+                          )}
+                          {priceInfo.fromPrice > 0 && <span className="text-[11px] text-ink-500">/mo</span>}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <span className="mb-0.5 flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-ink-500 transition-colors group-hover:text-ink-0">
+                    View details
+                    <ArrowRight size={11} />
+                  </span>
                 </div>
               </button>
             );

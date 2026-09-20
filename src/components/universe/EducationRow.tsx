@@ -12,6 +12,12 @@ import { useUniverseStore } from "@/store/useUniverseStore";
 // out as a horizontal-scroll row instead of a grid.
 const EDUCATION_IDS = ["duolingo-super", "linkedin-learning", "coursera-plus", "pw-pi-pro", "udemy-personal-plan", "skillshare"];
 
+// Both have a real addedAt (2026-09-20) so isRecentlyAdded(sub) is still
+// true — and ListView/DetailPanel elsewhere still show "New" for them —
+// but this row hides it specifically per request, without touching the
+// underlying data or any other section.
+const HIDE_NEW_BADGE_IDS = new Set(["pw-pi-pro", "udemy-personal-plan"]);
+
 export function EducationRow() {
   const select = useUniverseStore((s) => s.select);
   const items = EDUCATION_IDS.map((id) => SUBSCRIPTIONS_BY_ID[id]).filter((s) => s !== undefined);
@@ -24,6 +30,7 @@ export function EducationRow() {
         <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
           {items.map((sub) => {
             const priceInfo = getPriceForward(sub);
+            const showNewBadge = isRecentlyAdded(sub) && !HIDE_NEW_BADGE_IDS.has(sub.id);
             return (
               <button
                 key={sub.id}
@@ -42,9 +49,9 @@ export function EducationRow() {
                 </div>
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold text-ink-0">{sub.name}</h3>
-                  {(isRecentlyAdded(sub) || sub.trialDays || sub.trialNote) && (
+                  {(showNewBadge || sub.trialDays || sub.trialNote) && (
                     <div className="mt-0.5 flex flex-wrap gap-1">
-                      {isRecentlyAdded(sub) && <Badge tone="nebula">New</Badge>}
+                      {showNewBadge && <Badge tone="nebula">New</Badge>}
                       {sub.trialNote ? (
                         <Badge tone="aurora">{sub.trialNote}</Badge>
                       ) : (

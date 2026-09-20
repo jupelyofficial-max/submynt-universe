@@ -63,6 +63,28 @@ export function HeroCarousel() {
   // or last -> 0), so the scroll effect below animates a short hop to the
   // cloned edge card instead of sliding across the entire real track.
   const wrapRef = useRef<"prev" | "next" | null>(null);
+  // Mobile card width computed from window.innerWidth in JS rather than a
+  // CSS calc(100vw - 32px): real iOS Safari was observed (via a physical
+  // device screenshot) rendering that calc() far narrower than spec, while
+  // both Playwright Chromium and Playwright's WebKit build rendered it
+  // correctly — i.e. a real-Safari-only vw resolution quirk inside this
+  // scroll-snap track that no available test engine reproduces. Plain JS
+  // arithmetic applied as an inline px width sidesteps CSS vw entirely, so
+  // it can't be wrong regardless of that engine's viewport-unit behavior.
+  const [mobileCardStyle, setMobileCardStyle] = useState<{ width?: string; maxWidth?: string }>({});
+
+  useEffect(() => {
+    function updateMobileCardStyle() {
+      if (window.innerWidth < 640) {
+        setMobileCardStyle({ width: `${window.innerWidth - 32}px`, maxWidth: "none" });
+      } else {
+        setMobileCardStyle({});
+      }
+    }
+    updateMobileCardStyle();
+    window.addEventListener("resize", updateMobileCardStyle);
+    return () => window.removeEventListener("resize", updateMobileCardStyle);
+  }, []);
 
   const items = FEATURED_IDS.map((id) => SUBSCRIPTIONS_BY_ID[id]).filter((s) => s !== undefined);
   const itemCount = items.length;
@@ -241,17 +263,16 @@ export function HeroCarousel() {
                 aria-hidden={isClone || undefined}
                 tabIndex={isClone ? -1 : undefined}
                 className={cn(
-                  // Mobile only: fixed calc(100vw - 32px) width (not a
-                  // percentage of the track's own padded content box) so
-                  // sizing is immune to any padding/box-model cascading —
-                  // directly viewport-relative, per explicit request.
-                  // max-w-none guards against any inherited max-width.
-                  // Locked to the nominal 1340x360 spec ratio; sm/lg keep
-                  // the prior w-full + 8:3 behavior, unchanged.
-                  "relative aspect-[1340/360] w-[calc(100vw_-_32px)] max-w-none shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer sm:aspect-[8/3] sm:w-full sm:max-w-none",
+                  // Mobile width comes from mobileCardStyle (JS-computed px,
+                  // see its declaration above) rather than a CSS vw calc.
+                  // w-full here is just the pre-hydration/sm+ fallback;
+                  // max-w-none is a static safety net either way. Locked to
+                  // the nominal 1340x360 spec ratio; sm/lg keep the prior
+                  // w-full + 8:3 behavior, unchanged.
+                  "relative aspect-[1340/360] w-full max-w-none shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer sm:aspect-[8/3]",
                   active ? "opacity-100" : "opacity-55 scale-[0.94]"
                 )}
-                style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ border: "1px solid rgba(255,255,255,0.08)", ...mobileCardStyle }}
               >
                 {banner && (
                   // h-full (not height:auto) is intentional: the real PNGs

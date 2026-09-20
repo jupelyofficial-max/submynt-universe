@@ -47,3 +47,35 @@ export const LIFESTYLE_BUNDLES: LifestyleBundle[] = [
 ];
 
 export const NOT_SURE_BUNDLE_IMAGE = "/bundles/find-your-bundle.png";
+
+/** Pro Subscriptions banners — same convention as LIFESTYLE_BUNDLES above:
+ * REAL catalog subscription ids only. Gen Z drops "Bumble Premium" and
+ * Elite drops "Soho House"/"Indulge" — none of the three are real
+ * catalog entries — rather than fabricating them. */
+export const PRO_BUNDLES: LifestyleBundle[] = [
+  {
+    slug: "genz-bundle",
+    title: "Gen Z Bundle",
+    tagline: "All the apps you love, in one bundle for a smarter, brighter you.",
+    image: "/bundles/genz-bundle.png",
+    subscriptionIds: ["spotify-premium", "netflix", "canva-pro", "duolingo-super", "youtube-premium"],
+  },
+  {
+    slug: "couple-bundle",
+    title: "Couple Bundle",
+    tagline: "All the apps you both love, in one bundle for a more connected you.",
+    image: "/bundles/couple-bundle.png",
+    subscriptionIds: ["netflix", "spotify-premium", "amazon-prime", "google-one", "youtube-premium", "jiohotstar"],
+  },
+  {
+    slug: "elite-bundle",
+    title: "Elite Bundle",
+    tagline: "Exclusive memberships and premium services for India's modern elite.",
+    image: "/bundles/elite-bundle.png",
+    subscriptionIds: ["cult-fit", "whoop", "apple-music", "masterclass"],
+  },
+];
+
+/** Combined lookup for the /bundles/[slug] detail route — Lifestyle and
+ * Pro bundles share the same detail page template. */
+export const ALL_BUNDLES: LifestyleBundle[] = [...LIFESTYLE_BUNDLES, ...PRO_BUNDLES];

@@ -8,6 +8,7 @@ import { FilterBar } from "@/components/filters/FilterBar";
 import { HeroCarousel } from "@/components/universe/HeroCarousel";
 import { EcosystemsRow } from "@/components/universe/EcosystemsRow";
 import { LifestyleBundlesRow } from "@/components/universe/LifestyleBundlesRow";
+import { ProSubscriptionsRow } from "@/components/universe/ProSubscriptionsRow";
 import { EducationRow } from "@/components/universe/EducationRow";
 import { AIToolsRow } from "@/components/universe/AIToolsRow";
 import { EntertainmentRow } from "@/components/universe/EntertainmentRow";
@@ -80,6 +81,7 @@ export function ExploreClient() {
         <HeroCarousel />
         <EcosystemsRow />
         <LifestyleBundlesRow />
+        <ProSubscriptionsRow />
         <EducationRow />
         <AIToolsRow />
         <EntertainmentRow />

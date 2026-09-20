@@ -81,12 +81,12 @@ export function ExploreClient() {
         <HeroCarousel />
         <EcosystemsRow />
         <LifestyleBundlesRow />
-        <ProSubscriptionsRow />
         <EducationRow />
         <AIToolsRow />
         <EntertainmentRow />
         <MusicRow />
         <WellnessRow />
+        <ProSubscriptionsRow />
         <ProductivityRow />
         <CreativeRow />
         <GamingRow />

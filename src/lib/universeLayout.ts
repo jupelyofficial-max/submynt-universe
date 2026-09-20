@@ -306,14 +306,30 @@ function layoutCategoryGrid<T extends { category: string; footprint: number; tot
  * centered in empty canvas. Defaults to 1 (no spread, natural packed
  * width) — the mobile Universe's call site doesn't need this at all, since
  * it never reads these x/y positions. */
-// These 4 categories have their own dedicated horizontal rows on the
-// homepage now (EducationRow, AIToolsRow, EntertainmentRow, MusicRow,
-// mounted in ExploreClient above the Universe canvas) — excluded here so
-// the Universe view (3D scene + mobile grid, both ultimately call this)
-// doesn't duplicate them as category clusters. The underlying catalog data
-// and those rows are untouched; List view doesn't call buildUniverse at
-// all, so it's unaffected too.
-const HIDDEN_FROM_UNIVERSE = new Set(["AI Tools", "Education", "Entertainment", "Music"]);
+// AI Tools/Education/Entertainment/Music have their own dedicated
+// horizontal rows on the homepage (mounted in ExploreClient above the
+// Universe canvas) — excluded here so the Universe view (3D scene + mobile
+// grid, both ultimately call this) doesn't duplicate them as category
+// clusters. The underlying catalog data and those rows are untouched;
+// List view doesn't call buildUniverse at all, so it's unaffected too.
+//
+// Productivity/News/Cloud/Shopping/Professional Networking/Business are
+// excluded for a different reason: in the Universe grid's row-by-row
+// layout, these were the 2nd/3rd rows (after Wellness/Gaming/Creative/
+// Telecom on row 1) — trimmed on request to keep Universe showing only
+// through the Telecom row.
+const HIDDEN_FROM_UNIVERSE = new Set([
+  "AI Tools",
+  "Education",
+  "Entertainment",
+  "Music",
+  "Productivity",
+  "News",
+  "Cloud",
+  "Shopping",
+  "Professional Networking",
+  "Business",
+]);
 
 export function buildUniverse(
   subs: Subscription[],

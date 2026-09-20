@@ -313,11 +313,17 @@ function layoutCategoryGrid<T extends { category: string; footprint: number; tot
 // clusters. The underlying catalog data and those rows are untouched;
 // List view doesn't call buildUniverse at all, so it's unaffected too.
 //
-// Productivity/News/Cloud/Shopping/Professional Networking/Business are
-// excluded for a different reason: in the Universe grid's row-by-row
-// layout, these were the 2nd/3rd rows (after Wellness/Gaming/Creative/
-// Telecom on row 1) — trimmed on request to keep Universe showing only
-// through the Telecom row.
+// Productivity/News/Cloud/Shopping/Professional Networking/Business were
+// the Universe grid's 2nd/3rd rows (after Wellness/Gaming/Creative/Telecom
+// on row 1) — trimmed on request to keep Universe showing only through the
+// Telecom row.
+//
+// Wellness/Gaming/Creative/Telecom were that remaining row-1 — removed on
+// a follow-up request to delete the category-cluster grid entirely (each
+// already has its own dedicated homepage row, same as the categories
+// above). Everyday-mode Universe now clusters nothing; Premium-only
+// categories (Dating, Elite Fitness, etc.) are untouched and still cluster
+// normally when Premium mode is selected.
 const HIDDEN_FROM_UNIVERSE = new Set([
   "AI Tools",
   "Education",
@@ -329,6 +335,10 @@ const HIDDEN_FROM_UNIVERSE = new Set([
   "Shopping",
   "Professional Networking",
   "Business",
+  "Wellness",
+  "Gaming",
+  "Creative",
+  "Telecom",
 ]);
 
 export function buildUniverse(

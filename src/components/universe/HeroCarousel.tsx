@@ -42,14 +42,9 @@ const AUTO_ADVANCE_MS = 4000;
 // padding % is the peek fraction of the full track width — the card
 // itself is w-full of what padding leaves behind, so it isn't
 // re-shrunk by a second, compounding percentage). sm/lg target the
-// requested 15-20% peek. Mobile's outer wrapper below has zero padding
-// (full 100vw track), so this 3.5% is the *only* mobile margin —
-// serving as both the requested "minimal margin" and the peek —
-// landing the active card at a consistent ~93vw at any mobile width
-// (a pure percentage of the track, unlike a fixed-px outer margin,
-// which would drift as a % of viewport across screen sizes). sm/lg
-// unchanged.
-const TRACK_PADDING_CLASS = "px-[3.5%] sm:px-[15%] lg:px-[18.5%]";
+// requested 15-20% peek, unchanged. Mobile is 0 — full-bleed/edge-to-edge
+// per explicit request, so there's no room left for a peek there.
+const TRACK_PADDING_CLASS = "px-0 sm:px-[15%] lg:px-[18.5%]";
 
 export function HeroCarousel() {
   const [index, setIndex] = useState(() => Math.max(0, FEATURED_IDS.indexOf(DEFAULT_ACTIVE_ID)));
@@ -64,19 +59,20 @@ export function HeroCarousel() {
   // cloned edge card instead of sliding across the entire real track.
   const wrapRef = useRef<"prev" | "next" | null>(null);
   // Mobile card width computed from window.innerWidth in JS rather than a
-  // CSS calc(100vw - 32px): real iOS Safari was observed (via a physical
-  // device screenshot) rendering that calc() far narrower than spec, while
-  // both Playwright Chromium and Playwright's WebKit build rendered it
-  // correctly — i.e. a real-Safari-only vw resolution quirk inside this
+  // CSS vw unit: real iOS Safari was observed (via a physical device
+  // screenshot) rendering a CSS calc(100vw - Npx) far narrower than spec,
+  // while both Playwright Chromium and Playwright's WebKit build rendered
+  // it correctly — i.e. a real-Safari-only vw resolution quirk inside this
   // scroll-snap track that no available test engine reproduces. Plain JS
   // arithmetic applied as an inline px width sidesteps CSS vw entirely, so
   // it can't be wrong regardless of that engine's viewport-unit behavior.
+  // Full-bleed per explicit request: no subtraction, edge-to-edge.
   const [mobileCardStyle, setMobileCardStyle] = useState<{ width?: string; maxWidth?: string }>({});
 
   useEffect(() => {
     function updateMobileCardStyle() {
       if (window.innerWidth < 640) {
-        setMobileCardStyle({ width: `${window.innerWidth - 32}px`, maxWidth: "none" });
+        setMobileCardStyle({ width: `${window.innerWidth}px`, maxWidth: "none" });
       } else {
         setMobileCardStyle({});
       }
@@ -266,21 +262,19 @@ export function HeroCarousel() {
                   // Mobile width comes from mobileCardStyle (JS-computed px,
                   // see its declaration above) rather than a CSS vw calc.
                   // w-full here is just the pre-hydration/sm+ fallback;
-                  // max-w-none is a static safety net either way. Locked to
-                  // the nominal 1340x360 spec ratio; sm/lg keep the prior
-                  // w-full + 8:3 behavior, unchanged.
-                  "relative aspect-[1340/360] w-full max-w-none shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer sm:aspect-[8/3]",
+                  // max-w-none is a static safety net either way.
+                  // aspect-[8/3] now applies at every breakpoint (was
+                  // 1340:360 on mobile only) — matches the real banner
+                  // PNGs' native ratio exactly, so object-contain below
+                  // renders with zero letterboxing *and* zero crop, and
+                  // gives mobile more height so the baked-in text/CTA
+                  // aren't cramped, per explicit request.
+                  "relative aspect-[8/3] w-full max-w-none shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer",
                   active ? "opacity-100" : "opacity-55 scale-[0.94]"
                 )}
                 style={{ border: "1px solid rgba(255,255,255,0.08)", ...mobileCardStyle }}
               >
                 {banner && (
-                  // h-full (not height:auto) is intentional: the real PNGs
-                  // are ~8:3 but this card is locked to 1340:360 — height:auto
-                  // makes the image taller than the card and the overflow-hidden
-                  // above clips it (verified: crops the CTA button off the
-                  // bottom of the banner). h-full + object-contain instead
-                  // letterboxes a little empty space on the sides, never crops.
                   // eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention
                   <img src={banner} alt={item.name} className="h-full w-full object-contain" />
                 )}

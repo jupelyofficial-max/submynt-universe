@@ -35,6 +35,7 @@ const CATEGORY_BEST_FOR: Record<Category, string[]> = {
   "Professional Networking": ["Job seekers", "Professionals"],
   "Market Research": ["Analysts", "Strategy teams"],
   "Startup & Deal Data": ["Investors", "Analysts"],
+  Telecom: ["Households", "Everyday users"],
 };
 
 const categoryAvgCache = new Map<Category, number>();

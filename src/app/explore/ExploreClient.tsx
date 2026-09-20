@@ -14,6 +14,10 @@ import { AIToolsRow } from "@/components/universe/AIToolsRow";
 import { EntertainmentRow } from "@/components/universe/EntertainmentRow";
 import { MusicRow } from "@/components/universe/MusicRow";
 import { WellnessRow } from "@/components/universe/WellnessRow";
+import { ProductivityRow } from "@/components/universe/ProductivityRow";
+import { CreativeRow } from "@/components/universe/CreativeRow";
+import { GamingRow } from "@/components/universe/GamingRow";
+import { TelecomRow } from "@/components/universe/TelecomRow";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { MobileUniverse } from "@/components/universe/MobileUniverse";
@@ -121,6 +125,10 @@ export function ExploreClient() {
         <EntertainmentRow />
         <MusicRow />
         <WellnessRow />
+        <ProductivityRow />
+        <CreativeRow />
+        <GamingRow />
+        <TelecomRow />
         {viewMode === "universe" ? (
           isMobile ? (
             <>

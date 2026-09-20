@@ -30,7 +30,8 @@ export type Category =
   | "Elite Fitness"
   | "Dating"
   | "Market Research"
-  | "Startup & Deal Data";
+  | "Startup & Deal Data"
+  | "Telecom";
 
 export type Region = "India" | "Global" | "Available in India";
 

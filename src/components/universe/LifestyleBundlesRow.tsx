@@ -4,14 +4,14 @@ import Link from "next/link";
 import { LIFESTYLE_BUNDLES, NOT_SURE_BUNDLE_IMAGE } from "@/data/bundles";
 
 // All 5 banners share the same real pixel dimensions (2172x724, i.e. 3:1).
-// Desktop/tablet grid cells use that same 3:1 ratio, so object-cover
-// fills every pixel with zero cropping. Mobile (single column, full
-// viewport width) is deliberately shorter — aspect-[5/1] — since a
-// full-width card at 3:1 is much taller in absolute pixels than a
-// half-width desktop grid cell at the same ratio; object-cover crops a
-// little off the top/bottom at that ratio, but title, description,
-// CTA button and price all sit within the artwork's central band and
-// stay fully visible (verified via screenshot).
+// Every breakpoint uses that same 3:1 ratio, so object-cover fills every
+// pixel with zero cropping. Mobile previously used a shorter aspect-[5/1]
+// to save vertical space, but that crops ~40% of the image height off
+// center (object-cover's default crop origin) — enough to clip the
+// headline at the top and cut the price/CTA/savings pill and the
+// handwritten annotation off entirely at the bottom (confirmed via
+// screenshot). 3:1 everywhere trades some extra mobile height for
+// guaranteed zero cropping of baked-in text/icons.
 const CARDS: { key: string; image: string; alt: string; href: string }[] = [
   ...LIFESTYLE_BUNDLES.map((b) => ({ key: b.slug, image: b.image, alt: b.title, href: `/bundles/${b.slug}` })),
   { key: "not-sure", image: NOT_SURE_BUNDLE_IMAGE, alt: "Not sure which bundle is right for you?", href: "/explore" },
@@ -28,7 +28,7 @@ export function LifestyleBundlesRow() {
               key={card.key}
               href={card.href}
               aria-label={card.alt}
-              className="relative aspect-[5/1] w-full overflow-hidden rounded-2xl transition-transform duration-200 hover:scale-[1.005] sm:aspect-[3/1]"
+              className="relative aspect-[3/1] w-full overflow-hidden rounded-2xl transition-transform duration-200 hover:scale-[1.005]"
               style={{ border: "1px solid rgba(0,0,0,0.06)" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention */}

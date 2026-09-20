@@ -22,7 +22,7 @@ export function ProSubscriptionsRow() {
               key={card.key}
               href={card.href}
               aria-label={card.alt}
-              className="relative aspect-[5/1] w-full overflow-hidden rounded-2xl transition-transform duration-200 hover:scale-[1.005] sm:aspect-[3/1]"
+              className="relative aspect-[3/1] w-full overflow-hidden rounded-2xl transition-transform duration-200 hover:scale-[1.005]"
               style={{ border: "1px solid rgba(0,0,0,0.06)" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention */}

@@ -42,12 +42,11 @@ const AUTO_ADVANCE_MS = 4000;
 // padding % is the peek fraction of the full track width — the card
 // itself is w-full of what padding leaves behind, so it isn't
 // re-shrunk by a second, compounding percentage). sm/lg target the
-// requested 15-20% peek; mobile uses a narrower peek (~6%, was ~9%) so
-// the active card is wider — since height is driven by width via a
-// fixed aspect-ratio (no crop), a wider active card is also a taller
-// one, keeping the banner readable/prominent while the 3-card peek
-// (prev/next cards still visibly peeking) is unchanged.
-const TRACK_PADDING_CLASS = "px-[6%] sm:px-[15%] lg:px-[18.5%]";
+// requested 15-20% peek; mobile uses a narrower peek (~2%, was ~6%),
+// tuned together with the outer wrapper's tighter mobile padding below
+// so the active card lands at ~90-94% of the viewport width with only
+// a subtle sliver of the next banner showing — sm/lg unchanged.
+const TRACK_PADDING_CLASS = "px-[2%] sm:px-[15%] lg:px-[18.5%]";
 
 export function HeroCarousel() {
   const [index, setIndex] = useState(() => Math.max(0, FEATURED_IDS.indexOf(DEFAULT_ACTIVE_ID)));
@@ -185,7 +184,7 @@ export function HeroCarousel() {
   }
 
   return (
-    <div className="px-4 pt-4 lg:px-8">
+    <div className="px-2 pt-4 sm:px-4 lg:px-8">
       <div className="relative mx-auto max-w-[145rem]">
         <button
           type="button"
@@ -239,13 +238,13 @@ export function HeroCarousel() {
                 aria-hidden={isClone || undefined}
                 tabIndex={isClone ? -1 : undefined}
                 className={cn(
-                  // Container ratio matches the uploaded PNGs' actual
-                  // dimensions (~2048x768, i.e. ~8:3) rather than the
-                  // nominal 1340x360 spec — the real files aren't quite
-                  // that ratio, and locking to 1340:360 here would
-                  // pillarbox them under object-contain instead of
-                  // showing the full design edge-to-edge.
-                  "relative aspect-[8/3] w-full shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer",
+                  // Mobile only: locked to the nominal 1340x360 spec ratio
+                  // per request. The uploaded PNGs are actually ~2048x768
+                  // (~8:3, still used at sm/lg, unchanged) — object-contain
+                  // below means the mismatch on mobile shows as harmless
+                  // letterboxing (a little empty space on the sides), never
+                  // a crop or a stretch.
+                  "relative aspect-[1340/360] w-full shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer sm:aspect-[8/3]",
                   active ? "opacity-100" : "opacity-55 scale-[0.94]"
                 )}
                 style={{ border: "1px solid rgba(255,255,255,0.08)" }}

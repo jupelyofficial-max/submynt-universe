@@ -17,6 +17,10 @@ interface FilterDropdownProps<T extends string> {
   selected: T[];
   onToggle: (value: T) => void;
   onClear?: () => void;
+  /** Tighter padding/font and a capped, truncated label — opt-in only (the
+   * mobile single-row toolbar passes this; every other call site is
+   * untouched, so desktop/tablet pill sizing never changes). */
+  compact?: boolean;
 }
 
 export function FilterDropdown<T extends string>({
@@ -25,6 +29,7 @@ export function FilterDropdown<T extends string>({
   selected,
   onToggle,
   onClear,
+  compact,
 }: FilterDropdownProps<T>) {
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -66,14 +71,15 @@ export function FilterDropdown<T extends string>({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] px-3.5 text-xs font-medium transition-colors cursor-pointer",
+          "flex items-center rounded-full border-[1.5px] font-medium transition-colors cursor-pointer",
+          compact ? "h-8 gap-1 px-2 text-[11px]" : "h-9 gap-1.5 whitespace-nowrap px-3.5 text-xs",
           selected.length > 0
             ? "border-ocean-600 bg-ocean-500/10 text-ocean-600"
             : "border-black/15 bg-void-950 text-ink-0 hover:border-ink-0"
         )}
       >
-        {buttonLabel}
-        <ChevronsUpDown size={12} className="shrink-0 text-ink-300" />
+        <span className={compact ? "max-w-[13ch] truncate" : undefined}>{buttonLabel}</span>
+        <ChevronsUpDown size={compact ? 10 : 12} className="shrink-0 text-ink-300" />
       </button>
 
       {open &&

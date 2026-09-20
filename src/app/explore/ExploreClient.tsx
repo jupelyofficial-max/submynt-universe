@@ -4,7 +4,7 @@ import { Upload } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
-import { FilterBar, SortDropdown } from "@/components/filters/FilterBar";
+import { FilterBar } from "@/components/filters/FilterBar";
 import { HeroCarousel } from "@/components/universe/HeroCarousel";
 import { EcosystemsRow } from "@/components/universe/EcosystemsRow";
 import { LifestyleBundlesRow } from "@/components/universe/LifestyleBundlesRow";
@@ -54,26 +54,18 @@ export function ExploreClient() {
     </div>
   );
 
-  // Dedicated mobile toolbar. Search shares a row with the Categories/Price
-  // chips (both h-9, align cleanly) instead of each getting its own
-  // full-width row — three stacked rows read as more chrome than content
-  // above the fold. Sort ("Popular" etc.) moves to row 2. No Submit button
-  // here — mobile-only, desktop toolbar keeps it.
+  // Dedicated mobile toolbar — Search, Categories, Price and Sort all in one
+  // row below the header. Search is flexible (shrinks first, never below
+  // min-w-0's content-driven floor); the three filter pills use FilterBar's
+  // `compact` mode (tighter padding/font, capped+truncated label — see
+  // FilterDropdown) so all four fit without wrapping. No Submit button here
+  // — mobile-only, the desktop toolbar keeps it.
   const mobileToolbar = (
-    <div className="flex flex-col gap-2 border-b border-line-soft bg-void-950 p-2.5 md:hidden">
-      <div className="flex items-center gap-2">
-        <div className="w-[38%] min-w-[130px] shrink-0">
-          <SearchBar compact />
-        </div>
-        <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar">
-          <FilterBar className="flex-nowrap" hideSort />
-        </div>
+    <div className="flex items-center gap-1.5 overflow-x-hidden border-b border-line-soft bg-void-950 p-2.5 md:hidden">
+      <div className="min-w-[64px] flex-1">
+        <SearchBar compact />
       </div>
-      <div className="flex items-center gap-2">
-        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
-          <SortDropdown />
-        </div>
-      </div>
+      <FilterBar className="flex-nowrap gap-1.5 shrink-0" compact />
     </div>
   );
 

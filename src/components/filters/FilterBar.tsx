@@ -7,7 +7,7 @@ import { useUniverseStore } from "@/store/useUniverseStore";
 
 // Split out so the mobile toolbar can place Sort ("Popular" etc.) in a
 // different row than Categories/Price without duplicating the dropdown wiring.
-export function SortDropdown() {
+export function SortDropdown({ compact }: { compact?: boolean }) {
   const sort = useUniverseStore((s) => s.filters.sort);
   const setSort = useUniverseStore((s) => s.setSort);
 
@@ -17,11 +17,22 @@ export function SortDropdown() {
       options={SORT_OPTIONS.map((opt) => ({ value: opt, label: SORT_LABELS[opt] }))}
       selected={[sort]}
       onToggle={setSort}
+      compact={compact}
     />
   );
 }
 
-export function FilterBar({ className, hideSort }: { className?: string; hideSort?: boolean }) {
+export function FilterBar({
+  className,
+  hideSort,
+  compact,
+}: {
+  className?: string;
+  hideSort?: boolean;
+  /** Opt-in, tighter Categories/Price/Sort pills — see FilterDropdown's
+   * own `compact` doc. Only the mobile single-row toolbar passes this. */
+  compact?: boolean;
+}) {
   const filters = useUniverseStore((s) => s.filters);
   const toggleCategory = useUniverseStore((s) => s.toggleCategory);
   const togglePriceBand = useUniverseStore((s) => s.togglePriceBand);
@@ -36,6 +47,7 @@ export function FilterBar({ className, hideSort }: { className?: string; hideSor
         selected={filters.categories}
         onToggle={toggleCategory}
         onClear={() => setCategories([])}
+        compact={compact}
       />
       <FilterDropdown
         label="Price"
@@ -43,8 +55,9 @@ export function FilterBar({ className, hideSort }: { className?: string; hideSor
         selected={filters.priceBands}
         onToggle={togglePriceBand}
         onClear={() => setPriceBands([])}
+        compact={compact}
       />
-      {!hideSort && <SortDropdown />}
+      {!hideSort && <SortDropdown compact={compact} />}
     </div>
   );
 }

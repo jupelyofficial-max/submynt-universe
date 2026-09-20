@@ -75,6 +75,11 @@ export interface Subscription {
   addedAt?: string;
   /** Length of the free trial in days, if this plan offers one. */
   trialDays?: number;
+  /** Free-trial terms that aren't a simple day count — e.g. a fixed number
+   * of free preview items, or eligibility-gated availability that varies
+   * per user. Takes priority over trialDays for display when both would
+   * otherwise apply; set instead of (not in addition to) trialDays. */
+  trialNote?: string;
   /** Affiliate/deal URL, only set when a real deal relationship exists.
    * Distinct from the provider's own site (see getProviderUrl in
    * lib/subscriptionIntelligence.ts) — this is what "Get Deal →" links to. */

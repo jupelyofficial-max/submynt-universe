@@ -426,6 +426,62 @@ export const SUBSCRIPTIONS: Subscription[] = [
     tags: ["Education"],
   },
   {
+    // User-verified pricing (2026-09-20): ₹299/mo, ₹1,499/6mo, ₹2,399/yr.
+    // plans[].priceMonthly is this catalogue's normalized "effective
+    // monthly cost" field (see getPriceForward) — for the 6-month and
+    // annual tiers that's the verified total divided by its term length,
+    // rounded to the nearest rupee (1499/6 -> 250, 2399/12 -> 200), not a
+    // separately quoted monthly rate.
+    id: "pw-pi-pro",
+    name: "PW Pi Pro",
+    provider: "Physics Wallah",
+    category: "Education",
+    tagline: "Live classes and structured courses for competitive exam prep",
+    color: "#F5821F",
+    initials: "PW",
+    domain: "pw.live",
+    priceMonthly: 299,
+    billing: ["monthly", "half-yearly", "annual"],
+    plans: [
+      { name: "Monthly", priceMonthly: 299, billing: "monthly" },
+      { name: "6 Months", priceMonthly: 250, billing: "half-yearly" },
+      { name: "Annual", priceMonthly: 200, billing: "annual" },
+    ],
+    popularity: 60,
+    rating: 4.4,
+    region: "India",
+    tags: ["Education"],
+    // Real trial is 3 free preview videos, not a day-based trial — see
+    // trialNote's own doc comment for why this isn't forced into trialDays.
+    trialNote: "3 free trial videos",
+    addedAt: "2026-09-20T00:11:18Z",
+  },
+  {
+    // Verified via web search (2026-09-20, udemy.com/pricing + corroborating
+    // sources) — India's publicly listed Personal Plan price is ₹500/mo;
+    // Udemy doesn't publicly disclose an annual price before sign-in, so no
+    // second plan tier is included here rather than guessing one. Free
+    // trial eligibility is user/region-gated, not a fixed term Udemy
+    // publishes — hence trialNote instead of a fabricated trialDays count.
+    id: "udemy-personal-plan",
+    name: "Udemy Personal Plan",
+    provider: "Udemy",
+    category: "Education",
+    tagline: "On-demand courses across thousands of skills and subjects",
+    color: "#A435F0",
+    initials: "UD",
+    domain: "udemy.com",
+    priceMonthly: 500,
+    billing: ["monthly"],
+    plans: [{ name: "Standard", priceMonthly: 500, billing: "monthly" }],
+    popularity: 58,
+    rating: 4.4,
+    region: "India",
+    tags: ["Education"],
+    trialNote: "Available for eligible users",
+    addedAt: "2026-09-20T00:11:18Z",
+  },
+  {
     id: "linkedin-premium",
     name: "LinkedIn Premium",
     provider: "LinkedIn Premium",

@@ -67,6 +67,7 @@ const DOMAIN_BY_NAME = {
   "Coursera Plus": "coursera.org",
   "Duolingo Super": "duolingo.com",
   "Udemy Personal Plan": "udemy.com",
+  "PW Pi Pro": "pw.live",
   Skillshare: "skillshare.com",
   "LinkedIn Learning": "linkedin.com",
   "BYJU'S": "byjus.com",

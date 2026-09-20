@@ -241,18 +241,25 @@ export function HeroCarousel() {
                 aria-hidden={isClone || undefined}
                 tabIndex={isClone ? -1 : undefined}
                 className={cn(
-                  // Mobile only: locked to the nominal 1340x360 spec ratio
-                  // per request. The uploaded PNGs are actually ~2048x768
-                  // (~8:3, still used at sm/lg, unchanged) — object-contain
-                  // below means the mismatch on mobile shows as harmless
-                  // letterboxing (a little empty space on the sides), never
-                  // a crop or a stretch.
-                  "relative aspect-[1340/360] w-full shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer sm:aspect-[8/3]",
+                  // Mobile only: fixed calc(100vw - 32px) width (not a
+                  // percentage of the track's own padded content box) so
+                  // sizing is immune to any padding/box-model cascading —
+                  // directly viewport-relative, per explicit request.
+                  // max-w-none guards against any inherited max-width.
+                  // Locked to the nominal 1340x360 spec ratio; sm/lg keep
+                  // the prior w-full + 8:3 behavior, unchanged.
+                  "relative aspect-[1340/360] w-[calc(100vw_-_32px)] max-w-none shrink-0 snap-center overflow-hidden rounded-3xl transition-all duration-300 cursor-pointer sm:aspect-[8/3] sm:w-full sm:max-w-none",
                   active ? "opacity-100" : "opacity-55 scale-[0.94]"
                 )}
                 style={{ border: "1px solid rgba(255,255,255,0.08)" }}
               >
                 {banner && (
+                  // h-full (not height:auto) is intentional: the real PNGs
+                  // are ~8:3 but this card is locked to 1340:360 — height:auto
+                  // makes the image taller than the card and the overflow-hidden
+                  // above clips it (verified: crops the CTA button off the
+                  // bottom of the banner). h-full + object-contain instead
+                  // letterboxes a little empty space on the sides, never crops.
                   // eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention
                   <img src={banner} alt={item.name} className="h-full w-full object-contain" />
                 )}

@@ -30,19 +30,6 @@ export const CATEGORY_META: Record<Category, { blurb: string; color: string }> =
 
 export const CATEGORIES = Object.keys(CATEGORY_META) as Category[];
 
-/** The "Premium" side of the Everyday/Premium catalog toggle (see
- * useUniverseStore's catalogMode) — every other category is "Everyday".
- * Single source of truth for the split; nothing else hardcodes this list. */
-export const PREMIUM_CATEGORIES: Category[] = [
-  "Private Aviation",
-  "Private Clubs",
-  "Concierge Health",
-  "Elite Fitness",
-  "Dating",
-  "Market Research",
-  "Startup & Deal Data",
-];
-
 export const BILLING_LABELS: Record<BillingCycle, string> = {
   monthly: "Monthly",
   quarterly: "Quarterly",

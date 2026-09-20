@@ -35,16 +35,10 @@ const TABS: { id: Tab; label: string }[] = [
 export function DetailPanel() {
   const selectedId = useUniverseStore((s) => s.selectedId);
   const select = useUniverseStore((s) => s.select);
-  const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
   const sub = selectedId ? SUBSCRIPTIONS_BY_ID[selectedId] : null;
 
   function handleClose() {
     select(null);
-    // Closing should always return the desktop Universe to its default
-    // fitted framing, not leave the camera wherever "focus-node" zoomed it
-    // in to — a no-op when the panel was opened from List view or on
-    // mobile, since there's no CameraController mounted to receive it.
-    sendCameraCommand({ type: "reset" });
   }
 
   return (
@@ -58,7 +52,6 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
   const sub = SUBSCRIPTIONS_BY_ID[subscriptionId];
   const router = useRouter();
   const select = useUniverseStore((s) => s.select);
-  const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
 
   const isOwned = useMySubscriptionsStore((s) => s.isOwned(sub.id));
   const owned = useMySubscriptionsStore((s) => s.getOwned(sub.id));
@@ -138,7 +131,6 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
   function openAlternative(id: string) {
     recordDemand(sub.id, "comparisons");
     select(id);
-    sendCameraCommand({ type: "focus-node", id });
   }
 
   function handleCompare() {

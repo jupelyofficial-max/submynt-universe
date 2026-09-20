@@ -1,20 +1,6 @@
 import { create } from "zustand";
 import type { Category, FilterState, SortOption, UserStatusFilter } from "@/types/subscription";
 
-export type ViewMode = "universe" | "list";
-
-/** "everyday" = every category except PREMIUM_CATEGORIES (data/categories.ts);
- * "premium" = only those. Single source of truth every catalog-consuming
- * view/component reads from the store, rather than each computing its own
- * notion of what's currently visible. */
-export type CatalogMode = "everyday" | "premium";
-
-export type CameraCommand =
-  | { type: "reset" }
-  | { type: "focus-node"; id: string }
-  | { type: "focus-mine" }
-  | { type: "discover" };
-
 const EMPTY_FILTERS: FilterState = {
   categories: [],
   billing: [],
@@ -32,13 +18,6 @@ interface UniverseUIState {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
 
-  viewMode: ViewMode;
-  setViewMode: (v: ViewMode) => void;
-
-  /** Defaults to "everyday" — Premium is opt-in, never the default view. */
-  catalogMode: CatalogMode;
-  setCatalogMode: (m: CatalogMode) => void;
-
   filters: FilterState;
   toggleCategory: (c: Category) => void;
   togglePriceBand: (id: string) => void;
@@ -52,13 +31,6 @@ interface UniverseUIState {
 
   selectedId: string | null;
   select: (id: string | null) => void;
-  hoveredId: string | null;
-  setHovered: (id: string | null) => void;
-
-  /** Category currently under the pointer (via a category label) — used to
-   * illuminate its constellation and dim unrelated ones in the universe. */
-  hoveredCategory: string | null;
-  setHoveredCategory: (c: string | null) => void;
 
   compareIds: string[];
   addToCompare: (id: string) => void;
@@ -67,23 +39,11 @@ interface UniverseUIState {
 
   discoverMode: boolean;
   setDiscoverMode: (v: boolean) => void;
-
-  cameraCommand: (CameraCommand & { nonce: number }) | null;
-  sendCameraCommand: (cmd: CameraCommand) => void;
 }
 
 export const useUniverseStore = create<UniverseUIState>()((set) => ({
   searchQuery: "",
   setSearchQuery: (q) => set({ searchQuery: q }),
-
-  viewMode: "universe",
-  setViewMode: (v) => set({ viewMode: v }),
-
-  catalogMode: "everyday",
-  // Clears any selected category filter on switch — a stale Everyday
-  // category (e.g. "Music") left selected while switching to Premium would
-  // otherwise silently filter the whole catalog down to zero results.
-  setCatalogMode: (m) => set((s) => ({ catalogMode: m, filters: { ...s.filters, categories: [] } })),
 
   filters: EMPTY_FILTERS,
   toggleCategory: (c) =>
@@ -101,11 +61,6 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
 
   selectedId: null,
   select: (id) => set({ selectedId: id }),
-  hoveredId: null,
-  setHovered: (id) => set({ hoveredId: id }),
-
-  hoveredCategory: null,
-  setHoveredCategory: (c) => set({ hoveredCategory: c }),
 
   compareIds: [],
   addToCompare: (id) => set((s) => (s.compareIds.includes(id) || s.compareIds.length >= 3 ? s : { compareIds: [...s.compareIds, id] })),
@@ -114,8 +69,4 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
 
   discoverMode: false,
   setDiscoverMode: (v) => set({ discoverMode: v }),
-
-  cameraCommand: null,
-  sendCameraCommand: (cmd) =>
-    set((s) => ({ cameraCommand: { ...cmd, nonce: (s.cameraCommand?.nonce ?? 0) + 1 } })),
 }));

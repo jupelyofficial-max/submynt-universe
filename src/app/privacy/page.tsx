@@ -21,7 +21,7 @@ export default function PrivacyPage() {
       <p className="mt-2 text-sm text-ink-500">Last updated August 30, 2026</p>
 
       <p className="mt-6 text-sm leading-relaxed text-ink-300">
-        Submynt&apos;s Universe/List catalogue is a public browsing experience — no account, no sign-in. This
+        Submynt&apos;s catalogue is a public browsing experience — no account, no sign-in. This
         policy covers the two places the app asks you for anything personal: submitting a subscription for
         review, and requesting free-trial perks.
       </p>

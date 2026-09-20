@@ -24,8 +24,8 @@ export function useIsDesktop(): boolean {
   return useMediaQuery("(min-width: 1024px)");
 }
 
-/** The Universe gets a dedicated mobile composition below this width (see
- * MobileUniverse) rather than the desktop WebGL scene scaled down. */
+/** Below this width, /explore uses its own stacked mobile toolbar instead
+ * of TopNav's inline desktop one. */
 export function useIsMobile(): boolean {
   return useMediaQuery("(max-width: 767px)");
 }

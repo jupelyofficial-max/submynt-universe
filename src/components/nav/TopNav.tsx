@@ -8,8 +8,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { SearchBar } from "@/components/search/SearchBar";
-import { ViewSwitcher } from "@/components/views/ViewSwitcher";
-import { CatalogModeToggle } from "@/components/views/CatalogModeToggle";
 import { AccountMenu } from "@/components/nav/AccountMenu";
 
 export function TopNav() {
@@ -65,12 +63,6 @@ export function TopNav() {
               <SearchBar compact />
             </div>
             <FilterBar className="flex-nowrap shrink-0" />
-            <div className="shrink-0">
-              <CatalogModeToggle />
-            </div>
-            <div className="shrink-0">
-              <ViewSwitcher />
-            </div>
           </div>
         )}
 

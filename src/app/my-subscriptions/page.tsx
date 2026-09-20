@@ -16,7 +16,6 @@ export default function MySubscriptionsPage() {
   const hydrated = useMySubscriptionsStore((s) => s.hydrated);
   const remove = useMySubscriptionsStore((s) => s.remove);
   const select = useUniverseStore((s) => s.select);
-  const sendCameraCommand = useUniverseStore((s) => s.sendCameraCommand);
   const router = useRouter();
 
   const totalMonthly = owned.reduce((sum, o) => sum + o.priceMonthly, 0);
@@ -30,9 +29,8 @@ export default function MySubscriptionsPage() {
     [owned]
   );
 
-  function openInUniverse(id: string) {
+  function openDetails(id: string) {
     select(id);
-    sendCameraCommand({ type: "focus-node", id });
     router.push(`/explore?focus=${id}`);
   }
 
@@ -93,7 +91,7 @@ export default function MySubscriptionsPage() {
                 )}
 
                 <div className="mt-auto flex gap-2 pt-1">
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => openInUniverse(sub.id)}>
+                  <Button size="sm" variant="outline" className="flex-1" onClick={() => openDetails(sub.id)}>
                     View Details
                   </Button>
                   <Button size="sm" variant="ghost" className="text-red-300 hover:text-red-200" onClick={() => remove(o.ownedId)}>

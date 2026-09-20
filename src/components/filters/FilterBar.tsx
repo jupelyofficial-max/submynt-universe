@@ -2,7 +2,6 @@
 
 import { FilterDropdown } from "./FilterDropdown";
 import { CATEGORIES, PRICE_BANDS, SORT_LABELS, SORT_OPTIONS } from "@/data/categories";
-import { isPremiumCategory } from "@/lib/filterSubscriptions";
 import { cn } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
 
@@ -24,18 +23,16 @@ export function SortDropdown() {
 
 export function FilterBar({ className, hideSort }: { className?: string; hideSort?: boolean }) {
   const filters = useUniverseStore((s) => s.filters);
-  const catalogMode = useUniverseStore((s) => s.catalogMode);
   const toggleCategory = useUniverseStore((s) => s.toggleCategory);
   const togglePriceBand = useUniverseStore((s) => s.togglePriceBand);
   const setCategories = useUniverseStore((s) => s.setCategories);
   const setPriceBands = useUniverseStore((s) => s.setPriceBands);
-  const visibleCategories = CATEGORIES.filter((c) => isPremiumCategory(c) === (catalogMode === "premium"));
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       <FilterDropdown
         label="Categories"
-        options={visibleCategories.map((c) => ({ value: c, label: c }))}
+        options={CATEGORIES.map((c) => ({ value: c, label: c }))}
         selected={filters.categories}
         onToggle={toggleCategory}
         onClear={() => setCategories([])}

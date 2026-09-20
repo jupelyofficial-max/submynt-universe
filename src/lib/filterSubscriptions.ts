@@ -1,17 +1,6 @@
-import { PREMIUM_CATEGORIES, PRICE_BANDS } from "@/data/categories";
+import { PRICE_BANDS } from "@/data/categories";
 import { isRecentlyAdded, potentialSavingsMonthly } from "@/data/subscriptions";
-import type { CatalogMode } from "@/store/useUniverseStore";
-import type { Category, FilterState, Subscription } from "@/types/subscription";
-
-export function isPremiumCategory(category: Category): boolean {
-  return (PREMIUM_CATEGORIES as Category[]).includes(category);
-}
-
-/** The single filter every catalog-consuming view applies before its own
- * search/category/price logic — see CatalogMode in useUniverseStore. */
-export function filterByCatalogMode<T extends { category: Category }>(items: T[], mode: CatalogMode): T[] {
-  return items.filter((item) => isPremiumCategory(item.category) === (mode === "premium"));
-}
+import type { FilterState, Subscription } from "@/types/subscription";
 
 export function matchesSearch(sub: Subscription, query: string): boolean {
   if (!query.trim()) return true;

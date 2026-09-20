@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SUBSCRIPTIONS, bestSavingsAlternative, getPriceForward, isRecentlyAdded, potentialSavingsMonthly } from "@/data/subscriptions";
 import { VERIFICATION_BY_ID } from "@/data/verification";
-import { filterByCatalogMode, matchesFilters, matchesSearch, sortSubscriptions } from "@/lib/filterSubscriptions";
+import { matchesFilters, matchesSearch, sortSubscriptions } from "@/lib/filterSubscriptions";
 import { canClaimSavings } from "@/lib/verification/claims";
 import { formatINR, formatPrice } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
@@ -16,17 +16,14 @@ import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 export function ListView() {
   const searchQuery = useUniverseStore((s) => s.searchQuery);
   const filters = useUniverseStore((s) => s.filters);
-  const catalogMode = useUniverseStore((s) => s.catalogMode);
   const select = useUniverseStore((s) => s.select);
   const owned = useMySubscriptionsStore((s) => s.owned);
   const ownedIds = useMemo(() => new Set(owned.map((o) => o.subscriptionId)), [owned]);
 
   const results = useMemo(() => {
-    const filtered = filterByCatalogMode(SUBSCRIPTIONS, catalogMode).filter(
-      (s) => matchesSearch(s, searchQuery) && matchesFilters(s, filters, ownedIds)
-    );
+    const filtered = SUBSCRIPTIONS.filter((s) => matchesSearch(s, searchQuery) && matchesFilters(s, filters, ownedIds));
     return sortSubscriptions(filtered, filters.sort, ownedIds);
-  }, [searchQuery, filters, catalogMode, ownedIds]);
+  }, [searchQuery, filters, ownedIds]);
 
   if (results.length === 0) {
     return (

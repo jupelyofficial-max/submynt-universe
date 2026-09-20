@@ -1,17 +1,9 @@
 import Link from "next/link";
 
-const LINK_CLASS = "text-[#22c55e] transition-opacity hover:opacity-70";
+const LINK_CLASS = "text-[#111111] transition-opacity hover:opacity-70";
 const HEADING_CLASS = "text-xs font-semibold uppercase tracking-wide text-ink-500";
 
 const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] = [
-  {
-    heading: "Discover",
-    links: [
-      { label: "For You", href: "/for-you" },
-      { label: "Compare Plans", href: "/compare" },
-      { label: "Optimize Spending", href: "/optimize" },
-    ],
-  },
   {
     heading: "Explore",
     links: [
@@ -45,7 +37,7 @@ export function Footer() {
   return (
     <footer className="shrink-0 border-t border-black/10 bg-white px-4 py-8 lg:px-8" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)" }}>
       <div className="mx-auto max-w-[1340px]">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
             <Link href="/explore" className="flex items-center gap-2 shrink-0 group w-fit">
               <svg width="22" height="22" viewBox="0 0 240 240" className="shrink-0" aria-hidden="true">

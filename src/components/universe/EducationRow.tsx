@@ -6,11 +6,14 @@ import { Badge } from "@/components/ui/Badge";
 import { getPriceForward, isRecentlyAdded, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 import { formatINR, formatPrice } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
+import { DuolingoFeatureCard } from "@/components/universe/DuolingoFeatureCard";
 
 // Real catalog ids only (src/data/subscriptions.ts) — same card markup as
 // ListView's subscription cards (logo, name, badges, pricing), just laid
-// out as a horizontal-scroll row instead of a grid.
-const EDUCATION_IDS = ["duolingo-super", "linkedin-learning", "coursera-plus", "pw-pi-pro", "udemy-personal-plan", "skillshare"];
+// out as a horizontal-scroll row instead of a grid. Duolingo Super is
+// rendered separately by DuolingoFeatureCard (first item below) instead of
+// appearing here, since it has its own larger promo-style card now.
+const EDUCATION_IDS = ["linkedin-learning", "coursera-plus", "pw-pi-pro", "udemy-personal-plan", "skillshare"];
 
 // Both have a real addedAt (2026-09-20) so isRecentlyAdded(sub) is still
 // true — and ListView/DetailPanel elsewhere still show "New" for them —
@@ -27,7 +30,8 @@ export function EducationRow() {
     <div className="px-4 pb-2 pt-5 lg:px-8">
       <div className="mx-auto max-w-[1340px]">
         <h2 className="mb-3 text-lg font-semibold text-ink-0">Education</h2>
-        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+        <div className="flex items-start gap-3 overflow-x-auto no-scrollbar pb-1">
+          <DuolingoFeatureCard />
           {items.map((sub) => {
             const priceInfo = getPriceForward(sub);
             const showNewBadge = isRecentlyAdded(sub) && !HIDE_NEW_BADGE_IDS.has(sub.id);
@@ -36,7 +40,7 @@ export function EducationRow() {
                 key={sub.id}
                 type="button"
                 onClick={() => select(sub.id)}
-                className="glass-panel group flex w-44 shrink-0 flex-col gap-2 rounded-2xl p-3 text-left transition-colors hover:border-black/20 cursor-pointer sm:w-52"
+                className="glass-panel group flex h-[179px] w-44 shrink-0 flex-col gap-2 rounded-2xl p-3 text-left transition-colors hover:border-black/20 cursor-pointer sm:w-52"
               >
                 {/* Fixed neutral backing, logo inset within it — normalizes
                     apparent size across favicons whose own padding/fill

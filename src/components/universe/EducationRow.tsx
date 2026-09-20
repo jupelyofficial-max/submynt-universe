@@ -19,7 +19,7 @@ export function EducationRow() {
 
   return (
     <div className="px-4 pb-2 pt-5 lg:px-8">
-      <div className="mx-auto max-w-[92rem]">
+      <div className="mx-auto max-w-[1340px]">
         <h2 className="mb-3 text-lg font-semibold text-ink-0">Education</h2>
         <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
           {items.map((sub) => {

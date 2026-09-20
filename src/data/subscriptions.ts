@@ -219,6 +219,9 @@ export const SUBSCRIPTIONS: Subscription[] = [
     trialDays: 7,
   },
   {
+    // Updated 2026-09-20 to Anthropic's India-localized INR pricing
+    // (rolled out July 2026) — verified via web search, previous
+    // ₹1,670/1,336 figures predate that localization and were stale.
     id: "claude-pro",
     name: "Claude Pro",
     provider: "Claude Pro",
@@ -227,11 +230,11 @@ export const SUBSCRIPTIONS: Subscription[] = [
     color: "#D97757",
     initials: "CP",
     domain: "claude.ai",
-    priceMonthly: 1670,
+    priceMonthly: 2399,
     billing: ["monthly", "annual"],
     plans: [
-      { name: "Standard", priceMonthly: 1670, billing: "monthly" },
-      { name: "Annual", priceMonthly: 1336, billing: "annual" },
+      { name: "Standard", priceMonthly: 2399, billing: "monthly" },
+      { name: "Annual", priceMonthly: 2000, billing: "annual" },
     ],
     popularity: 88,
     rating: 4.8,
@@ -260,6 +263,9 @@ export const SUBSCRIPTIONS: Subscription[] = [
     trialDays: 30,
   },
   {
+    // Verified 2026-09-20 against gemini.google/in/subscriptions — ₹1,950/mo
+    // confirmed real; the previous Annual tier (₹1,560/mo) isn't shown on
+    // that official page at all, so it's removed rather than left unverified.
     id: "google-ai-pro",
     name: "Google AI Pro (Gemini)",
     provider: "Google AI Pro (Gemini)",
@@ -269,11 +275,8 @@ export const SUBSCRIPTIONS: Subscription[] = [
     initials: "GA",
     domain: "gemini.google.com",
     priceMonthly: 1950,
-    billing: ["monthly", "annual"],
-    plans: [
-      { name: "Standard", priceMonthly: 1950, billing: "monthly" },
-      { name: "Annual", priceMonthly: 1560, billing: "annual" },
-    ],
+    billing: ["monthly"],
+    plans: [{ name: "Standard", priceMonthly: 1950, billing: "monthly" }],
     popularity: 82,
     rating: 4.4,
     region: "Available in India",
@@ -386,6 +389,13 @@ export const SUBSCRIPTIONS: Subscription[] = [
     trialDays: 14,
   },
   {
+    // Updated 2026-09-20: verified current price is ~₹2,000/mo (best-
+    // supported figure across sources, given India-market naming is
+    // ambiguous — Microsoft's own pricing page no longer lists a
+    // standalone "Copilot Pro" for India, showing Copilot bundled into
+    // Microsoft 365 Premium (₹1,999/mo) instead). No verified annual
+    // tier exists for this product, so it's removed rather than
+    // left unverified.
     id: "microsoft-copilot-pro",
     name: "Microsoft Copilot Pro",
     provider: "Microsoft Copilot Pro",
@@ -394,16 +404,37 @@ export const SUBSCRIPTIONS: Subscription[] = [
     color: "#5174ea",
     initials: "MC",
     domain: "copilot.microsoft.com",
-    priceMonthly: 1700,
-    billing: ["monthly", "annual"],
-    plans: [
-      { name: "Standard", priceMonthly: 1700, billing: "monthly" },
-      { name: "Annual", priceMonthly: 1360, billing: "annual" },
-    ],
+    priceMonthly: 2000,
+    billing: ["monthly"],
+    plans: [{ name: "Standard", priceMonthly: 2000, billing: "monthly" }],
     popularity: 55,
     rating: 4.2,
     region: "Available in India",
     tags: ["AI Tools"],
+  },
+  {
+    // Added 2026-09-20. Sources on SuperGrok's current India price
+    // conflicted: one described a July 2026 hike from ₹700/mo to
+    // ₹2,900/mo (matching global ~$30/mo pricing), another still showed
+    // the pre-hike ₹700/mo figure — could not reach x.ai directly to
+    // settle it (blocked). Using ₹2,900/mo per explicit direction; flag
+    // as lower-confidence than this catalog's other verified prices.
+    id: "supergrok",
+    name: "SuperGrok",
+    provider: "xAI",
+    category: "AI Tools",
+    tagline: "xAI's Grok assistant with image and video generation",
+    color: "#000000",
+    initials: "SG",
+    domain: "x.ai",
+    priceMonthly: 2900,
+    billing: ["monthly"],
+    plans: [{ name: "Standard", priceMonthly: 2900, billing: "monthly" }],
+    popularity: 45,
+    rating: 4.1,
+    region: "Available in India",
+    tags: ["AI Tools"],
+    addedAt: "2026-09-20T00:47:10Z",
   },
   {
     id: "linkedin-learning",

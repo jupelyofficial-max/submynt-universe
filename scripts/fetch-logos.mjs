@@ -9,6 +9,7 @@ import { join } from "node:path";
 const DOMAIN_BY_NAME = {
   "ChatGPT Plus": "openai.com",
   "Claude Pro": "claude.ai",
+  SuperGrok: "x.ai",
   "Gemini Advanced": "gemini.google.com",
   "Notion AI": "notion.so",
   "Perplexity Pro": "perplexity.ai",

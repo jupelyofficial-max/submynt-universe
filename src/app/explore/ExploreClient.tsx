@@ -10,6 +10,7 @@ import { HeroCarousel } from "@/components/universe/HeroCarousel";
 import { EcosystemsRow } from "@/components/universe/EcosystemsRow";
 import { LifestyleBundlesRow } from "@/components/universe/LifestyleBundlesRow";
 import { EducationRow } from "@/components/universe/EducationRow";
+import { AIToolsRow } from "@/components/universe/AIToolsRow";
 import { SubmitListingModal } from "@/components/submissions/SubmitListingModal";
 import { NebulaBackdrop } from "@/components/universe/NebulaBackdrop";
 import { MobileUniverse } from "@/components/universe/MobileUniverse";
@@ -113,6 +114,7 @@ export function ExploreClient() {
         <EcosystemsRow />
         <LifestyleBundlesRow />
         <EducationRow />
+        <AIToolsRow />
         {viewMode === "universe" ? (
           isMobile ? (
             <>

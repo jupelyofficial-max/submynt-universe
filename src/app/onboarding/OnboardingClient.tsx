@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
+import { sanitizeNextPath } from "@/lib/safeRedirect";
 
 type Profession = "Student" | "Entrepreneur" | "Working professional";
 const PROFESSIONS: Profession[] = ["Student", "Entrepreneur", "Working professional"];
@@ -30,7 +31,11 @@ const GENDERS: Gender[] = ["Female", "Male", "Other"];
 export function OnboardingClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/explore";
+  // /onboarding?next=... is directly reachable on its own (not just via
+  // the already-sanitizing auth callback), so it's re-validated here too
+  // — an unsanitized value gets handed straight to router.replace() below,
+  // and Next's router hard-navigates for an absolute/protocol-relative URL.
+  const next = sanitizeNextPath(searchParams.get("next"));
   const user = useAuthStore((s) => s.user);
   const hydrated = useAuthStore((s) => s.hydrated);
 

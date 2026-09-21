@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendNotificationEmail } from "@/lib/email";
+import { getClientIp, isRateLimited } from "@/lib/rateLimit";
 
 // Server-only route handler — anonymous submitters have no Supabase
 // session, so this goes through the service-role key server-side rather
@@ -7,9 +8,38 @@ import { sendNotificationEmail } from "@/lib/email";
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Single-line text fields in the form (SubmitListingModal has no
+// <textarea>) — a newline/carriage-return here is either a malformed
+// submission or an attempt at email-header injection via the notification
+// email's subject line, so it's rejected rather than silently stripped.
+const CONTROL_CHARS_RE = /[\r\n\0]/;
+
+function isValidSingleLine(value: unknown, maxLength: number): value is string {
+  return typeof value === "string" && value.trim().length > 0 && value.length <= maxLength && !CONTROL_CHARS_RE.test(value);
+}
+
+function isValidUrl(value: unknown): value is string {
+  if (!isValidSingleLine(value, 2048)) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+  }
+
+  // 5 submissions per 10 minutes per IP — generous for a real visitor
+  // (this form isn't submitted repeatedly in normal use), tight enough to
+  // blunt a naive spam script. See rateLimit.ts for the serverless caveat.
+  const ip = getClientIp(request);
+  if (isRateLimited(`submissions:${ip}`, 5, 10 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many requests, try again later" }, { status: 429 });
   }
 
   const body = await request.json().catch(() => null);
@@ -22,13 +52,13 @@ export async function POST(request: Request) {
   const contactEmail = body?.contactEmail;
 
   if (
-    typeof name !== "string" || !name.trim() ||
-    typeof website !== "string" || !website.trim() ||
-    typeof category !== "string" || !category.trim() ||
-    typeof tagline !== "string" || !tagline.trim() ||
-    typeof priceMonthly !== "number" || Number.isNaN(priceMonthly) ||
-    typeof region !== "string" || !region.trim() ||
-    typeof contactEmail !== "string" || !contactEmail.trim()
+    !isValidSingleLine(name, 100) ||
+    !isValidUrl(website) ||
+    !isValidSingleLine(category, 50) ||
+    !isValidSingleLine(tagline, 300) ||
+    typeof priceMonthly !== "number" || !Number.isFinite(priceMonthly) || priceMonthly < 0 || priceMonthly > 10_000_000 ||
+    !isValidSingleLine(region, 100) ||
+    !isValidSingleLine(contactEmail, 254) || !EMAIL_RE.test(contactEmail)
   ) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }

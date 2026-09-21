@@ -15,7 +15,7 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
     heading: "Help",
     links: [
       { label: "FAQ", href: "/explore#faq" },
-      { label: "Contact", href: "mailto:jupely.official@gmail.com" },
+      { label: "Contact", href: "mailto:venkata@submynt.com" },
     ],
   },
   {

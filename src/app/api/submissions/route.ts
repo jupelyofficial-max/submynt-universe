@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sendNotificationEmail } from "@/lib/email";
 
 // Server-only route handler — anonymous submitters have no Supabase
 // session, so this goes through the service-role key server-side rather
@@ -55,6 +56,25 @@ export async function POST(request: Request) {
     console.error("submissions insert failed", res.status, await res.text().catch(() => ""));
     return NextResponse.json({ error: "Failed to save" }, { status: 502 });
   }
+
+  // Notification only — the submission is already saved above regardless
+  // of whether this succeeds (sendNotificationEmail swallows its own
+  // errors and returns false), so a misconfigured/down mailbox never
+  // blocks a real submitter. Awaited rather than fire-and-forget because
+  // Vercel's serverless runtime can freeze the function once the response
+  // is returned, killing any still-pending promise.
+  await sendNotificationEmail(
+    `New listing submission: ${name}`,
+    [
+      `Name: ${name}`,
+      `Website: ${website}`,
+      `Category: ${category}`,
+      `Tagline: ${tagline}`,
+      `Price/month: ${priceMonthly}`,
+      `Region: ${region}`,
+      `Contact email: ${contactEmail}`,
+    ].join("\n")
+  );
 
   return NextResponse.json({ ok: true });
 }

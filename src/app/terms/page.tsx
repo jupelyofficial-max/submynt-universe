@@ -79,8 +79,8 @@ export default function TermsPage() {
       <Section title="Contact">
         <p>
           Questions about these terms? Email{" "}
-          <a href="mailto:jupely.official@gmail.com" className="text-aurora-500 underline underline-offset-2">
-            jupely.official@gmail.com
+          <a href="mailto:venkata@submynt.com" className="text-aurora-500 underline underline-offset-2">
+            venkata@submynt.com
           </a>
           .
         </p>

@@ -71,14 +71,14 @@ export default function PrivacyPage() {
       <Section title="Grievance Officer">
         <p>
           For any complaint or question about how your personal data is handled, contact our Grievance Officer:{" "}
-          <a href="mailto:jupely.official@gmail.com" className="text-aurora-500 underline underline-offset-2">
-            jupely.official@gmail.com
+          <a href="mailto:venkata@submynt.com" className="text-aurora-500 underline underline-offset-2">
+            venkata@submynt.com
           </a>
           . We aim to acknowledge every complaint within 7 days and resolve it within 30.
         </p>
         <p>
           <a
-            href="mailto:jupely.official@gmail.com?subject=Data%20Deletion%20Request&body=Please%20delete%20any%20correspondence%20you%20have%20from%20me.%0A%0AName%3A%20%0AEmail%3A%20%0A"
+            href="mailto:venkata@submynt.com?subject=Data%20Deletion%20Request&body=Please%20delete%20any%20correspondence%20you%20have%20from%20me.%0A%0AName%3A%20%0AEmail%3A%20%0A"
             className="mt-2 inline-flex items-center rounded-full bg-ink-0 px-4 py-2 text-xs font-semibold text-void-950 transition-colors hover:bg-ink-100"
           >
             Request Deletion

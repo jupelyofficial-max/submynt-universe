@@ -51,6 +51,7 @@ export function SubscriptionLogo({ subscription, size = "md", ring, className, s
           src={logoPath!}
           alt=""
           draggable={false}
+          loading="lazy"
           className="h-full w-full object-contain"
           style={{ filter: "drop-shadow(0 1px 2px rgba(20,15,8,0.22))" }}
           onError={() => setFailed(true)}
@@ -79,6 +80,7 @@ export function SubscriptionLogo({ subscription, size = "md", ring, className, s
           src={logoPath!}
           alt=""
           draggable={false}
+          loading="lazy"
           className="h-[72%] w-[72%] object-contain drop-shadow-sm"
           onError={() => setFailed(true)}
         />

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
 
@@ -43,18 +44,18 @@ export function EcosystemsRow() {
               >
                 <div
                   className={cn(
-                    "flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-md shadow-black/5 transition-all duration-200 sm:h-24 sm:w-24",
+                    "relative flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-md shadow-black/5 transition-all duration-200 sm:h-24 sm:w-24",
                     "group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:shadow-black/10 group-active:translate-y-0",
                     active && "ring-2 ring-ocean-500"
                   )}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention */}
-                  <img
-                    src={eco.logo}
-                    alt=""
-                    draggable={false}
-                    className="h-[70%] w-[70%] object-contain"
-                  />
+                  {/* next/image: source files are ~0.8-1MB despite rendering
+                      at 64-96px — auto-resize matters a lot here. Above the
+                      fold on /explore, but small enough not to need
+                      `priority` (hero carousel is the real LCP candidate). */}
+                  <div className="relative h-[70%] w-[70%]">
+                    <Image src={eco.logo} alt="" fill sizes="96px" className="object-contain" draggable={false} />
+                  </div>
                 </div>
                 <span
                   className={cn(

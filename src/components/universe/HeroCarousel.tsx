@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 import { cn } from "@/lib/utils";
@@ -275,8 +276,20 @@ export function HeroCarousel() {
                 style={{ border: "1px solid rgba(255,255,255,0.08)", ...mobileCardStyle }}
               >
                 {banner && (
-                  // eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention
-                  <img src={banner} alt={item.name} className="h-full w-full object-contain" />
+                  // next/image: these PNGs are ~1.7MB full-size and this is
+                  // the LCP candidate on /explore, so automatic resize +
+                  // WebP/AVIF + lazy-loading off-screen slides matters a
+                  // lot here. priority on the active slide only — it's the
+                  // one actually painted first; the others (including both
+                  // clones) stay lazy since they're off-screen at load.
+                  <Image
+                    src={banner}
+                    alt={item.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 63vw"
+                    priority={active}
+                    className="object-contain"
+                  />
                 )}
               </button>
             );

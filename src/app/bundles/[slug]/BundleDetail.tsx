@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
@@ -21,8 +22,12 @@ export function BundleDetail({ bundle }: { bundle: LifestyleBundle }) {
       </Link>
 
       <div className="overflow-hidden rounded-3xl">
-        {/* eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention */}
-        <img src={bundle.image} alt={bundle.title} className="h-auto w-full" />
+        {/* next/image: same ~1.7MB PNG as the /explore card, but here it's
+            the whole width of the page and right at the top — likely this
+            route's LCP element, hence `priority`. Real 2172x724 intrinsic
+            size (not `fill`) so w-full/h-auto scales it responsively
+            without a wrapping aspect-ratio box. */}
+        <Image src={bundle.image} alt={bundle.title} width={2172} height={724} sizes="100vw" priority className="h-auto w-full" />
       </div>
 
       <div className="mt-6">

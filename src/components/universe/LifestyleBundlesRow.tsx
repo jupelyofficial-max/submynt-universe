@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { LIFESTYLE_BUNDLES, NOT_SURE_BUNDLE_IMAGE } from "@/data/bundles";
 
@@ -31,8 +32,10 @@ export function LifestyleBundlesRow() {
               className="relative aspect-[3/1] w-full overflow-hidden rounded-2xl transition-transform duration-200 hover:scale-[1.005]"
               style={{ border: "1px solid rgba(0,0,0,0.06)" }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- matches SubscriptionLogo's plain-<img> convention */}
-              <img src={card.image} alt={card.alt} className="h-full w-full object-cover" />
+              {/* next/image: these PNGs are ~1.7MB full-size; below-the-fold
+                  here so this is really about total page weight, not LCP —
+                  lazy by default (no `priority`), auto-resized + WebP/AVIF. */}
+              <Image src={card.image} alt={card.alt} fill sizes="(max-width: 639px) 100vw, 50vw" className="object-cover" />
             </Link>
           ))}
         </div>

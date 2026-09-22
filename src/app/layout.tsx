@@ -31,7 +31,7 @@ const playfairItalic = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Submynt — Your Subscription Universe",
+  title: "Submynt: India's Subscription Intelligence Platform",
   description:
     "Discover, compare and optimize every digital subscription you pay for — mapped as one living universe.",
 };

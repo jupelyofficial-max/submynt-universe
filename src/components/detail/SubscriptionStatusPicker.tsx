@@ -65,7 +65,7 @@ export function SubscriptionStatusPicker({ sub }: { sub: Subscription }) {
 
   return (
     <div>
-      <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Add to My Subscriptions</h4>
+      <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Add to Track Subscriptions</h4>
       <div className="grid grid-cols-2 gap-1.5">
         {OPTIONS.map((opt) => {
           const isActive = active === opt.value;

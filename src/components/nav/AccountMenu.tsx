@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { Heart, LogOut, ShieldCheck, Sparkles, SlidersHorizontal } from "lucide-react";
+import { Heart, LogOut, Orbit, ShieldCheck, Sparkles, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
@@ -201,7 +201,8 @@ function LoggedInMenu({ email, name }: { email: string; name?: string }) {
             </div>
             <div className="my-1 h-px bg-black/10" />
             <MenuItem icon={<Sparkles size={14} />} label="For you" onClick={() => go("/for-you")} />
-            <MenuItem icon={<Heart size={14} />} label="Saved subscriptions" onClick={() => go("/my-subscriptions")} />
+            <MenuItem icon={<Orbit size={14} />} label="Track Subscriptions" onClick={() => go("/my-subscriptions")} />
+            <MenuItem icon={<Heart size={14} />} label="Saved subscriptions" onClick={() => go("/saved-subscriptions")} />
             <MenuItem icon={<SlidersHorizontal size={14} />} label="Preferences" onClick={() => go("/onboarding")} />
             {isAdmin && (
               <>

@@ -15,6 +15,7 @@ import { PriceAlertToggle } from "@/components/detail/PriceAlertToggle";
 import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
+import { useSubscriptionStatusStore } from "@/store/useSubscriptionStatusStore";
 import { useDemandSignalsStore } from "@/store/useDemandSignalsStore";
 import { SUBSCRIPTIONS_BY_ID, bestSavingsAlternative, isRecentlyAdded, potentialSavingsMonthly } from "@/data/subscriptions";
 import { VERIFICATION_BY_ID } from "@/data/verification";
@@ -57,8 +58,10 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
   const owned = useMySubscriptionsStore((s) => s.getOwned(sub.id));
   const removeOwned = useMySubscriptionsStore((s) => s.remove);
   const addOwned = useMySubscriptionsStore((s) => s.add);
-  const toggleKept = useMySubscriptionsStore((s) => s.toggleKept);
   const ownedList = useMySubscriptionsStore((s) => s.owned);
+  const savedStatus = useSubscriptionStatusStore((s) => s.statuses[sub.id]);
+  const setSavedStatus = useSubscriptionStatusStore((s) => s.setStatus);
+  const clearSavedStatus = useSubscriptionStatusStore((s) => s.clearStatus);
   const recordDemand = useDemandSignalsStore((s) => s.record);
 
   const [tab, setTab] = useState<Tab>("overview");
@@ -86,35 +89,23 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sub.id]);
 
-  const isKept = Boolean(isOwned && owned?.kept);
+  // "Saved" (interested in) is a lightweight, non-owning signal —
+  // useSubscriptionStatusStore's "considering" state — deliberately
+  // decoupled from real ownership (useMySubscriptionsStore/owned_subscriptions,
+  // which is what "Track Subscriptions" means). Heart used to add a real
+  // owned record straight from this click with a guessed plan/price; that
+  // conflated "interested in" with "actually have" and has been removed —
+  // adding a real tracked subscription now only happens through the Track
+  // Subscriptions onboarding flow or SubscriptionStatusPicker's explicit
+  // "Currently subscribed" choice below.
+  const isSaved = savedStatus === "considering";
 
-  // Heart is clickable immediately, with no prior "add to My Subscriptions"
-  // step — that means a click here can't assume an owned record already
-  // exists. Already-owned: flip the existing kept flag, exactly as before.
-  // Not yet owned: this click IS the add, using the subscription's first
-  // listed plan as a reasonable default (same day-count-by-billing
-  // convention SubscriptionStatusPicker's confirmPlan already uses) so the
-  // click never does nothing.
-  function handleToggleKeep() {
-    if (isOwned && owned) {
-      toggleKept(owned.ownedId);
-      return;
+  function handleToggleSaved() {
+    if (isSaved) {
+      clearSavedStatus(sub.id);
+    } else {
+      setSavedStatus(sub.id, "considering");
     }
-    // Enterprise-sales-only entries (no public price) have no real plan
-    // to snapshot a price/billing from — nothing to add.
-    if (sub.plans.length === 0) return;
-    const plan = sub.plans[0];
-    const days = plan.billing === "annual" ? 365 : plan.billing === "quarterly" ? 90 : 30;
-    const nextRenewal = new Date();
-    nextRenewal.setDate(nextRenewal.getDate() + days);
-    addOwned({
-      subscriptionId: sub.id,
-      planName: plan.name,
-      priceMonthly: plan.priceMonthly,
-      billing: plan.billing,
-      nextRenewal: nextRenewal.toISOString(),
-      kept: true,
-    });
   }
 
   function handleShare() {
@@ -174,21 +165,17 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
             </p>
           </div>
           <button
-            onClick={handleToggleKeep}
-            disabled={!isOwned && sub.plans.length === 0}
-            aria-label={isKept ? "Remove from kept" : "Keep this subscription"}
-            aria-pressed={isKept}
+            onClick={handleToggleSaved}
+            aria-label={isSaved ? "Remove from saved subscriptions" : "Save this subscription"}
+            aria-pressed={isSaved}
             className={cn(
-              "mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors",
-              !isOwned && sub.plans.length === 0
-                ? "cursor-not-allowed border-[#E5E5E5] bg-white text-[#D5D5D5]"
-                : "cursor-pointer",
-              isKept
+              "mb-1 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border transition-colors",
+              isSaved
                 ? "border-rose-300 bg-rose-50 text-rose-500"
                 : "border-[#E5E5E5] bg-white text-[#6B6B6B] hover:border-black/20"
             )}
           >
-            <Heart size={16} className={isKept ? "fill-current" : ""} />
+            <Heart size={16} className={isSaved ? "fill-current" : ""} />
           </button>
         </div>
 

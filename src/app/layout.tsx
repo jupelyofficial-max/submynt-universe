@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { TopNav } from "@/components/nav/TopNav";
 import { Footer } from "@/components/nav/Footer";
 import { DetailPanel } from "@/components/detail/DetailPanel";
+import { AddSubscriptionsModal } from "@/components/onboarding/AddSubscriptionsModal";
 
 // Single font for the entire app — both --font-sans (body) and
 // --font-display (headings) resolve to this in globals.css, so every
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
           </main>
           <DetailPanel />
+          <AddSubscriptionsModal />
         </Providers>
       </body>
     </html>

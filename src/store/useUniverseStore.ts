@@ -29,6 +29,14 @@ interface UniverseUIState {
   isSubmitModalOpen: boolean;
   setSubmitModalOpen: (v: boolean) => void;
 
+  /** The "Track Subscriptions" onboarding/bulk-add flow. `preselectId`
+   * lets a single-subscription entry point (e.g. Saved subscriptions'
+   * "I have this" button) open the modal with that one service already
+   * selected, skipping straight to the details step. */
+  isAddSubscriptionsModalOpen: boolean;
+  addSubscriptionsPreselectId: string | null;
+  setAddSubscriptionsModalOpen: (v: boolean, preselectId?: string | null) => void;
+
   selectedId: string | null;
   select: (id: string | null) => void;
 
@@ -58,6 +66,11 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
 
   isSubmitModalOpen: false,
   setSubmitModalOpen: (v) => set({ isSubmitModalOpen: v }),
+
+  isAddSubscriptionsModalOpen: false,
+  addSubscriptionsPreselectId: null,
+  setAddSubscriptionsModalOpen: (v, preselectId = null) =>
+    set({ isAddSubscriptionsModalOpen: v, addSubscriptionsPreselectId: v ? preselectId : null }),
 
   selectedId: null,
   select: (id) => set({ selectedId: id }),

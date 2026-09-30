@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Orbit, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Orbit, Plus, Sparkles, Trash2 } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { SUBSCRIPTIONS_BY_ID, potentialSavingsMonthly } from "@/data/subscriptions";
@@ -50,18 +50,30 @@ export default function MySubscriptionsPage() {
             <Orbit size={20} />
           </span>
           <div>
-            <h1 className="font-display text-2xl font-semibold text-ink-0">My Subscriptions</h1>
+            <h1 className="font-display text-2xl font-semibold text-ink-0">Track Subscriptions</h1>
             <p className="text-sm text-ink-400">
               {owned.length > 0 ? `${owned.length} tracked · ${formatINR(totalMonthly)}/mo` : "Nothing tracked yet."}
             </p>
           </div>
         </div>
+        {items.length > 0 && (
+          <Button size="sm" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true)}>
+            <Plus size={14} />
+            Add subscriptions
+          </Button>
+        )}
       </div>
 
       {hydrated && items.length === 0 ? (
         <div className="glass-panel flex flex-col items-center gap-3 rounded-2xl p-16 text-center">
-          <p className="font-display text-lg text-ink-0">Your universe is empty for now</p>
-          <p className="max-w-sm text-sm text-ink-400">Your tracked subscriptions will show up here.</p>
+          <p className="font-display text-lg text-ink-0">Nothing tracked yet</p>
+          <p className="max-w-sm text-sm text-ink-400">
+            Add the subscriptions you actually pay for — no bank connection required.
+          </p>
+          <Button className="mt-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true)}>
+            <Plus size={14} />
+            Track your subscriptions
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

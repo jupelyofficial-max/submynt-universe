@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
-import type { AccessType, BillingCycle, BundleProvider, Subscription } from "@/types/subscription";
+import type { AccessType, BillingCycle, BundleProvider, Subscription, UsageFrequency } from "@/types/subscription";
 
 const ACCESS_TYPE_OPTIONS: { value: AccessType; label: string }[] = [
   { value: "direct", label: "Direct" },
@@ -31,6 +31,14 @@ const FLOW_BILLING_OPTIONS: { value: BillingCycle; label: string }[] = [
   { value: "annual", label: "Annual" },
 ];
 
+const USAGE_FREQUENCY_OPTIONS: { value: UsageFrequency; label: string }[] = [
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "rarely", label: "Rarely" },
+  { value: "never", label: "Never" },
+];
+
 export interface ServiceDetailsValue {
   accessType: AccessType;
   bundleProvider?: BundleProvider;
@@ -39,6 +47,9 @@ export interface ServiceDetailsValue {
   billing: BillingCycle;
   /** yyyy-mm-dd, matches the native date input's value format. */
   nextRenewal: string;
+  /** Optional/skippable — feeds the Sprint 4 Submynt Score, but nothing
+   * here requires it (missing usage is a dropped term, not a penalty). */
+  usageFrequency?: UsageFrequency;
 }
 
 export function defaultServiceDetails(sub: Subscription): ServiceDetailsValue {
@@ -52,6 +63,7 @@ export function defaultServiceDetails(sub: Subscription): ServiceDetailsValue {
     priceMonthly: plan?.priceMonthly ?? sub.priceMonthly ?? 0,
     billing: "monthly",
     nextRenewal: renewal.toISOString().slice(0, 10),
+    usageFrequency: undefined,
   };
 }
 
@@ -163,6 +175,27 @@ export function ServiceDetailsCard({
             onChange={(e) => set("nextRenewal", e.target.value)}
             className="w-full rounded-lg border border-black/10 bg-void-900/70 px-3 py-2 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
           />
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <label className="mb-1.5 block text-xs font-medium text-ink-300">How often do you use it? (optional)</label>
+        <div className="grid grid-cols-5 gap-1.5">
+          {USAGE_FREQUENCY_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => set("usageFrequency", value.usageFrequency === opt.value ? undefined : opt.value)}
+              className={cn(
+                "rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+                value.usageFrequency === opt.value
+                  ? "border-nebula-500 bg-nebula-500/10 text-nebula-400"
+                  : "border-black/10 text-ink-300 hover:border-black/20"
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { SUBSCRIPTIONS_BY_ID, potentialSavingsMonthly } from "@/data/subscriptions";
 import { daysUntil, formatDate, formatINR, formatOwnedPrice } from "@/lib/utils";
+import { computeSubmyntScore, type Recommendation } from "@/lib/submyntScore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import type { AccessType, Category, OwnedSubscription, Subscription } from "@/types/subscription";
@@ -38,6 +39,18 @@ const ACCESS_TYPE_TONES: Record<AccessType, "neutral" | "aurora" | "gold" | "neb
 };
 
 const RENEWAL_WINDOW_DAYS = 30;
+
+const RECOMMENDATION_LABELS: Record<Recommendation, string> = {
+  keep: "Keep",
+  optimize: "Optimize",
+  reassess: "Reassess",
+};
+
+const RECOMMENDATION_TONES: Record<Recommendation, "neutral" | "aurora" | "gold" | "nebula" | "danger"> = {
+  keep: "nebula",
+  optimize: "gold",
+  reassess: "danger",
+};
 
 export default function MySubscriptionsPage() {
   const owned = useMySubscriptionsStore((s) => s.owned);
@@ -122,6 +135,14 @@ export default function MySubscriptionsPage() {
 
   function openDetails(id: string) {
     select(id);
+    router.push(`/explore?focus=${id}`);
+  }
+
+  // "Explore Alternative" (US-038) — reuses DetailPanel's existing
+  // Alternatives tab rather than building a new view; selectWithTab deep-
+  // links it open directly on that tab instead of Overview.
+  function exploreAlternative(id: string) {
+    useUniverseStore.getState().selectWithTab(id, "alternatives");
     router.push(`/explore?focus=${id}`);
   }
 
@@ -216,6 +237,7 @@ export default function MySubscriptionsPage() {
                   {categoryItems.map(({ owned: o, sub }) => {
                     const savings = (o.accessType ?? "direct") === "direct" ? potentialSavingsMonthly(sub) : 0;
                     const accessType = o.accessType ?? "direct";
+                    const scoreResult = computeSubmyntScore(sub, accessType, o.usageFrequency);
                     return (
                       <div key={o.ownedId} className="glass-panel flex flex-col gap-3 rounded-2xl p-4">
                         <div className="flex items-start gap-3">
@@ -246,10 +268,28 @@ export default function MySubscriptionsPage() {
                           </div>
                         )}
 
+                        {/* Submynt Score (Sprint 4) — rule-based, explainable
+                            factors only (usage / price-value / cheaper
+                            alternatives), never a raw quality number. */}
+                        <div className="rounded-lg border border-black/10 px-2.5 py-2">
+                          <div className="mb-1 flex items-center justify-between gap-2">
+                            <Badge tone={RECOMMENDATION_TONES[scoreResult.recommendation]}>
+                              {RECOMMENDATION_LABELS[scoreResult.recommendation]}
+                            </Badge>
+                            <span className="text-[11px] font-semibold text-ink-400">Score {scoreResult.score}</span>
+                          </div>
+                          <p className="text-[11px] leading-snug text-ink-500">{scoreResult.reasons.join(" · ")}</p>
+                        </div>
+
                         <div className="mt-auto flex gap-2 pt-1">
                           <Button size="sm" variant="outline" className="flex-1" onClick={() => openDetails(sub.id)}>
                             View Details
                           </Button>
+                          {scoreResult.recommendation === "reassess" && (
+                            <Button size="sm" variant="ghost" className="flex-1 text-gold-400" onClick={() => exploreAlternative(sub.id)}>
+                              Explore Alternative
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"

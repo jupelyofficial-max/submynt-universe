@@ -109,6 +109,7 @@ function AddSubscriptionsFlow({ preselectId, onClose }: { preselectId: string | 
         nextRenewal: entry.nextRenewal,
         accessType: entry.accessType,
         bundleProvider: entry.bundleProvider,
+        usageFrequency: entry.usageFrequency,
       });
     }
     setAddedCount(selectedIds.length);

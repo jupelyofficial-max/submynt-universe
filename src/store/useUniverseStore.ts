@@ -14,6 +14,8 @@ function toggleInArray<T>(arr: T[], value: T): T[] {
   return arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 }
 
+export type DetailTab = "overview" | "plans" | "alternatives";
+
 interface UniverseUIState {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -39,6 +41,14 @@ interface UniverseUIState {
 
   selectedId: string | null;
   select: (id: string | null) => void;
+
+  /** Deep-links DetailPanel to a specific tab on open (e.g. Sprint 4's
+   * "Explore Alternative" CTA landing directly on Alternatives instead of
+   * Overview) — reuses the existing panel/tabs rather than a new view.
+   * DetailPanel consumes and clears this once it applies it. */
+  pendingDetailTab: DetailTab | null;
+  selectWithTab: (id: string, tab: DetailTab) => void;
+  clearPendingDetailTab: () => void;
 
   compareIds: string[];
   addToCompare: (id: string) => void;
@@ -74,6 +84,10 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
 
   selectedId: null,
   select: (id) => set({ selectedId: id }),
+
+  pendingDetailTab: null,
+  selectWithTab: (id, tab) => set({ selectedId: id, pendingDetailTab: tab }),
+  clearPendingDetailTab: () => set({ pendingDetailTab: null }),
 
   compareIds: [],
   addToCompare: (id) => set((s) => (s.compareIds.includes(id) || s.compareIds.length >= 3 ? s : { compareIds: [...s.compareIds, id] })),

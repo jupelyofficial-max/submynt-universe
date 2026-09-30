@@ -13,7 +13,7 @@ import { AlternativesSection } from "@/components/detail/AlternativesSection";
 import { SubscriptionStatusPicker } from "@/components/detail/SubscriptionStatusPicker";
 import { PriceAlertToggle } from "@/components/detail/PriceAlertToggle";
 import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
-import { useUniverseStore } from "@/store/useUniverseStore";
+import { useUniverseStore, type DetailTab } from "@/store/useUniverseStore";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useSubscriptionStatusStore } from "@/store/useSubscriptionStatusStore";
 import { useDemandSignalsStore } from "@/store/useDemandSignalsStore";
@@ -24,9 +24,9 @@ import { getRecommendation } from "@/lib/recommendations";
 import { canClaimSavings } from "@/lib/verification/claims";
 import { cn, formatDate, formatINR, formatPrice } from "@/lib/utils";
 import { BILLING_LABELS } from "@/data/categories";
-import type { Subscription } from "@/types/subscription";
+import type { OwnedSubscription, Subscription, UsageFrequency } from "@/types/subscription";
 
-type Tab = "overview" | "plans" | "alternatives";
+type Tab = DetailTab;
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "plans", label: "Plans" },
@@ -58,15 +58,29 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
   const owned = useMySubscriptionsStore((s) => s.getOwned(sub.id));
   const removeOwned = useMySubscriptionsStore((s) => s.remove);
   const addOwned = useMySubscriptionsStore((s) => s.add);
+  const updateUsageFrequency = useMySubscriptionsStore((s) => s.updateUsageFrequency);
   const ownedList = useMySubscriptionsStore((s) => s.owned);
   const savedStatus = useSubscriptionStatusStore((s) => s.statuses[sub.id]);
   const setSavedStatus = useSubscriptionStatusStore((s) => s.setStatus);
   const clearSavedStatus = useSubscriptionStatusStore((s) => s.clearStatus);
   const recordDemand = useDemandSignalsStore((s) => s.record);
 
-  const [tab, setTab] = useState<Tab>("overview");
+  const pendingDetailTab = useUniverseStore((s) => s.pendingDetailTab);
+  const clearPendingDetailTab = useUniverseStore((s) => s.clearPendingDetailTab);
+
+  // Consumes a one-shot tab deep-link (e.g. Sprint 4's "Explore Alternative"
+  // CTA) via the lazy useState initializer, which only runs the moment this
+  // panel actually mounts (sub goes from unmounted to open) — exactly the
+  // "opening the panel from elsewhere" case this is for. Clicking between
+  // alternatives *within* an already-open panel keeps using whichever tab
+  // is currently active, unaffected.
+  const [tab, setTab] = useState<Tab>(() => pendingDetailTab ?? "overview");
   const [shared, setShared] = useState(false);
   const [switchingPlan, setSwitchingPlan] = useState(false);
+
+  useEffect(() => {
+    if (pendingDetailTab) clearPendingDetailTab();
+  }, [pendingDetailTab, clearPendingDetailTab]);
 
   const alternatives = useMemo(() => rankAlternatives(sub, 5), [sub]);
   const savingsAlt = bestSavingsAlternative(sub);
@@ -209,7 +223,9 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
 
       {/* Tab body */}
       <div className="flex-1">
-        {tab === "overview" && <OverviewTab sub={sub} bestFor={bestFor} isOwned={isOwned} />}
+        {tab === "overview" && (
+          <OverviewTab sub={sub} bestFor={bestFor} isOwned={isOwned} owned={owned} updateUsageFrequency={updateUsageFrequency} />
+        )}
         {tab === "plans" && (
           <PlansTab
             sub={sub}
@@ -258,7 +274,27 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
   );
 }
 
-function OverviewTab({ sub, bestFor, isOwned }: { sub: Subscription; bestFor: string[]; isOwned: boolean }) {
+const USAGE_FREQUENCY_OPTIONS: { value: UsageFrequency; label: string }[] = [
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "rarely", label: "Rarely" },
+  { value: "never", label: "Never" },
+];
+
+function OverviewTab({
+  sub,
+  bestFor,
+  isOwned,
+  owned,
+  updateUsageFrequency,
+}: {
+  sub: Subscription;
+  bestFor: string[];
+  isOwned: boolean;
+  owned: OwnedSubscription | undefined;
+  updateUsageFrequency: (ownedId: string, usageFrequency: UsageFrequency) => void;
+}) {
   return (
     <div className="flex flex-col gap-4 px-5 py-4">
       <div>
@@ -304,6 +340,28 @@ function OverviewTab({ sub, bestFor, isOwned }: { sub: Subscription; bestFor: st
       <div className="border-t border-[#E5E5E5] pt-4">
         <SubscriptionStatusPicker sub={sub} />
       </div>
+
+      {isOwned && owned && (
+        <div className="border-t border-[#E5E5E5] pt-4">
+          <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">How often do you use it?</h4>
+          <div className="grid grid-cols-5 gap-1.5">
+            {USAGE_FREQUENCY_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => updateUsageFrequency(owned.ownedId, opt.value)}
+                className={cn(
+                  "rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+                  owned.usageFrequency === opt.value
+                    ? "border-nebula-500 bg-nebula-500/10 text-nebula-500"
+                    : "border-[#E5E5E5] bg-white text-[#6B6B6B] hover:border-black/20"
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="border-t border-[#E5E5E5] pt-4">
         <PriceAlertToggle subscriptionId={sub.id} />

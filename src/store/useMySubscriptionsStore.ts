@@ -33,6 +33,9 @@ interface MySubscriptionsState {
   add: (input: AddInput) => void;
   remove: (ownedId: string) => void;
   toggleKept: (ownedId: string) => void;
+  /** Sprint 4 — the only edit surface for an already-tracked entry today;
+   * onboarding is otherwise add-only. */
+  updateUsageFrequency: (ownedId: string, usageFrequency: UsageFrequency) => void;
   isOwned: (subscriptionId: string) => boolean;
   getOwned: (subscriptionId: string) => OwnedSubscription | undefined;
   /** Called once on sign-in (see providers.tsx): migrates whatever was
@@ -151,6 +154,24 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           createClient()
             .from("owned_subscriptions")
             .update({ kept: nextKept })
+            .eq("user_id", userId)
+            .eq("subscription_id", entry.subscriptionId)
+            .then(({ error }) => {
+              if (error) console.error("Failed to update subscription:", error.message);
+            });
+        }
+      },
+
+      updateUsageFrequency: (ownedId, usageFrequency) => {
+        const { userId, owned } = get();
+        const entry = owned.find((o) => o.ownedId === ownedId);
+        set((state) => ({
+          owned: state.owned.map((o) => (o.ownedId === ownedId ? { ...o, usageFrequency } : o)),
+        }));
+        if (userId && entry) {
+          createClient()
+            .from("owned_subscriptions")
+            .update({ usage_frequency: usageFrequency })
             .eq("user_id", userId)
             .eq("subscription_id", entry.subscriptionId)
             .then(({ error }) => {

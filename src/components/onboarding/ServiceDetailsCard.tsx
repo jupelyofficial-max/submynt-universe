@@ -50,6 +50,9 @@ export interface ServiceDetailsValue {
   /** Optional/skippable — feeds the Sprint 4 Submynt Score, but nothing
    * here requires it (missing usage is a dropped term, not a penalty). */
   usageFrequency?: UsageFrequency;
+  /** Sprint 5 — only shown/meaningful when accessType is 'promotional'.
+   * Deliberately separate from nextRenewal (see OwnedSubscription). */
+  promoEndDate?: string;
 }
 
 export function defaultServiceDetails(sub: Subscription): ServiceDetailsValue {
@@ -64,6 +67,7 @@ export function defaultServiceDetails(sub: Subscription): ServiceDetailsValue {
     billing: "monthly",
     nextRenewal: renewal.toISOString().slice(0, 10),
     usageFrequency: undefined,
+    promoEndDate: undefined,
   };
 }
 
@@ -81,6 +85,7 @@ export function ServiceDetailsCard({
   }
 
   const showBundleProvider = value.accessType === "bundled" || value.accessType === "family";
+  const showPromoEndDate = value.accessType === "promotional";
 
   return (
     <div className="rounded-xl border border-black/10 bg-void-900/40 p-4">
@@ -130,6 +135,21 @@ export function ServiceDetailsCard({
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {showPromoEndDate && (
+        <div className="mb-3">
+          <label className="mb-1.5 block text-xs font-medium text-ink-300">Promo ends on (optional)</label>
+          <input
+            type="date"
+            value={value.promoEndDate ?? ""}
+            onChange={(e) => set("promoEndDate", e.target.value || undefined)}
+            className="w-full rounded-lg border border-black/10 bg-void-900/70 px-3 py-2 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
+          />
+          <p className="mt-1 text-[11px] text-ink-500">
+            When the discount/trial ends — separate from when it renews at full price below.
+          </p>
         </div>
       )}
 

@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Gem, Layers, Orbit, PiggyBank, Plus, Sparkles, Trash2, Wallet } from "lucide-react";
+import { AlarmClock, ArrowLeft, Gem, Layers, Orbit, PiggyBank, Plus, Sparkles, Trash2, Wallet } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -39,6 +39,7 @@ const ACCESS_TYPE_TONES: Record<AccessType, "neutral" | "aurora" | "gold" | "neb
 };
 
 const RENEWAL_WINDOW_DAYS = 30;
+const SOON_WINDOW_DAYS = 7;
 
 const RECOMMENDATION_LABELS: Record<Recommendation, string> = {
   keep: "Keep",
@@ -133,6 +134,22 @@ export default function MySubscriptionsPage() {
     [items]
   );
 
+  // Sprint 5 — a tighter 7-day window, and renewals/promo-expiries counted
+  // and worded separately (a promo ending is never called a "renewal").
+  const renewalsWithin7 = useMemo(
+    () => items.filter((x) => { const days = daysUntil(x.owned.nextRenewal); return days >= 0 && days <= SOON_WINDOW_DAYS; }).length,
+    [items]
+  );
+  const promosEndingWithin7 = useMemo(
+    () =>
+      items.filter((x) => {
+        if ((x.owned.accessType ?? "direct") !== "promotional" || !x.owned.promoEndDate) return false;
+        const days = daysUntil(x.owned.promoEndDate);
+        return days >= 0 && days <= SOON_WINDOW_DAYS;
+      }).length,
+    [items]
+  );
+
   function openDetails(id: string) {
     select(id);
     router.push(`/explore?focus=${id}`);
@@ -224,6 +241,15 @@ export default function MySubscriptionsPage() {
                 {renewalsSoonCount} renewal{renewalsSoonCount === 1 ? "" : "s"} coming up in the next {RENEWAL_WINDOW_DAYS} days
               </div>
             )}
+            {(renewalsWithin7 > 0 || promosEndingWithin7 > 0) && (
+              <Link
+                href="/renewals"
+                className="flex items-center gap-2 rounded-xl bg-rose-500/10 px-3.5 py-2.5 text-sm text-rose-400 transition-colors hover:bg-rose-500/15"
+              >
+                <AlarmClock size={14} />
+                {soonInsightText(renewalsWithin7, promosEndingWithin7)} — view calendar
+              </Link>
+            )}
           </div>
 
           {/* Grouped by category */}
@@ -260,6 +286,16 @@ export default function MySubscriptionsPage() {
                         </div>
 
                         <div className="text-xs text-ink-500">Renews {formatDate(o.nextRenewal)}</div>
+
+                        {/* Displayed as its own distinct line, never merged
+                            into "Renews" — a promo ending is a different
+                            event from the subscription's own renewal. */}
+                        {accessType === "promotional" && o.promoEndDate && (
+                          <div className="flex items-center gap-1.5 text-xs text-gold-400">
+                            <AlarmClock size={12} />
+                            Promo ends {formatDate(o.promoEndDate)}
+                          </div>
+                        )}
 
                         {savings > 0 && (
                           <div className="flex items-center gap-1.5 rounded-lg bg-gold-500/10 px-2.5 py-1.5 text-[11px] text-gold-400">
@@ -310,6 +346,18 @@ export default function MySubscriptionsPage() {
       )}
     </div>
   );
+}
+
+// Never calls a promo expiry a "renewal" — the wording branches on which
+// event types are actually present rather than merging them into one count.
+function soonInsightText(renewals: number, promos: number): string {
+  if (renewals > 0 && promos > 0) {
+    return `${renewals} renewing and ${promos} promo${promos === 1 ? "" : "s"} ending in the next ${SOON_WINDOW_DAYS} days`;
+  }
+  if (promos > 0) {
+    return `${promos} promo${promos === 1 ? "" : "s"} ending in the next ${SOON_WINDOW_DAYS} days`;
+  }
+  return `${renewals} renewal${renewals === 1 ? "" : "s"} coming up in the next ${SOON_WINDOW_DAYS} days`;
 }
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {

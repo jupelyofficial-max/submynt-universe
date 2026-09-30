@@ -20,6 +20,8 @@ interface AddInput {
   accessType?: AccessType;
   bundleProvider?: BundleProvider;
   usageFrequency?: UsageFrequency;
+  /** Sprint 5 — only meaningful when accessType is 'promotional'. */
+  promoEndDate?: string;
 }
 
 interface MySubscriptionsState {
@@ -59,6 +61,7 @@ function rowToOwned(row: {
   access_type: string;
   bundle_provider: string | null;
   usage_frequency: string | null;
+  promo_end_date: string | null;
 }): OwnedSubscription {
   return {
     ownedId: row.subscription_id,
@@ -74,6 +77,7 @@ function rowToOwned(row: {
     accessType: row.access_type as AccessType,
     bundleProvider: (row.bundle_provider ?? undefined) as BundleProvider | undefined,
     usageFrequency: (row.usage_frequency ?? undefined) as UsageFrequency | undefined,
+    promoEndDate: row.promo_end_date ?? undefined,
   };
 }
 
@@ -93,6 +97,7 @@ function ownedToRow(userId: string, o: OwnedSubscription | AddInput) {
     access_type: o.accessType ?? "direct",
     bundle_provider: o.bundleProvider ?? null,
     usage_frequency: o.usageFrequency ?? null,
+    promo_end_date: o.promoEndDate ?? null,
   };
 }
 

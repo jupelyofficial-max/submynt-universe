@@ -141,6 +141,12 @@ export interface OwnedSubscription {
   bundleProvider?: BundleProvider;
   /** P1 — collected in the schema, nothing reads it yet. */
   usageFrequency?: UsageFrequency;
+  /** Sprint 5 — only meaningful when accessType is 'promotional'. The date
+   * a promotional discount/trial period ends, deliberately separate from
+   * nextRenewal (the subscription's own billing-cycle renewal date) — a
+   * promo ending is a different event from the subscription renewing at
+   * full price, and the two can genuinely differ. */
+  promoEndDate?: string;
 }
 
 export type UserStatusFilter =

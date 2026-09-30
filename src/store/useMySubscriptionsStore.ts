@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { BillingCycle, OwnedSubscription } from "@/types/subscription";
+import type { AccessType, BillingCycle, BundleProvider, OwnedSubscription, UsageFrequency } from "@/types/subscription";
 import { createClient } from "@/lib/supabase/client";
 
 interface AddInput {
@@ -13,6 +13,13 @@ interface AddInput {
    * on a not-yet-owned subscription, so "keep" and "add" happen as one
    * action instead of a dead click. */
   kept?: boolean;
+  /** Optional — defaults to 'direct' when omitted (mirrors the DB
+   * column's own default), so none of today's add call sites (none of
+   * which know about access types yet — that's Sprint 2's bundle-
+   * selection UI) need to change. */
+  accessType?: AccessType;
+  bundleProvider?: BundleProvider;
+  usageFrequency?: UsageFrequency;
 }
 
 interface MySubscriptionsState {
@@ -46,6 +53,9 @@ function rowToOwned(row: {
   next_renewal: string | null;
   added_at: string;
   kept: boolean;
+  access_type: string;
+  bundle_provider: string | null;
+  usage_frequency: string | null;
 }): OwnedSubscription {
   return {
     ownedId: row.subscription_id,
@@ -56,6 +66,11 @@ function rowToOwned(row: {
     nextRenewal: row.next_renewal ?? "",
     addedAt: row.added_at,
     kept: row.kept,
+    // Non-nullable in the DB, so this cast is safe for anything that's
+    // actually round-tripped through Supabase.
+    accessType: row.access_type as AccessType,
+    bundleProvider: (row.bundle_provider ?? undefined) as BundleProvider | undefined,
+    usageFrequency: (row.usage_frequency ?? undefined) as UsageFrequency | undefined,
   };
 }
 
@@ -68,6 +83,13 @@ function ownedToRow(userId: string, o: OwnedSubscription | AddInput) {
     billing: o.billing,
     next_renewal: o.nextRenewal || null,
     kept: o.kept ?? false,
+    // Defaults to 'direct' here too — see AddInput.accessType and the
+    // DB column's own default; a pre-Sprint-1 localStorage entry being
+    // migrated up (syncToUser below) also has no accessType yet, so this
+    // fallback is what actually assigns it one on first sync.
+    access_type: o.accessType ?? "direct",
+    bundle_provider: o.bundleProvider ?? null,
+    usage_frequency: o.usageFrequency ?? null,
   };
 }
 
@@ -82,10 +104,14 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
       add: (input) => {
         const { userId } = get();
         const ownedId = userId ? input.subscriptionId : `${input.subscriptionId}-${Date.now()}`;
+        // input.accessType is optional (AddInput); OwnedSubscription
+        // requires it — same 'direct' default as the DB column and
+        // ownedToRow below.
+        const accessType = input.accessType ?? "direct";
         set((state) => ({
           owned: [
             ...state.owned.filter((o) => o.subscriptionId !== input.subscriptionId),
-            { ownedId, addedAt: new Date().toISOString(), ...input },
+            { ownedId, addedAt: new Date().toISOString(), ...input, accessType },
           ],
         }));
         if (userId) {

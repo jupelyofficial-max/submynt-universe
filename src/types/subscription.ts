@@ -106,6 +106,20 @@ export interface ListingSubmission {
   submittedAt: string;
 }
 
+/** How the user gained access to an owned subscription — the field that
+ * carries the "is this actually free" distinction, independent of
+ * priceMonthly (NFR-005: a 'bundled'/'family' row with priceMonthly = 0
+ * is expected and is NOT the same thing as 'free'; the price is 0
+ * because it's bundled, not because the product itself is free). */
+export type AccessType = "direct" | "bundled" | "promotional" | "family" | "free";
+
+/** Only meaningful when accessType is 'bundled' or 'family' — not
+ * enforced at the type level (Sprint 2's UI/forms own that rule), just a
+ * plain optional field here. */
+export type BundleProvider = "airtel" | "jio" | "amazon" | "apple" | "google" | "employer" | "family" | "other";
+
+export type UsageFrequency = "daily" | "weekly" | "monthly" | "rarely" | "never";
+
 export interface OwnedSubscription {
   ownedId: string;
   subscriptionId: string;
@@ -118,6 +132,15 @@ export interface OwnedSubscription {
    * "Keep" button) — optional/undefined for entries added before this
    * field existed, which reads the same as false. */
   kept?: boolean;
+  /** Not nullable in the DB (defaults to 'direct' there and in
+   * useMySubscriptionsStore's add()), so always present once a row has
+   * round-tripped through Supabase. Can be momentarily absent on a
+   * pre-Sprint-1 localStorage entry that hasn't synced yet. */
+  accessType: AccessType;
+  /** Undefined unless accessType is 'bundled' or 'family'. */
+  bundleProvider?: BundleProvider;
+  /** P1 — collected in the schema, nothing reads it yet. */
+  usageFrequency?: UsageFrequency;
 }
 
 export type UserStatusFilter =

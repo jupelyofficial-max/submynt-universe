@@ -8,11 +8,10 @@ import { Button } from "@/components/ui/Button";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 import { BILLING_LABELS } from "@/data/categories";
-import { cn, formatINR } from "@/lib/utils";
+import { cn, formatOwnedPrice } from "@/lib/utils";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { ServiceDetailsCard, defaultServiceDetails, type ServiceDetailsValue } from "./ServiceDetailsCard";
-import type { AccessType } from "@/types/subscription";
 
 type Step = "welcome" | "select" | "details" | "review" | "done";
 const STEP_ORDER: Step[] = ["welcome", "select", "details", "review"];
@@ -23,17 +22,6 @@ const STEP_TITLES: Record<Step, string> = {
   review: "Review before adding",
   done: "All set",
 };
-
-// A row with priceMonthly = 0 that's bundled/family is genuinely free of
-// charge but NOT the same thing as a "free" product (NFR-005, Sprint 1) —
-// this is the one place in the app that both creates and first displays
-// those rows, so it gets its own label instead of reusing formatINR's
-// blanket "0 -> Free".
-function entryPriceLabel(priceMonthly: number, accessType: AccessType): string {
-  if (priceMonthly > 0) return `${formatINR(priceMonthly)}/mo`;
-  if (accessType === "free") return "Free";
-  return "Included";
-}
 
 export function AddSubscriptionsModal() {
   const isOpen = useUniverseStore((s) => s.isAddSubscriptionsModalOpen);
@@ -247,7 +235,8 @@ function AddSubscriptionsFlow({ preselectId, onClose }: { preselectId: string | 
                     </div>
                   </div>
                   <div className="shrink-0 text-right text-sm font-semibold text-ink-0">
-                    {entryPriceLabel(value.priceMonthly, value.accessType)}
+                    {formatOwnedPrice(value.priceMonthly, value.accessType)}
+                    {value.priceMonthly > 0 && "/mo"}
                   </div>
                   <button
                     onClick={() => removeSelected(id)}

@@ -3,24 +3,24 @@
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlarmClock, ArrowLeft, Gem, Layers, Orbit, PiggyBank, Plus, Sparkles, Trash2, Wallet } from "lucide-react";
+import { AlarmClock, ArrowLeft, FileText, Gem, Layers, Orbit, PiggyBank, Plus, Sparkles, Trash2, Wallet } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { StatCard } from "@/components/dashboard/StatCard";
 import { SUBSCRIPTIONS_BY_ID, potentialSavingsMonthly } from "@/data/subscriptions";
 import { daysUntil, formatDate, formatINR, formatOwnedPrice } from "@/lib/utils";
 import { computeSubmyntScore, type Recommendation } from "@/lib/submyntScore";
+import {
+  computeBundledFamilyValue,
+  computeMonthlySpend,
+  computePotentialAnnualSavings,
+  directItemsOf,
+  type OwnedItem,
+} from "@/lib/subscriptionStats";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
-import type { AccessType, Category, OwnedSubscription, Subscription } from "@/types/subscription";
-
-type OwnedItem = { owned: OwnedSubscription; sub: Subscription };
-
-// Bundled/family/promotional read as "not a direct spend line" for the
-// Monthly spend stat (NFR-005: a bundled ₹0 item never inflates spend);
-// "value" instead credits them at the catalogue's own price, which is what
-// produces the spend-vs-value gap the Sprint 3 target example describes.
-const VALUE_ONLY_ACCESS_TYPES: AccessType[] = ["bundled", "family", "promotional"];
+import type { AccessType, Category } from "@/types/subscription";
 
 const ACCESS_TYPE_LABELS: Record<AccessType, string> = {
   direct: "Direct",
@@ -84,30 +84,13 @@ export default function MySubscriptionsPage() {
   // billing cycle (confirmed against the catalogue's own annual plan
   // entries, which are lower per-month than their monthly counterparts,
   // not ~12x higher) — summed directly, no /12 or *12 correction here.
-  const monthlySpend = useMemo(
-    () => items.filter((x) => (x.owned.accessType ?? "direct") === "direct").reduce((sum, x) => sum + x.owned.priceMonthly, 0),
-    [items]
-  );
+  // Formulas live in lib/subscriptionStats.ts, shared with the Sprint 6
+  // Monthly Report so both pages report identical numbers.
+  const monthlySpend = useMemo(() => computeMonthlySpend(items), [items]);
+  const totalValue = useMemo(() => monthlySpend + computeBundledFamilyValue(items), [items, monthlySpend]);
+  const potentialAnnualSavings = useMemo(() => computePotentialAnnualSavings(items), [items]);
 
-  const bundledFamilyValue = useMemo(
-    () =>
-      items
-        .filter((x) => VALUE_ONLY_ACCESS_TYPES.includes(x.owned.accessType ?? "direct"))
-        .reduce((sum, x) => sum + (x.sub.priceMonthly ?? 0), 0),
-    [items]
-  );
-  const totalValue = monthlySpend + bundledFamilyValue;
-
-  // Reuses the exact bestSavingsAlternative/potentialSavingsMonthly logic
-  // DetailPanel's Estimated Savings section already uses — only over Direct
-  // items, since a Bundled/Family/Free subscription isn't costing the user
-  // a comparable direct-purchase price to begin with.
-  const directItems = useMemo(() => items.filter((x) => (x.owned.accessType ?? "direct") === "direct"), [items]);
-  const potentialSavingsMonthlySum = useMemo(
-    () => directItems.reduce((sum, x) => sum + potentialSavingsMonthly(x.sub), 0),
-    [directItems]
-  );
-  const potentialAnnualSavings = potentialSavingsMonthlySum * 12;
+  const directItems = useMemo(() => directItemsOf(items), [items]);
   const savingsCandidateCount = useMemo(() => directItems.filter((x) => potentialSavingsMonthly(x.sub) > 0).length, [directItems]);
 
   const accessTypeCounts = useMemo(() => {
@@ -184,10 +167,16 @@ export default function MySubscriptionsPage() {
           </div>
         </div>
         {items.length > 0 && (
-          <Button size="sm" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true)}>
-            <Plus size={14} />
-            Add subscriptions
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => router.push("/report")}>
+              <FileText size={14} />
+              Monthly Report
+            </Button>
+            <Button size="sm" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true)}>
+              <Plus size={14} />
+              Add subscriptions
+            </Button>
+          </div>
         )}
       </div>
 
@@ -358,14 +347,4 @@ function soonInsightText(renewals: number, promos: number): string {
     return `${promos} promo${promos === 1 ? "" : "s"} ending in the next ${SOON_WINDOW_DAYS} days`;
   }
   return `${renewals} renewal${renewals === 1 ? "" : "s"} coming up in the next ${SOON_WINDOW_DAYS} days`;
-}
-
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="glass-panel flex flex-col gap-2 rounded-2xl p-4">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-nebula-500/15 text-nebula-400">{icon}</div>
-      <div className="font-display text-lg font-semibold text-ink-0">{value}</div>
-      <div className="text-[11px] text-ink-500">{label}</div>
-    </div>
-  );
 }

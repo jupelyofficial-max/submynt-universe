@@ -24,7 +24,8 @@ import { getRecommendation } from "@/lib/recommendations";
 import { canClaimSavings } from "@/lib/verification/claims";
 import { cn, formatDate, formatINR, formatPrice } from "@/lib/utils";
 import { BILLING_LABELS } from "@/data/categories";
-import type { OwnedSubscription, Subscription, UsageFrequency } from "@/types/subscription";
+import { bundleOptionsFor } from "@/components/onboarding/ServiceDetailsCard";
+import type { BundleProvider, OwnedSubscription, Subscription, UsageFrequency } from "@/types/subscription";
 
 type Tab = DetailTab;
 const TABS: { id: Tab; label: string }[] = [
@@ -59,6 +60,7 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
   const removeOwned = useMySubscriptionsStore((s) => s.remove);
   const addOwned = useMySubscriptionsStore((s) => s.add);
   const updateUsageFrequency = useMySubscriptionsStore((s) => s.updateUsageFrequency);
+  const updateBundleProvider = useMySubscriptionsStore((s) => s.updateBundleProvider);
   const ownedList = useMySubscriptionsStore((s) => s.owned);
   const savedStatus = useSubscriptionStatusStore((s) => s.statuses[sub.id]);
   const setSavedStatus = useSubscriptionStatusStore((s) => s.setStatus);
@@ -224,7 +226,14 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
       {/* Tab body */}
       <div className="flex-1">
         {tab === "overview" && (
-          <OverviewTab sub={sub} bestFor={bestFor} isOwned={isOwned} owned={owned} updateUsageFrequency={updateUsageFrequency} />
+          <OverviewTab
+            sub={sub}
+            bestFor={bestFor}
+            isOwned={isOwned}
+            owned={owned}
+            updateUsageFrequency={updateUsageFrequency}
+            updateBundleProvider={updateBundleProvider}
+          />
         )}
         {tab === "plans" && (
           <PlansTab
@@ -288,12 +297,14 @@ function OverviewTab({
   isOwned,
   owned,
   updateUsageFrequency,
+  updateBundleProvider,
 }: {
   sub: Subscription;
   bestFor: string[];
   isOwned: boolean;
   owned: OwnedSubscription | undefined;
   updateUsageFrequency: (ownedId: string, usageFrequency: UsageFrequency) => void;
+  updateBundleProvider: (ownedId: string, bundleProvider: BundleProvider) => void;
 }) {
   return (
     <div className="flex flex-col gap-4 px-5 py-4">
@@ -352,6 +363,28 @@ function OverviewTab({
                 className={cn(
                   "rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer",
                   owned.usageFrequency === opt.value
+                    ? "border-nebula-500 bg-nebula-500/10 text-nebula-500"
+                    : "border-[#E5E5E5] bg-white text-[#6B6B6B] hover:border-black/20"
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isOwned && owned && (owned.accessType === "bundled" || owned.accessType === "family") && (
+        <div className="border-t border-[#E5E5E5] pt-4">
+          <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Bundled with</h4>
+          <div className="grid grid-cols-4 gap-1.5">
+            {bundleOptionsFor(sub).map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => updateBundleProvider(owned.ownedId, opt.value)}
+                className={cn(
+                  "rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+                  owned.bundleProvider === opt.value
                     ? "border-nebula-500 bg-nebula-500/10 text-nebula-500"
                     : "border-[#E5E5E5] bg-white text-[#6B6B6B] hover:border-black/20"
                 )}

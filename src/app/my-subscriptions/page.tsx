@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlarmClock, ArrowLeft, Calendar, FileText, Gem, Layers, Orbit, PiggyBank, Plus, Sparkles, Trash2, Wallet } from "lucide-react";
@@ -55,8 +55,11 @@ const RECOMMENDATION_TONES: Record<Recommendation, "neutral" | "aurora" | "gold"
   reassess: "danger",
 };
 
+// Covers both the current fixed enum (Airtel Black/Jio/Family/Employer/
+// Others) and legacy Amazon/Apple/Google values already stored for
+// existing users, so old data still renders a real label, never a raw key.
 const BUNDLE_PROVIDER_LABELS: Record<string, string> = {
-  airtel: "Airtel",
+  airtel: "Airtel Black",
   jio: "Jio",
   amazon: "Amazon",
   apple: "Apple",
@@ -64,6 +67,19 @@ const BUNDLE_PROVIDER_LABELS: Record<string, string> = {
   employer: "your employer",
   family: "a family plan",
   other: "that provider",
+};
+
+// Same values, worded for the per-item badge ("via Airtel Black") rather
+// than the aggregate insight sentence ("bundled via your employer").
+const BUNDLE_PROVIDER_BADGE_LABELS: Record<string, string> = {
+  airtel: "Airtel Black",
+  jio: "Jio",
+  amazon: "Amazon",
+  apple: "Apple",
+  google: "Google",
+  employer: "Employer",
+  family: "Family",
+  other: "Others",
 };
 
 export default function MySubscriptionsPage() {
@@ -81,17 +97,6 @@ export default function MySubscriptionsPage() {
         .sort((a, b) => new Date(a.owned.nextRenewal).getTime() - new Date(b.owned.nextRenewal).getTime()),
     [owned]
   );
-
-  // Entry-point branching (Sprint 3): the "Track Subscriptions" nav item
-  // always lands here — an empty portfolio launches the Sprint 2 onboarding
-  // flow immediately instead of showing a bare empty page; anything already
-  // tracked goes straight to the snapshot below. Gated on `hydrated` so this
-  // never fires on the store's pre-hydration empty state.
-  useEffect(() => {
-    if (hydrated && items.length === 0) {
-      useUniverseStore.getState().setAddSubscriptionsModalOpen(true);
-    }
-  }, [hydrated, items.length]);
 
   // priceMonthly is already the monthly-equivalent cost regardless of
   // billing cycle (confirmed against the catalogue's own annual plan
@@ -214,7 +219,9 @@ export default function MySubscriptionsPage() {
         <div className="glass-panel flex flex-col items-center gap-3 rounded-2xl p-16 text-center">
           <p className="font-display text-lg text-ink-0">Nothing tracked yet</p>
           <p className="max-w-sm text-sm text-ink-400">
-            Add the subscriptions you actually pay for — no bank connection required.
+            Add the subscriptions you actually pay for — no bank connection required. Tracked subscriptions power your
+            monthly and annual spend totals, your Submynt Score, renewal reminders, and bundle and savings
+            recommendations.
           </p>
           <Button className="mt-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true)}>
             <Plus size={14} />
@@ -330,7 +337,9 @@ export default function MySubscriptionsPage() {
                         <div className="flex flex-wrap items-center gap-1.5">
                           <Badge tone={ACCESS_TYPE_TONES[accessType]}>{ACCESS_TYPE_LABELS[accessType]}</Badge>
                           {o.bundleProvider && (
-                            <span className="text-[11px] text-ink-500">via {o.bundleProvider}</span>
+                            <span className="text-[11px] text-ink-500">
+                              via {BUNDLE_PROVIDER_BADGE_LABELS[o.bundleProvider] ?? o.bundleProvider}
+                            </span>
                           )}
                         </div>
 

@@ -12,16 +12,22 @@ const ACCESS_TYPE_OPTIONS: { value: AccessType; label: string }[] = [
   { value: "free", label: "Free" },
 ];
 
+// Fixed, narrowed set — Amazon/Apple/Google dropped as pickable options
+// (the BundleProvider type keeps them for reading any already-stored
+// data, just not offered here going forward).
 const BUNDLE_PROVIDER_OPTIONS: { value: BundleProvider; label: string }[] = [
-  { value: "airtel", label: "Airtel" },
+  { value: "airtel", label: "Airtel Black" },
   { value: "jio", label: "Jio" },
-  { value: "amazon", label: "Amazon" },
-  { value: "apple", label: "Apple" },
-  { value: "google", label: "Google" },
-  { value: "employer", label: "Employer" },
   { value: "family", label: "Family" },
-  { value: "other", label: "Other" },
+  { value: "employer", label: "Employer" },
+  { value: "other", label: "Others" },
 ];
+
+/** A subscription can't be bundled under its own provider (e.g. the
+ * Airtel catalog entry itself can't have bundle-source "Airtel Black"). */
+export function bundleOptionsFor(sub: Subscription): { value: BundleProvider; label: string }[] {
+  return BUNDLE_PROVIDER_OPTIONS.filter((opt) => opt.value !== sub.id);
+}
 
 // Deliberately narrower than the full BillingCycle type — the onboarding
 // flow only asks for monthly/annual per spec; quarterly/half-yearly/lifetime
@@ -119,7 +125,7 @@ export function ServiceDetailsCard({
         <div className="mb-3">
           <label className="mb-1.5 block text-xs font-medium text-ink-300">Bundled with</label>
           <div className="grid grid-cols-4 gap-1.5">
-            {BUNDLE_PROVIDER_OPTIONS.map((opt) => (
+            {bundleOptionsFor(sub).map((opt) => (
               <button
                 key={opt.value}
                 type="button"

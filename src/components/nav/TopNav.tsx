@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Orbit, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -85,6 +85,21 @@ export function TopNav() {
             </button>
           </>
         )}
+
+        <Link
+          href="/my-subscriptions"
+          className="hidden sm:flex items-center gap-1.5 h-10 px-3 rounded-xl text-sm text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors shrink-0"
+        >
+          <Orbit size={16} />
+          Track Subscriptions
+        </Link>
+        <Link
+          href="/my-subscriptions"
+          aria-label="Track Subscriptions"
+          className="sm:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors shrink-0"
+        >
+          <Orbit size={18} />
+        </Link>
 
         <AccountMenu />
       </div>

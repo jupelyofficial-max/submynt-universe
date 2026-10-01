@@ -146,7 +146,8 @@ function AddSubscriptionsFlow({ preselectId, onClose }: { preselectId: string | 
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <p className="font-display text-lg text-ink-0">Track what you&apos;re actually paying for</p>
             <p className="max-w-sm text-sm text-ink-400">
-              Spot duplicates, find savings, and see everything in one place — no bank connection required.
+              No bank connection required. Tracked subscriptions power your monthly and annual spend totals, your
+              Submynt Score, renewal reminders, and bundle and savings recommendations.
             </p>
           </div>
         )}

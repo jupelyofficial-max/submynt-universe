@@ -18,6 +18,7 @@ import {
   directItemsOf,
   type OwnedItem,
 } from "@/lib/subscriptionStats";
+import { findDuplicateCategories, groupByBundleProvider } from "@/lib/bundleIntelligence";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import type { AccessType, Category } from "@/types/subscription";
@@ -51,6 +52,17 @@ const RECOMMENDATION_TONES: Record<Recommendation, "neutral" | "aurora" | "gold"
   keep: "nebula",
   optimize: "gold",
   reassess: "danger",
+};
+
+const BUNDLE_PROVIDER_LABELS: Record<string, string> = {
+  airtel: "Airtel",
+  jio: "Jio",
+  amazon: "Amazon",
+  apple: "Apple",
+  google: "Google",
+  employer: "your employer",
+  family: "a family plan",
+  other: "that provider",
 };
 
 export default function MySubscriptionsPage() {
@@ -130,6 +142,16 @@ export default function MySubscriptionsPage() {
         const days = daysUntil(x.owned.promoEndDate);
         return days >= 0 && days <= SOON_WINDOW_DAYS;
       }).length,
+    [items]
+  );
+
+  // Sprint 7 — category-based overlap only (no bundle-content data exists
+  // to check "already included in a bundle you own"; see bundleIntelligence.ts).
+  const duplicateGroups = useMemo(() => findDuplicateCategories(items), [items]);
+  // Purely reflects the bundle_provider the user themselves recorded —
+  // not a claim about what that provider's bundle actually contains.
+  const bundleProviderGroups = useMemo(
+    () => groupByBundleProvider(items).filter((g) => g.items.length >= 2),
     [items]
   );
 
@@ -239,6 +261,26 @@ export default function MySubscriptionsPage() {
                 {soonInsightText(renewalsWithin7, promosEndingWithin7)} — view calendar
               </Link>
             )}
+            {duplicateGroups.map((group) => (
+              <div
+                key={group.category}
+                className="flex items-center gap-2 rounded-xl bg-aurora-500/10 px-3.5 py-2.5 text-sm text-aurora-400"
+              >
+                <Layers size={14} />
+                You have {group.items.length} {group.category} subscriptions that may overlap:{" "}
+                {group.items.map((x) => x.sub.name).join(", ")}
+              </div>
+            ))}
+            {bundleProviderGroups.map((group) => (
+              <div
+                key={group.provider}
+                className="flex items-center gap-2 rounded-xl bg-black/5 px-3.5 py-2.5 text-sm text-ink-300"
+              >
+                <Gem size={14} />
+                You have {group.items.length} subscriptions bundled via {BUNDLE_PROVIDER_LABELS[group.provider] ?? group.provider}:{" "}
+                {group.items.map((x) => x.sub.name).join(", ")}
+              </div>
+            ))}
           </div>
 
           {/* Grouped by category */}

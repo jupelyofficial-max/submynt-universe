@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Compass, Gauge, Repeat, Scale, Sparkles } from "lucide-react";
+import { Calendar, Check, Compass, Gauge, Repeat, Scale, Sparkles } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { SUBSCRIPTIONS_BY_ID, bestSavingsAlternative } from "@/data/subscriptions";
 import { formatINR } from "@/lib/utils";
+import { annualSwitchSuggestion } from "@/lib/planOptimization";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
 
@@ -29,6 +30,21 @@ export default function OptimizePage() {
       })
       .filter((x): x is NonNullable<typeof x> => x !== null)
       .sort((a, b) => b.savings - a.savings);
+  }, [owned]);
+
+  // Sprint 8 — same-subscription billing-cycle switch, kept separate from
+  // the cross-subscription "alternative" savings above (a different kind
+  // of saving: switch how you pay for this, not switch what you pay for).
+  const annualCandidates = useMemo(() => {
+    return owned
+      .map((o) => {
+        const sub = SUBSCRIPTIONS_BY_ID[o.subscriptionId];
+        if (!sub) return null;
+        const suggestion = annualSwitchSuggestion(o, sub);
+        return suggestion ? { owned: o, ...suggestion } : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null)
+      .sort((a, b) => b.savingsMonthly - a.savingsMonthly);
   }, [owned]);
 
   const totalMonthly = owned.reduce((sum, o) => sum + o.priceMonthly, 0);
@@ -146,6 +162,38 @@ export default function OptimizePage() {
                   <Button size="sm" variant="outline" onClick={() => focusInExplore(sub.id)}>
                     <Scale size={14} />
                     Compare
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {annualCandidates.length > 0 && (
+        <div className="mb-10">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-500">Switch to annual</h2>
+          <div className="flex flex-col gap-3">
+            {annualCandidates.map(({ owned: o, sub, annualPlan, savingsMonthly }) => (
+              <div key={o.ownedId} className="glass-panel flex flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center">
+                <div className="flex flex-1 items-center gap-3">
+                  <SubscriptionLogo subscription={sub} size="md" ring />
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-ink-0">{sub.name}</div>
+                    <div className="text-xs text-ink-500">
+                      Currently {formatINR(o.priceMonthly)}/mo · {o.planName}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl bg-gold-500/10 px-3 py-2 text-xs text-gold-400">
+                  <Calendar size={14} />
+                  Switch to <span className="font-semibold text-ink-0">{annualPlan.name} (annual)</span> and save{" "}
+                  <span className="font-semibold">{formatINR(savingsMonthly)}/mo</span>
+                </div>
+                <div className="flex shrink-0">
+                  <Button size="sm" onClick={() => focusInExplore(sub.id)}>
+                    <Repeat size={14} />
+                    Switch Plan
                   </Button>
                 </div>
               </div>

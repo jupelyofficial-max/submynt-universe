@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Copy, FileText, Gem, Layers, PiggyBank, Wallet } from "lucide-react";
+import { ArrowLeft, Calendar, Check, Copy, FileText, Gem, Layers, PiggyBank, Wallet } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 import { daysUntil, formatDate, formatINR, formatOwnedPrice } from "@/lib/utils";
 import { computeSubmyntScore, type Recommendation } from "@/lib/submyntScore";
 import { computeMonthlySpend, computePotentialAnnualSavings, computeTotalValue, type OwnedItem } from "@/lib/subscriptionStats";
+import { annualSwitchSuggestion } from "@/lib/planOptimization";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import type { AccessType } from "@/types/subscription";
 
@@ -81,6 +82,19 @@ export default function MonthlyReportPage() {
   );
   const reassessItems = useMemo(() => scored.filter((x) => x.result.recommendation === "reassess"), [scored]);
 
+  // Sprint 8 — reuses the same catalog annual-plan data as /optimize.
+  const annualSwitchItems = useMemo(
+    () =>
+      items
+        .map((x) => {
+          const suggestion = annualSwitchSuggestion(x.owned, x.sub);
+          return suggestion ? { ...x, ...suggestion } : null;
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null)
+        .sort((a, b) => b.savingsMonthly - a.savingsMonthly),
+    [items]
+  );
+
   function buildReportText(): string {
     const lines = [
       `Submynt Monthly Report — ${monthLabel}`,
@@ -104,6 +118,11 @@ export default function MonthlyReportPage() {
     if (renewingSoon.length > 0) {
       lines.push(`Renewing in the next ${RENEWING_SOON_DAYS} days (${renewingSoon.length}):`);
       for (const x of renewingSoon) lines.push(`  - ${x.sub.name} on ${formatDate(x.owned.nextRenewal)}`);
+      lines.push("");
+    }
+    if (annualSwitchItems.length > 0) {
+      lines.push(`Switch to annual (${annualSwitchItems.length}):`);
+      for (const x of annualSwitchItems) lines.push(`  - ${x.sub.name}: save ${formatINR(x.savingsMonthly)}/mo`);
     }
     return lines.join("\n");
   }
@@ -214,6 +233,22 @@ export default function MonthlyReportPage() {
                       {x.sub.name}
                     </span>
                     <span className="text-ink-400">{formatDate(x.owned.nextRenewal)}</span>
+                  </div>
+                ))}
+              </div>
+            </ReportSection>
+          )}
+
+          {annualSwitchItems.length > 0 && (
+            <ReportSection title={`Switch to annual (${annualSwitchItems.length})`}>
+              <div className="flex flex-col gap-1.5">
+                {annualSwitchItems.map((x) => (
+                  <div key={x.owned.ownedId} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="flex items-center gap-1.5 text-ink-0">
+                      <Calendar size={14} className="text-gold-400" />
+                      {x.sub.name}
+                    </span>
+                    <span className="text-ink-400">save {formatINR(x.savingsMonthly)}/mo</span>
                   </div>
                 ))}
               </div>

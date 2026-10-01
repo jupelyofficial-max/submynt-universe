@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlarmClock, ArrowLeft, FileText, Gem, Layers, Orbit, PiggyBank, Plus, Sparkles, Trash2, Wallet } from "lucide-react";
+import { AlarmClock, ArrowLeft, Calendar, FileText, Gem, Layers, Orbit, PiggyBank, Plus, Sparkles, Trash2, Wallet } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -19,6 +19,7 @@ import {
   type OwnedItem,
 } from "@/lib/subscriptionStats";
 import { findDuplicateCategories, groupByBundleProvider } from "@/lib/bundleIntelligence";
+import { annualSwitchSuggestion } from "@/lib/planOptimization";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import type { AccessType, Category } from "@/types/subscription";
@@ -155,6 +156,13 @@ export default function MySubscriptionsPage() {
     [items]
   );
 
+  // Sprint 8 — annual-switch candidates, separate from the cross-subscription
+  // "alternative" savings above.
+  const annualSwitchCandidates = useMemo(
+    () => items.filter((x) => annualSwitchSuggestion(x.owned, x.sub) !== null),
+    [items]
+  );
+
   function openDetails(id: string) {
     select(id);
     router.push(`/explore?focus=${id}`);
@@ -281,6 +289,16 @@ export default function MySubscriptionsPage() {
                 {group.items.map((x) => x.sub.name).join(", ")}
               </div>
             ))}
+            {annualSwitchCandidates.length > 0 && (
+              <Link
+                href="/optimize"
+                className="flex items-center gap-2 rounded-xl bg-gold-500/10 px-3.5 py-2.5 text-sm text-gold-400 transition-colors hover:bg-gold-500/15"
+              >
+                <Calendar size={14} />
+                {annualSwitchCandidates.length} subscription{annualSwitchCandidates.length === 1 ? "" : "s"} cheaper on annual
+                billing — see Optimize
+              </Link>
+            )}
           </div>
 
           {/* Grouped by category */}

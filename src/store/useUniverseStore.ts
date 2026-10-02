@@ -37,7 +37,12 @@ interface UniverseUIState {
    * selected, skipping straight to the details step. */
   isAddSubscriptionsModalOpen: boolean;
   addSubscriptionsPreselectId: string | null;
-  setAddSubscriptionsModalOpen: (v: boolean, preselectId?: string | null) => void;
+  /** True when this open should start at the bundle-first "pick your
+   * bundles" step instead of the normal welcome/select flow — the empty
+   * state's primary CTA uses this; the modal's own "Add from a bundle"
+   * button inside the normal flow reaches the same step without this. */
+  addSubscriptionsStartAtBundlePick: boolean;
+  setAddSubscriptionsModalOpen: (v: boolean, preselectId?: string | null, startAtBundlePick?: boolean) => void;
 
   selectedId: string | null;
   select: (id: string | null) => void;
@@ -79,8 +84,13 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
 
   isAddSubscriptionsModalOpen: false,
   addSubscriptionsPreselectId: null,
-  setAddSubscriptionsModalOpen: (v, preselectId = null) =>
-    set({ isAddSubscriptionsModalOpen: v, addSubscriptionsPreselectId: v ? preselectId : null }),
+  addSubscriptionsStartAtBundlePick: false,
+  setAddSubscriptionsModalOpen: (v, preselectId = null, startAtBundlePick = false) =>
+    set({
+      isAddSubscriptionsModalOpen: v,
+      addSubscriptionsPreselectId: v ? preselectId : null,
+      addSubscriptionsStartAtBundlePick: v ? startAtBundlePick : false,
+    }),
 
   selectedId: null,
   select: (id) => set({ selectedId: id }),

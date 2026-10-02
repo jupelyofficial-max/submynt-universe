@@ -424,7 +424,7 @@ function EmptyState() {
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-2 sm:flex-row">
-        <Button className="flex-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true)}>
+        <Button className="flex-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, true)}>
           <Plus size={14} />
           Add your first subscription
         </Button>

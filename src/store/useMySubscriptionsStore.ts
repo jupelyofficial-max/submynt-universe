@@ -39,8 +39,9 @@ interface MySubscriptionsState {
    * onboarding is otherwise add-only. */
   updateUsageFrequency: (ownedId: string, usageFrequency: UsageFrequency) => void;
   /** The only edit surface for bundleProvider today (DetailPanel's
-   * OverviewTab) — mirrors updateUsageFrequency exactly. */
-  updateBundleProvider: (ownedId: string, bundleProvider: BundleProvider) => void;
+   * OverviewTab) — mirrors updateUsageFrequency exactly. undefined clears
+   * it back to no bundle-source (the redesign's "Direct" tile). */
+  updateBundleProvider: (ownedId: string, bundleProvider: BundleProvider | undefined) => void;
   isOwned: (subscriptionId: string) => boolean;
   getOwned: (subscriptionId: string) => OwnedSubscription | undefined;
   /** Called once on sign-in (see providers.tsx): migrates whatever was
@@ -197,7 +198,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
         if (userId && entry) {
           createClient()
             .from("owned_subscriptions")
-            .update({ bundle_provider: bundleProvider })
+            .update({ bundle_provider: bundleProvider ?? null })
             .eq("user_id", userId)
             .eq("subscription_id", entry.subscriptionId)
             .then(({ error }) => {

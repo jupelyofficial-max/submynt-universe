@@ -3,45 +3,39 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlarmClock, ArrowLeft, Calendar, FileText, Gem, Layers, Orbit, PiggyBank, Plus, Sparkles, Trash2, Wallet } from "lucide-react";
+import {
+  AlarmClock,
+  ArrowLeft,
+  Compass,
+  FileText,
+  Gem,
+  Layers,
+  Orbit,
+  Plus,
+  Sparkles,
+  Trash2,
+  Wallet,
+} from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { StatCard } from "@/components/dashboard/StatCard";
+import { ScoreRing } from "@/components/track/ScoreRing";
 import { SUBSCRIPTIONS_BY_ID, potentialSavingsMonthly } from "@/data/subscriptions";
 import { daysUntil, formatDate, formatINR, formatOwnedPrice } from "@/lib/utils";
 import { computeSubmyntScore, type Recommendation } from "@/lib/submyntScore";
-import {
-  computeBundledFamilyValue,
-  computeMonthlySpend,
-  computePotentialAnnualSavings,
-  directItemsOf,
-  type OwnedItem,
-} from "@/lib/subscriptionStats";
+import { computeMonthlySpend, directItemsOf, type OwnedItem } from "@/lib/subscriptionStats";
 import { findDuplicateCategories, groupByBundleProvider } from "@/lib/bundleIntelligence";
 import { annualSwitchSuggestion } from "@/lib/planOptimization";
+import { accessChipFor } from "@/lib/trackPresentation";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
-import type { AccessType, Category } from "@/types/subscription";
-
-const ACCESS_TYPE_LABELS: Record<AccessType, string> = {
-  direct: "Direct",
-  bundled: "Bundled",
-  promotional: "Promotional",
-  family: "Family",
-  free: "Free",
-};
-
-const ACCESS_TYPE_TONES: Record<AccessType, "neutral" | "aurora" | "gold" | "nebula" | "danger"> = {
-  direct: "neutral",
-  bundled: "nebula",
-  promotional: "gold",
-  family: "aurora",
-  free: "neutral",
-};
 
 const RENEWAL_WINDOW_DAYS = 30;
 const SOON_WINDOW_DAYS = 7;
+// Card-level "Renews in Nd" chip uses a tighter window than the 30-day
+// aggregate insight below — a renewal 4 weeks out doesn't need its own
+// per-card badge, only the ones genuinely coming up soon do.
+const CARD_RENEWAL_CHIP_DAYS = 14;
 
 const RECOMMENDATION_LABELS: Record<Recommendation, string> = {
   keep: "Keep",
@@ -69,19 +63,6 @@ const BUNDLE_PROVIDER_LABELS: Record<string, string> = {
   other: "that provider",
 };
 
-// Same values, worded for the per-item badge ("via Airtel Black") rather
-// than the aggregate insight sentence ("bundled via your employer").
-const BUNDLE_PROVIDER_BADGE_LABELS: Record<string, string> = {
-  airtel: "Airtel Black",
-  jio: "Jio",
-  amazon: "Amazon",
-  apple: "Apple",
-  google: "Google",
-  employer: "Employer",
-  family: "Family",
-  other: "Others",
-};
-
 export default function MySubscriptionsPage() {
   const owned = useMySubscriptionsStore((s) => s.owned);
   const hydrated = useMySubscriptionsStore((s) => s.hydrated);
@@ -99,36 +80,14 @@ export default function MySubscriptionsPage() {
   );
 
   // priceMonthly is already the monthly-equivalent cost regardless of
-  // billing cycle (confirmed against the catalogue's own annual plan
-  // entries, which are lower per-month than their monthly counterparts,
-  // not ~12x higher) — summed directly, no /12 or *12 correction here.
-  // Formulas live in lib/subscriptionStats.ts, shared with the Sprint 6
-  // Monthly Report so both pages report identical numbers.
+  // billing cycle. computeMonthlySpend already excludes bundled/family/
+  // promotional (₹0-to-the-user) entries — the "You pay / month" figure
+  // the redesign asks for, unchanged from the Sprint 3/6 formula.
   const monthlySpend = useMemo(() => computeMonthlySpend(items), [items]);
-  const totalValue = useMemo(() => monthlySpend + computeBundledFamilyValue(items), [items, monthlySpend]);
-  const potentialAnnualSavings = useMemo(() => computePotentialAnnualSavings(items), [items]);
+  const annualSpend = monthlySpend * 12;
 
   const directItems = useMemo(() => directItemsOf(items), [items]);
   const savingsCandidateCount = useMemo(() => directItems.filter((x) => potentialSavingsMonthly(x.sub) > 0).length, [directItems]);
-
-  const accessTypeCounts = useMemo(() => {
-    const counts: Partial<Record<AccessType, number>> = {};
-    for (const x of items) {
-      const t = x.owned.accessType ?? "direct";
-      counts[t] = (counts[t] ?? 0) + 1;
-    }
-    return counts;
-  }, [items]);
-
-  const byCategory = useMemo(() => {
-    const groups = new Map<Category, OwnedItem[]>();
-    for (const x of items) {
-      const list = groups.get(x.sub.category) ?? [];
-      list.push(x);
-      groups.set(x.sub.category, list);
-    }
-    return [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
-  }, [items]);
 
   const renewalsSoonCount = useMemo(
     () => items.filter((x) => { const days = daysUntil(x.owned.nextRenewal); return days >= 0 && days <= RENEWAL_WINDOW_DAYS; }).length,
@@ -154,6 +113,18 @@ export default function MySubscriptionsPage() {
   // Sprint 7 — category-based overlap only (no bundle-content data exists
   // to check "already included in a bundle you own"; see bundleIntelligence.ts).
   const duplicateGroups = useMemo(() => findDuplicateCategories(items), [items]);
+  // subscriptionId -> name of the other overlapping item, for the new
+  // per-card "Overlaps X" chip (first other member of its duplicate group).
+  const overlapNameBySubId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const group of duplicateGroups) {
+      for (const item of group.items) {
+        const other = group.items.find((x) => x.sub.id !== item.sub.id);
+        if (other) map.set(item.sub.id, other.sub.name);
+      }
+    }
+    return map;
+  }, [duplicateGroups]);
   // Purely reflects the bundle_provider the user themselves recorded —
   // not a claim about what that provider's bundle actually contains.
   const bundleProviderGroups = useMemo(
@@ -167,6 +138,25 @@ export default function MySubscriptionsPage() {
     () => items.filter((x) => annualSwitchSuggestion(x.owned, x.sub) !== null),
     [items]
   );
+
+  // Redesign — aggregate Submynt Score ring + the combined savings nudge
+  // ("N ways to save ₹X/mo"), both pure presentation derived from the
+  // same per-item computeSubmyntScore/potentialSavingsMonthly/
+  // annualSwitchSuggestion calls already used elsewhere on this page.
+  const scoredItems = useMemo(
+    () => items.map((x) => ({ ...x, result: computeSubmyntScore(x.sub, x.owned.accessType ?? "direct", x.owned.usageFrequency) })),
+    [items]
+  );
+  const aggregateScore = useMemo(() => {
+    if (scoredItems.length === 0) return 0;
+    return Math.round(scoredItems.reduce((sum, x) => sum + x.result.score, 0) / scoredItems.length);
+  }, [scoredItems]);
+  const savingsWaysCount = savingsCandidateCount + annualSwitchCandidates.length;
+  const savingsAmountMonthly = useMemo(() => {
+    const altSavings = directItems.reduce((sum, x) => sum + potentialSavingsMonthly(x.sub), 0);
+    const annualSavings = annualSwitchCandidates.reduce((sum, x) => sum + (annualSwitchSuggestion(x.owned, x.sub)?.savingsMonthly ?? 0), 0);
+    return altSavings + annualSavings;
+  }, [directItems, annualSwitchCandidates]);
 
   function openDetails(id: string) {
     select(id);
@@ -182,10 +172,11 @@ export default function MySubscriptionsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 lg:px-8">
+    <div className="ts-theme mx-auto w-full max-w-5xl flex-1 px-4 py-10 lg:px-8">
       <Link
         href="/explore"
-        className="mb-4 inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm text-ink-300 transition-colors hover:bg-black/5 hover:text-ink-0"
+        className="mb-4 inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm transition-colors hover:bg-[var(--ts-mint-tint)]"
+        style={{ color: "var(--ts-ink-300)" }}
       >
         <ArrowLeft size={16} />
         Back
@@ -193,12 +184,19 @@ export default function MySubscriptionsPage() {
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-nebula-500/15 text-nebula-400">
+          <span
+            className="flex h-11 w-11 items-center justify-center rounded-2xl"
+            style={{ background: "var(--ts-mint-tint)", color: "var(--ts-mint-400)" }}
+          >
             <Orbit size={20} />
           </span>
           <div>
-            <h1 className="font-display text-2xl font-semibold text-ink-0">Track Subscriptions</h1>
-            <p className="text-sm text-ink-400">{items.length > 0 ? `${items.length} tracked` : "Nothing tracked yet."}</p>
+            <h1 className="font-display text-2xl font-semibold" style={{ color: "var(--ts-ink-0)" }}>
+              Track Subscriptions
+            </h1>
+            <p className="text-sm" style={{ color: "var(--ts-ink-500)" }}>
+              {items.length > 0 ? `${items.length} tracked` : "Nothing tracked yet."}
+            </p>
           </div>
         </div>
         {items.length > 0 && (
@@ -216,53 +214,44 @@ export default function MySubscriptionsPage() {
       </div>
 
       {hydrated && items.length === 0 ? (
-        <div className="glass-panel flex flex-col items-center gap-3 rounded-2xl p-16 text-center">
-          <p className="font-display text-lg text-ink-0">Nothing tracked yet</p>
-          <p className="max-w-sm text-sm text-ink-400">
-            Add the subscriptions you actually pay for — no bank connection required. Tracked subscriptions power your
-            monthly and annual spend totals, your Submynt Score, renewal reminders, and bundle and savings
-            recommendations.
-          </p>
-          <Button className="mt-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true)}>
-            <Plus size={14} />
-            Track your subscriptions
-          </Button>
-        </div>
+        <EmptyState />
       ) : (
         <>
-          {/* Snapshot stats */}
-          <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard icon={<Layers size={16} />} label="Services" value={String(items.length)} />
-            <StatCard icon={<Wallet size={16} />} label="Monthly spend" value={`${formatINR(monthlySpend)}/mo`} />
-            <StatCard icon={<Gem size={16} />} label="Total value" value={`${formatINR(totalValue)}/mo`} />
-            <StatCard icon={<PiggyBank size={16} />} label="Potential annual savings" value={formatINR(potentialAnnualSavings)} />
+          {/* Summary strip */}
+          <div className="ts-card mb-4 flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--ts-ink-500)" }}>
+                You pay / month
+              </div>
+              <div className="ts-tabular font-display text-3xl font-bold" style={{ color: "var(--ts-ink-0)" }}>
+                {formatINR(monthlySpend)}
+              </div>
+              <div className="ts-tabular mt-0.5 text-xs" style={{ color: "var(--ts-ink-500)" }}>
+                {formatINR(annualSpend)} / year
+              </div>
+            </div>
+
+            <ScoreRing score={aggregateScore} />
           </div>
 
-          {/* Access-type breakdown */}
-          <div className="mb-4 flex flex-wrap gap-1.5">
-            {(Object.keys(ACCESS_TYPE_LABELS) as AccessType[])
-              .filter((t) => accessTypeCounts[t])
-              .map((t) => (
-                <Badge key={t} tone={ACCESS_TYPE_TONES[t]}>
-                  {ACCESS_TYPE_LABELS[t]} · {accessTypeCounts[t]}
-                </Badge>
-              ))}
-          </div>
+          {savingsWaysCount > 0 && (
+            <Link
+              href="/optimize"
+              className="mb-4 flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors"
+              style={{ background: "var(--ts-mint-tint)", color: "var(--ts-mint-400)" }}
+            >
+              <Sparkles size={14} />
+              {savingsWaysCount} way{savingsWaysCount === 1 ? "" : "s"} to save {formatINR(savingsAmountMonthly)}/mo
+            </Link>
+          )}
 
-          {/* Insights */}
+          {/* Insights — unchanged from Sprint 5/7/8, restyled */}
           <div className="mb-6 flex flex-col gap-2">
-            {savingsCandidateCount > 0 && (
-              <Link
-                href="/optimize"
-                className="flex items-center gap-2 rounded-xl bg-gold-500/10 px-3.5 py-2.5 text-sm text-gold-400 transition-colors hover:bg-gold-500/15"
-              >
-                <Sparkles size={14} />
-                You have {savingsCandidateCount} subscription{savingsCandidateCount === 1 ? "" : "s"} with cheaper alternatives
-                available — see Optimize
-              </Link>
-            )}
             {renewalsSoonCount > 0 && (
-              <div className="flex items-center gap-2 rounded-xl bg-black/5 px-3.5 py-2.5 text-sm text-ink-300">
+              <div
+                className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm"
+                style={{ background: "var(--ts-card)", color: "var(--ts-ink-300)", border: "1px solid var(--ts-border)" }}
+              >
                 <Orbit size={14} />
                 {renewalsSoonCount} renewal{renewalsSoonCount === 1 ? "" : "s"} coming up in the next {RENEWAL_WINDOW_DAYS} days
               </div>
@@ -270,138 +259,194 @@ export default function MySubscriptionsPage() {
             {(renewalsWithin7 > 0 || promosEndingWithin7 > 0) && (
               <Link
                 href="/renewals"
-                className="flex items-center gap-2 rounded-xl bg-rose-500/10 px-3.5 py-2.5 text-sm text-rose-400 transition-colors hover:bg-rose-500/15"
+                className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors"
+                style={{ background: "var(--ts-amber-tint)", color: "var(--ts-amber)" }}
               >
                 <AlarmClock size={14} />
                 {soonInsightText(renewalsWithin7, promosEndingWithin7)} — view calendar
               </Link>
             )}
-            {duplicateGroups.map((group) => (
-              <div
-                key={group.category}
-                className="flex items-center gap-2 rounded-xl bg-aurora-500/10 px-3.5 py-2.5 text-sm text-aurora-400"
-              >
-                <Layers size={14} />
-                You have {group.items.length} {group.category} subscriptions that may overlap:{" "}
-                {group.items.map((x) => x.sub.name).join(", ")}
-              </div>
-            ))}
             {bundleProviderGroups.map((group) => (
               <div
                 key={group.provider}
-                className="flex items-center gap-2 rounded-xl bg-black/5 px-3.5 py-2.5 text-sm text-ink-300"
+                className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm"
+                style={{ background: "var(--ts-card)", color: "var(--ts-ink-300)", border: "1px solid var(--ts-border)" }}
               >
                 <Gem size={14} />
                 You have {group.items.length} subscriptions bundled via {BUNDLE_PROVIDER_LABELS[group.provider] ?? group.provider}:{" "}
                 {group.items.map((x) => x.sub.name).join(", ")}
               </div>
             ))}
-            {annualSwitchCandidates.length > 0 && (
-              <Link
-                href="/optimize"
-                className="flex items-center gap-2 rounded-xl bg-gold-500/10 px-3.5 py-2.5 text-sm text-gold-400 transition-colors hover:bg-gold-500/15"
-              >
-                <Calendar size={14} />
-                {annualSwitchCandidates.length} subscription{annualSwitchCandidates.length === 1 ? "" : "s"} cheaper on annual
-                billing — see Optimize
-              </Link>
-            )}
           </div>
 
-          {/* Grouped by category */}
-          <div className="flex flex-col gap-8">
-            {byCategory.map(([category, categoryItems]) => (
-              <div key={category}>
-                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-500">
-                  {category} · {categoryItems.length}
-                </h2>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {categoryItems.map(({ owned: o, sub }) => {
-                    const savings = (o.accessType ?? "direct") === "direct" ? potentialSavingsMonthly(sub) : 0;
-                    const accessType = o.accessType ?? "direct";
-                    const scoreResult = computeSubmyntScore(sub, accessType, o.usageFrequency);
-                    return (
-                      <div key={o.ownedId} className="glass-panel flex flex-col gap-3 rounded-2xl p-4">
-                        <div className="flex items-start gap-3">
-                          <SubscriptionLogo subscription={sub} size="md" ring />
-                          <div className="min-w-0 flex-1">
-                            <h3 className="truncate text-sm font-semibold text-ink-0">{sub.name}</h3>
-                            <p className="text-xs text-ink-400">{o.planName}</p>
-                          </div>
-                          <div className="shrink-0 text-right">
-                            <div className="text-sm font-semibold text-ink-0">{formatOwnedPrice(o.priceMonthly, accessType)}</div>
-                            {o.priceMonthly > 0 && <div className="text-[11px] text-ink-500">/mo</div>}
-                          </div>
-                        </div>
+          {/* Subscription cards — flat list, default sort by next renewal */}
+          <div className="flex flex-col gap-3">
+            {scoredItems.map(({ owned: o, sub, result: scoreResult }) => {
+              const savings = (o.accessType ?? "direct") === "direct" ? potentialSavingsMonthly(sub) : 0;
+              const accessType = o.accessType ?? "direct";
+              const accessChip = accessChipFor(o);
+              const daysToRenewal = Math.ceil(daysUntil(o.nextRenewal));
+              const overlapName = overlapNameBySubId.get(sub.id);
+              const rarelyUsed = o.usageFrequency === "rarely" || o.usageFrequency === "never";
 
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <Badge tone={ACCESS_TYPE_TONES[accessType]}>{ACCESS_TYPE_LABELS[accessType]}</Badge>
-                          {o.bundleProvider && (
-                            <span className="text-[11px] text-ink-500">
-                              via {BUNDLE_PROVIDER_BADGE_LABELS[o.bundleProvider] ?? o.bundleProvider}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="text-xs text-ink-500">Renews {formatDate(o.nextRenewal)}</div>
-
-                        {/* Displayed as its own distinct line, never merged
-                            into "Renews" — a promo ending is a different
-                            event from the subscription's own renewal. */}
-                        {accessType === "promotional" && o.promoEndDate && (
-                          <div className="flex items-center gap-1.5 text-xs text-gold-400">
-                            <AlarmClock size={12} />
-                            Promo ends {formatDate(o.promoEndDate)}
-                          </div>
-                        )}
-
-                        {savings > 0 && (
-                          <div className="flex items-center gap-1.5 rounded-lg bg-gold-500/10 px-2.5 py-1.5 text-[11px] text-gold-400">
-                            <Sparkles size={12} />
-                            Save ~{formatINR(savings)}/mo (estimated) — see Optimize
-                          </div>
-                        )}
-
-                        {/* Submynt Score (Sprint 4) — rule-based, explainable
-                            factors only (usage / price-value / cheaper
-                            alternatives), never a raw quality number. */}
-                        <div className="rounded-lg border border-black/10 px-2.5 py-2">
-                          <div className="mb-1 flex items-center justify-between gap-2">
-                            <Badge tone={RECOMMENDATION_TONES[scoreResult.recommendation]}>
-                              {RECOMMENDATION_LABELS[scoreResult.recommendation]}
-                            </Badge>
-                            <span className="text-[11px] font-semibold text-ink-400">Score {scoreResult.score}</span>
-                          </div>
-                          <p className="text-[11px] leading-snug text-ink-500">{scoreResult.reasons.join(" · ")}</p>
-                        </div>
-
-                        <div className="mt-auto flex gap-2 pt-1">
-                          <Button size="sm" variant="outline" className="flex-1" onClick={() => openDetails(sub.id)}>
-                            View Details
-                          </Button>
-                          {scoreResult.recommendation === "reassess" && (
-                            <Button size="sm" variant="ghost" className="flex-1 text-gold-400" onClick={() => exploreAlternative(sub.id)}>
-                              Explore Alternative
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-red-300 hover:text-red-200"
-                            onClick={() => remove(o.ownedId)}
-                          >
-                            <Trash2 size={14} />
-                          </Button>
-                        </div>
+              return (
+                <div key={o.ownedId} className="ts-card flex flex-col gap-3 p-4">
+                  <div className="flex items-start gap-3">
+                    <SubscriptionLogo subscription={sub} size="md" ring />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-sm font-semibold" style={{ color: "var(--ts-ink-0)" }}>
+                        {sub.name}
+                      </h3>
+                      <p className="truncate text-xs" style={{ color: "var(--ts-ink-500)" }}>
+                        {o.planName}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="ts-tabular text-sm font-semibold" style={{ color: "var(--ts-ink-0)" }}>
+                        {formatOwnedPrice(o.priceMonthly, accessType)}
                       </div>
-                    );
-                  })}
+                      {o.priceMonthly > 0 ? (
+                        <div className="text-[11px]" style={{ color: "var(--ts-ink-500)" }}>
+                          /month
+                        </div>
+                      ) : (
+                        accessType !== "direct" && (
+                          <div className="text-[11px]" style={{ color: "var(--ts-ink-500)" }}>
+                            included
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Badge tone={accessChip.tone}>{accessChip.label}</Badge>
+                    {daysToRenewal >= 0 && daysToRenewal <= CARD_RENEWAL_CHIP_DAYS && (
+                      <Badge tone="gold">Renews in {daysToRenewal}d</Badge>
+                    )}
+                    {rarelyUsed && <Badge tone="coral">Rarely opened</Badge>}
+                    {overlapName && <Badge tone="nebula">Overlaps {overlapName}</Badge>}
+                  </div>
+
+                  <div className="text-xs" style={{ color: "var(--ts-ink-500)" }}>
+                    Renews {formatDate(o.nextRenewal)}
+                  </div>
+
+                  {/* Displayed as its own distinct line, never merged
+                      into "Renews" — a promo ending is a different
+                      event from the subscription's own renewal. */}
+                  {accessType === "promotional" && o.promoEndDate && (
+                    <div className="flex items-center gap-1.5 text-xs" style={{ color: "var(--ts-amber)" }}>
+                      <AlarmClock size={12} />
+                      Promo ends {formatDate(o.promoEndDate)}
+                    </div>
+                  )}
+
+                  {savings > 0 && (
+                    <div
+                      className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px]"
+                      style={{ background: "var(--ts-amber-tint)", color: "var(--ts-amber)" }}
+                    >
+                      <Sparkles size={12} />
+                      Save ~{formatINR(savings)}/mo (estimated) — see Optimize
+                    </div>
+                  )}
+
+                  {/* Submynt Score (Sprint 4) — rule-based, explainable
+                      factors only (usage / price-value / cheaper
+                      alternatives), never a raw quality number. */}
+                  <div className="rounded-lg px-2.5 py-2" style={{ border: "1px solid var(--ts-border)" }}>
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <Badge tone={RECOMMENDATION_TONES[scoreResult.recommendation]}>
+                        {RECOMMENDATION_LABELS[scoreResult.recommendation]}
+                      </Badge>
+                      <span className="ts-tabular text-[11px] font-semibold" style={{ color: "var(--ts-ink-500)" }}>
+                        Score {scoreResult.score}
+                      </span>
+                    </div>
+                    <p className="text-[11px] leading-snug" style={{ color: "var(--ts-ink-500)" }}>
+                      {scoreResult.reasons.join(" · ")}
+                    </p>
+                  </div>
+
+                  <div className="mt-auto flex gap-2 pt-1">
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => openDetails(sub.id)}>
+                      View Details
+                    </Button>
+                    {scoreResult.recommendation === "reassess" && (
+                      <Button size="sm" variant="ghost" className="flex-1 text-gold-400" onClick={() => exploreAlternative(sub.id)}>
+                        Explore Alternative
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-300 hover:text-red-200"
+                      onClick={() => remove(o.ownedId)}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function EmptyState() {
+  const router = useRouter();
+  return (
+    <div className="ts-card flex flex-col items-center gap-5 p-10 text-center sm:p-16">
+      <span
+        className="flex h-14 w-14 items-center justify-center rounded-2xl"
+        style={{ background: "var(--ts-mint-tint)", color: "var(--ts-mint-400)" }}
+      >
+        <Orbit size={26} />
+      </span>
+      <div>
+        <p className="font-display text-xl font-semibold" style={{ color: "var(--ts-ink-0)" }}>
+          Nothing tracked yet
+        </p>
+        <p className="mx-auto mt-1 max-w-sm text-sm" style={{ color: "var(--ts-ink-500)" }}>
+          Add what you actually pay for — no bank connection required.
+        </p>
+      </div>
+
+      <div className="flex w-full max-w-sm flex-col gap-2.5 text-left">
+        <PerkRow icon={<Wallet />} text="See your real monthly and annual spend" />
+        <PerkRow icon={<Gem />} text="A Submynt Score for every subscription" />
+        <PerkRow icon={<AlarmClock />} text="Renewal reminders before you get charged" />
+        <PerkRow icon={<Layers />} text="Bundle and duplicate savings you might be missing" />
+      </div>
+
+      <div className="flex w-full max-w-sm flex-col gap-2 sm:flex-row">
+        <Button className="flex-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true)}>
+          <Plus size={14} />
+          Add your first subscription
+        </Button>
+        <Button variant="outline" className="flex-1" onClick={() => router.push("/explore")}>
+          <Compass size={14} />
+          Browse popular services
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function PerkRow({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <div className="flex items-center gap-2.5 text-sm" style={{ color: "var(--ts-ink-300)" }}>
+      <span
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg [&>svg]:h-3.5 [&>svg]:w-3.5"
+        style={{ background: "var(--ts-mint-tint)", color: "var(--ts-mint-400)" }}
+      >
+        {icon}
+      </span>
+      {text}
     </div>
   );
 }

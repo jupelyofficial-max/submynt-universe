@@ -8,38 +8,79 @@ import { Button } from "@/components/ui/Button";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 import { BILLING_LABELS } from "@/data/categories";
+import { BUNDLE_CATALOGUE, type BundleCatalogueEntry, type BundleId } from "@/data/bundleCatalogue";
 import { cn, formatOwnedPrice } from "@/lib/utils";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { ServiceDetailsCard, defaultServiceDetails, type ServiceDetailsValue } from "./ServiceDetailsCard";
+import { BundleConfirmManualStep, BundleConfirmPresetStep, BundlePickStep } from "./BundleFirstSteps";
 
-type Step = "welcome" | "select" | "details" | "review" | "done";
+type Step = "welcome" | "bundlePick" | "bundleConfirm" | "select" | "details" | "review" | "done";
 const STEP_ORDER: Step[] = ["welcome", "select", "details", "review"];
 const STEP_TITLES: Record<Step, string> = {
   welcome: "Track your subscriptions",
+  bundlePick: "Do you have any bundles?",
+  bundleConfirm: "Confirm what's included",
   select: "What do you use?",
   details: "Add the details",
   review: "Review before adding",
   done: "All set",
 };
 
+/** Default renewal date for a freshly-constructed ServiceDetailsValue —
+ * mirrors defaultServiceDetails's own 30-day default exactly. */
+function defaultRenewal(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 30);
+  return d.toISOString().slice(0, 10);
+}
+
+/** A bundle-confirmed service's details — accessType/bundleProvider come
+ * from the bundle itself, price is 0/included, reusing the exact same
+ * ServiceDetailsValue shape (and so the exact same add() write path) as
+ * the individual flow below. Family writes accessType "family" (its own
+ * existing category, not "bundled") with bundleProvider "family" too, so
+ * it still groups correctly in groupByBundleProvider. */
+function bundledServiceDetails(bundle: BundleCatalogueEntry): ServiceDetailsValue {
+  return {
+    accessType: bundle.id === "family" ? "family" : "bundled",
+    bundleProvider: bundle.bundleProvider,
+    planName: "Bundled",
+    priceMonthly: 0,
+    billing: "monthly",
+    nextRenewal: defaultRenewal(),
+    usageFrequency: undefined,
+    promoEndDate: undefined,
+  };
+}
+
 export function AddSubscriptionsModal() {
   const isOpen = useUniverseStore((s) => s.isAddSubscriptionsModalOpen);
   const preselectId = useUniverseStore((s) => s.addSubscriptionsPreselectId);
+  const startAtBundlePick = useUniverseStore((s) => s.addSubscriptionsStartAtBundlePick);
   const close = () => useUniverseStore.getState().setAddSubscriptionsModalOpen(false);
 
   return (
     <ResponsiveSheet open={isOpen} onClose={close} hideHeader desktopVariant="center" widthClassName="w-[560px]" panelVariant="glass">
-      {isOpen && <AddSubscriptionsFlow preselectId={preselectId} onClose={close} />}
+      {isOpen && <AddSubscriptionsFlow preselectId={preselectId} startAtBundlePick={startAtBundlePick} onClose={close} />}
     </ResponsiveSheet>
   );
 }
 
-function AddSubscriptionsFlow({ preselectId, onClose }: { preselectId: string | null; onClose: () => void }) {
+function AddSubscriptionsFlow({
+  preselectId,
+  startAtBundlePick,
+  onClose,
+}: {
+  preselectId: string | null;
+  startAtBundlePick: boolean;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const addOwned = useMySubscriptionsStore((s) => s.add);
+  const isOwned = useMySubscriptionsStore((s) => s.isOwned);
 
-  const [step, setStep] = useState<Step>(preselectId ? "details" : "welcome");
+  const [step, setStep] = useState<Step>(startAtBundlePick ? "bundlePick" : preselectId ? "details" : "welcome");
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>(preselectId ? [preselectId] : []);
   const [details, setDetails] = useState<Record<string, ServiceDetailsValue>>(() =>
@@ -48,6 +89,85 @@ function AddSubscriptionsFlow({ preselectId, onClose }: { preselectId: string | 
       : {}
   );
   const [addedCount, setAddedCount] = useState(0);
+
+  // --- Bundle-first flow state ---
+  const [selectedBundles, setSelectedBundles] = useState<BundleId[]>([]);
+  const [bundleConfirmIndex, setBundleConfirmIndex] = useState(0);
+  // Only explicit flips are stored; the effective on/off value is derived
+  // (see effectivePresetOn) so an already-tracked service still defaults
+  // off without needing an upfront init pass over the whole catalogue.
+  const [presetOverrides, setPresetOverrides] = useState<Record<string, boolean>>({});
+  const [manualPicks, setManualPicks] = useState<Record<BundleId, string[]>>({ "airtel-black": [], jio: [], family: [], employer: [] });
+  const [bundleAddedCount, setBundleAddedCount] = useState(0);
+
+  const currentBundle: BundleCatalogueEntry | undefined = BUNDLE_CATALOGUE.find((b) => b.id === selectedBundles[bundleConfirmIndex]);
+
+  function effectivePresetOn(bundleId: BundleId, serviceId: string, defaultOn: boolean): boolean {
+    const key = `${bundleId}:${serviceId}`;
+    if (key in presetOverrides) return presetOverrides[key];
+    // Already tracked (e.g. added individually before) — default this
+    // off rather than silently re-tagging an existing entry as bundled.
+    if (isOwned(serviceId)) return false;
+    return defaultOn;
+  }
+
+  function toggleBundleSelected(id: BundleId) {
+    setSelectedBundles((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  function togglePresetService(bundleId: BundleId, serviceId: string, defaultOn: boolean) {
+    const current = effectivePresetOn(bundleId, serviceId, defaultOn);
+    setPresetOverrides((prev) => ({ ...prev, [`${bundleId}:${serviceId}`]: !current }));
+  }
+
+  function toggleManualPick(bundleId: BundleId, serviceId: string) {
+    setManualPicks((prev) => {
+      const list = prev[bundleId] ?? [];
+      return { ...prev, [bundleId]: list.includes(serviceId) ? list.filter((x) => x !== serviceId) : [...list, serviceId] };
+    });
+  }
+
+  function proceedFromBundlePick() {
+    if (selectedBundles.length === 0) {
+      finishBundlePhase([]);
+      return;
+    }
+    setBundleConfirmIndex(0);
+    setStep("bundleConfirm");
+  }
+
+  function proceedFromBundleConfirm() {
+    if (bundleConfirmIndex + 1 < selectedBundles.length) {
+      setBundleConfirmIndex((i) => i + 1);
+      return;
+    }
+    finishBundlePhase(selectedBundles);
+  }
+
+  // Merges every confirmed bundle service into the same selectedIds/
+  // details state the individual flow already uses below — one shared
+  // write path, committed together at the final "Confirm & Add".
+  function finishBundlePhase(bundles: BundleId[]) {
+    const mergedIds: string[] = [];
+    const mergedDetails: Record<string, ServiceDetailsValue> = {};
+    for (const bundleId of bundles) {
+      const bundle = BUNDLE_CATALOGUE.find((b) => b.id === bundleId);
+      if (!bundle) continue;
+      const serviceIds = bundle.hasPresetList
+        ? bundle.includedServices.filter((item) => effectivePresetOn(bundleId, item.serviceId, item.defaultOn ?? true)).map((item) => item.serviceId)
+        : manualPicks[bundleId] ?? [];
+      for (const serviceId of serviceIds) {
+        if (mergedDetails[serviceId]) continue; // already added from an earlier selected bundle
+        if (!SUBSCRIPTIONS_BY_ID[serviceId]) continue;
+        mergedIds.push(serviceId);
+        mergedDetails[serviceId] = bundledServiceDetails(bundle);
+      }
+    }
+    setSelectedIds((prev) => [...prev, ...mergedIds.filter((id) => !prev.includes(id))]);
+    setDetails((prev) => ({ ...prev, ...mergedDetails }));
+    setBundleAddedCount(mergedIds.length);
+    setStep("select");
+  }
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -127,7 +247,9 @@ function AddSubscriptionsFlow({ preselectId, onClose }: { preselectId: string | 
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
-        <h2 className="font-display text-base font-semibold text-ink-0">{STEP_TITLES[step]}</h2>
+        <h2 className="font-display text-base font-semibold text-ink-0">
+          {step === "bundleConfirm" && currentBundle ? `Confirm your ${currentBundle.name}` : STEP_TITLES[step]}
+        </h2>
         <button onClick={onClose} className="text-xs text-ink-400 hover:text-ink-0 cursor-pointer">
           Close
         </button>
@@ -152,8 +274,48 @@ function AddSubscriptionsFlow({ preselectId, onClose }: { preselectId: string | 
           </div>
         )}
 
+        {step === "bundlePick" && <BundlePickStep selected={selectedBundles} onToggle={toggleBundleSelected} />}
+
+        {step === "bundleConfirm" && currentBundle && (
+          currentBundle.hasPresetList ? (
+            <BundleConfirmPresetStep
+              bundle={currentBundle}
+              toggles={Object.fromEntries(
+                currentBundle.includedServices.map((item) => [
+                  item.serviceId,
+                  effectivePresetOn(currentBundle.id, item.serviceId, item.defaultOn ?? true),
+                ])
+              )}
+              onToggleService={(serviceId) => {
+                const item = currentBundle.includedServices.find((x) => x.serviceId === serviceId);
+                togglePresetService(currentBundle.id, serviceId, item?.defaultOn ?? true);
+              }}
+            />
+          ) : (
+            <BundleConfirmManualStep
+              bundle={currentBundle}
+              picked={manualPicks[currentBundle.id] ?? []}
+              onTogglePick={(serviceId) => toggleManualPick(currentBundle.id, serviceId)}
+            />
+          )
+        )}
+
         {step === "select" && (
           <div className="flex flex-col gap-3">
+            {bundleAddedCount > 0 && (
+              <div className="rounded-xl bg-nebula-500/10 px-3 py-2 text-xs text-nebula-400">
+                {bundleAddedCount} subscription{bundleAddedCount === 1 ? "" : "s"} already added from your bundles.
+              </div>
+            )}
+            {selectedBundles.length === 0 && (
+              <button
+                type="button"
+                onClick={() => setStep("bundlePick")}
+                className="self-start text-xs font-medium text-nebula-400 hover:text-nebula-500 cursor-pointer"
+              >
+                Add from a bundle instead →
+              </button>
+            )}
             <div className="relative">
               <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-500" />
               <input
@@ -269,13 +431,36 @@ function AddSubscriptionsFlow({ preselectId, onClose }: { preselectId: string | 
 
       <div className="flex items-center justify-between border-t border-black/10 px-5 py-4">
         {step === "welcome" && (
-          <Button className="w-full" onClick={() => setStep("select")}>
-            Get started
-          </Button>
+          <>
+            <Button variant="ghost" onClick={() => setStep("bundlePick")}>
+              Add from a bundle
+            </Button>
+            <Button onClick={() => setStep("select")}>Get started</Button>
+          </>
+        )}
+        {step === "bundlePick" && (
+          <>
+            <Button variant="ghost" onClick={proceedFromBundlePick}>
+              {selectedBundles.length === 0 ? "I don't have any bundles — skip" : "Skip"}
+            </Button>
+            <Button onClick={proceedFromBundlePick} disabled={selectedBundles.length === 0}>
+              Continue{selectedBundles.length > 0 ? ` (${selectedBundles.length})` : ""}
+            </Button>
+          </>
+        )}
+        {step === "bundleConfirm" && (
+          <>
+            <Button variant="ghost" onClick={() => setStep("bundlePick")}>
+              Back
+            </Button>
+            <Button onClick={proceedFromBundleConfirm}>
+              {bundleConfirmIndex + 1 < selectedBundles.length ? "Next bundle" : "Continue"}
+            </Button>
+          </>
         )}
         {step === "select" && (
           <>
-            <Button variant="ghost" onClick={() => setStep("welcome")}>
+            <Button variant="ghost" onClick={() => setStep(selectedBundles.length > 0 ? "bundlePick" : "welcome")}>
               Back
             </Button>
             <Button onClick={goToDetails} disabled={selectedIds.length === 0}>

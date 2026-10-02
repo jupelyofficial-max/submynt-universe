@@ -99,6 +99,31 @@ export const SUBSCRIPTIONS: Subscription[] = [
     trialDays: 14,
   },
   {
+    // Added 2026-10-02, by hand — NOT from the Supabase sync script (see
+    // scripts/sync-catalogue-from-supabase.mjs's header comment on this
+    // file; that script's regeneration template is currently stale and
+    // would delete isRecentlyAdded/getPriceForward/the null-price guards
+    // on bestSavingsAlternative if run, so this entry was added directly
+    // instead). Added so the bundle-first add flow's Airtel Black preset
+    // has a real catalog id to point at. Price is an approximate,
+    // best-effort label, not independently verified.
+    id: "airtel-xstream",
+    name: "Airtel Xstream Play",
+    provider: "Airtel Xstream",
+    category: "Entertainment",
+    tagline: "Movies, shows and live TV from 20+ OTT apps",
+    color: "#7c3aed",
+    initials: "AX",
+    domain: "airtelxstream.in",
+    priceMonthly: 149,
+    billing: ["monthly"],
+    plans: [{ name: "Premium", priceMonthly: 149, billing: "monthly" }],
+    popularity: 20,
+    rating: 3.6,
+    region: "India",
+    tags: ["Entertainment"],
+  },
+  {
     // Verified 2026-09-20: ₹299/mo confirmed real. Annual corrected
     // ₹239/mo -> ₹125/mo (₹1,499/yr ÷ 12) to match the real annual price.
     id: "amazon-prime-video",

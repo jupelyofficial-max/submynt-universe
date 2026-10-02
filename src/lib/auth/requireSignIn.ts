@@ -14,6 +14,9 @@ export async function requireSignIn(action: () => void, resume?: ResumeIntent): 
     // through OAuth just because they clicked very early.
     const { data } = await createClient().auth.getSession();
     signedIn = Boolean(data.session);
+    // The store-level account check reads this store, so bring it in step
+    // with the session we just confirmed before running the action.
+    if (data.session) useAuthStore.getState().setSession(data.session);
   }
   if (signedIn) action();
   else void signInWithGoogle({ resume });

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AccessType, BillingCycle, BundleProvider, OwnedSubscription, UsageFrequency } from "@/types/subscription";
 import { createClient } from "@/lib/supabase/client";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface AddInput {
   subscriptionId: string;
@@ -114,6 +115,17 @@ function ownedToRow(userId: string, o: OwnedSubscription | AddInput) {
   };
 }
 
+/** Defense in depth for the Track Subscriptions sign-in requirement. The UI
+ * prompts sign-in at each entry point (AddSubscriptionsModal, requireSignIn),
+ * but every mutation is ALSO refused here, at the one place data is
+ * actually written — so a path the UI gate misses (or one added later)
+ * can't quietly create or change tracked data for a signed-out visitor. */
+function requireAccount(action: string): boolean {
+  if (useAuthStore.getState().user) return true;
+  console.warn(`Track Subscriptions: "${action}" ignored — sign-in required.`);
+  return false;
+}
+
 export const useMySubscriptionsStore = create<MySubscriptionsState>()(
   persist(
     (set, get) => {
@@ -133,6 +145,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
         setHydrated: () => set({ hydrated: true }),
 
         add: (input) => {
+          if (!requireAccount("add")) return;
           const { userId } = get();
           const ownedId = userId ? input.subscriptionId : `${input.subscriptionId}-${Date.now()}`;
           // input.accessType is optional (AddInput); OwnedSubscription
@@ -156,6 +169,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
         },
 
         remove: (ownedId) => {
+          if (!requireAccount("remove")) return;
           const { userId, owned } = get();
           const entry = owned.find((o) => o.ownedId === ownedId);
           set((state) => ({ owned: state.owned.filter((o) => o.ownedId !== ownedId) }));
@@ -172,6 +186,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
         },
 
         toggleKept: (ownedId) => {
+          if (!requireAccount("toggleKept")) return;
           const { userId, owned } = get();
           const entry = owned.find((o) => o.ownedId === ownedId);
           const nextKept = entry ? !entry.kept : undefined;
@@ -191,6 +206,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
         },
 
         updateUsageFrequency: (ownedId, usageFrequency) => {
+          if (!requireAccount("updateUsageFrequency")) return;
           const { userId, owned } = get();
           const entry = owned.find((o) => o.ownedId === ownedId);
           set((state) => ({
@@ -209,6 +225,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
         },
 
         updateBundleProvider: (ownedId, bundleProvider) => {
+          if (!requireAccount("updateBundleProvider")) return;
           const { userId, owned } = get();
           const entry = owned.find((o) => o.ownedId === ownedId);
           set((state) => ({

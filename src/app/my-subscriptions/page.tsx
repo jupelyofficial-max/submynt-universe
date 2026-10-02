@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -29,6 +29,10 @@ import { annualSwitchSuggestion } from "@/lib/planOptimization";
 import { accessChipFor } from "@/lib/trackPresentation";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useSubscriptionsReady } from "@/hooks/useSubscriptionsReady";
+import { consumeResumeIntent } from "@/lib/auth/signIn";
+import { requireSignIn } from "@/lib/auth/requireSignIn";
 
 const RENEWAL_WINDOW_DAYS = 30;
 const SOON_WINDOW_DAYS = 7;
@@ -65,10 +69,22 @@ const BUNDLE_PROVIDER_LABELS: Record<string, string> = {
 
 export default function MySubscriptionsPage() {
   const owned = useMySubscriptionsStore((s) => s.owned);
-  const hydrated = useMySubscriptionsStore((s) => s.hydrated);
+  const ready = useSubscriptionsReady();
+  const user = useAuthStore((s) => s.user);
   const remove = useMySubscriptionsStore((s) => s.remove);
   const select = useUniverseStore((s) => s.select);
   const router = useRouter();
+
+  // Back from signing in with an add action pending (see AddSubscriptionsModal's
+  // gate) — replay it once the account has loaded, so the user lands on the
+  // add flow they originally asked for.
+  useEffect(() => {
+    if (!user || !ready) return;
+    const intent = consumeResumeIntent();
+    if (intent) {
+      useUniverseStore.getState().setAddSubscriptionsModalOpen(true, intent.preselectId ?? null, intent.startAtBundlePick);
+    }
+  }, [user, ready]);
 
   const items: OwnedItem[] = useMemo(
     () =>
@@ -213,7 +229,9 @@ export default function MySubscriptionsPage() {
         )}
       </div>
 
-      {hydrated && items.length === 0 ? (
+      {!ready ? (
+        <LoadingState />
+      ) : items.length === 0 ? (
         <EmptyState />
       ) : (
         <>
@@ -382,7 +400,7 @@ export default function MySubscriptionsPage() {
                       size="sm"
                       variant="ghost"
                       className="text-red-300 hover:text-red-200"
-                      onClick={() => remove(o.ownedId)}
+                      onClick={() => void requireSignIn(() => remove(o.ownedId))}
                     >
                       <Trash2 size={14} />
                     </Button>
@@ -397,8 +415,19 @@ export default function MySubscriptionsPage() {
   );
 }
 
+function LoadingState() {
+  return (
+    <div className="flex flex-col gap-3" aria-busy="true" aria-label="Loading your subscriptions">
+      <div className="ts-card h-28 animate-pulse" />
+      <div className="ts-card h-32 animate-pulse" />
+      <div className="ts-card h-32 animate-pulse" />
+    </div>
+  );
+}
+
 function EmptyState() {
   const router = useRouter();
+  const signedIn = useAuthStore((s) => Boolean(s.user));
   return (
     <div className="ts-card flex flex-col items-center gap-5 p-10 text-center sm:p-16">
       <span
@@ -433,6 +462,11 @@ function EmptyState() {
           Browse popular services
         </Button>
       </div>
+      {!signedIn && (
+        <p className="text-xs" style={{ color: "var(--ts-ink-500)" }}>
+          Tracking needs a free account — you&apos;ll sign in with Google first.
+        </p>
+      )}
     </div>
   );
 }

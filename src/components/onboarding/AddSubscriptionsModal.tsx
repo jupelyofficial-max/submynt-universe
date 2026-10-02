@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Search, Trash2 } from "lucide-react";
 import { ResponsiveSheet } from "@/components/ui/ResponsiveSheet";
@@ -12,6 +12,9 @@ import { BUNDLE_CATALOGUE, type BundleCatalogueEntry, type BundleId } from "@/da
 import { cn, formatOwnedPrice } from "@/lib/utils";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useSubscriptionsReady } from "@/hooks/useSubscriptionsReady";
+import { signInWithGoogle } from "@/lib/auth/signIn";
 import { ServiceDetailsCard, defaultServiceDetails, type ServiceDetailsValue } from "./ServiceDetailsCard";
 import { BundleConfirmManualStep, BundleConfirmPresetStep, BundlePickStep } from "./BundleFirstSteps";
 
@@ -58,11 +61,30 @@ export function AddSubscriptionsModal() {
   const isOpen = useUniverseStore((s) => s.isAddSubscriptionsModalOpen);
   const preselectId = useUniverseStore((s) => s.addSubscriptionsPreselectId);
   const startAtBundlePick = useUniverseStore((s) => s.addSubscriptionsStartAtBundlePick);
+  const user = useAuthStore((s) => s.user);
+  const authHydrated = useAuthStore((s) => s.hydrated);
+  const ready = useSubscriptionsReady();
   const close = () => useUniverseStore.getState().setAddSubscriptionsModalOpen(false);
 
+  // Adding needs an account. Every add entry point funnels through this
+  // modal's open flag, so gating here covers all of them (header button,
+  // empty-state CTA, "Add from a bundle", the bundle-first steps, the
+  // detail panel's "Currently subscribed", Saved's "I have this") with no
+  // way to miss one. Signed out: don't open the flow — start Google
+  // sign-in instead, and replay this exact action once they're back.
+  useEffect(() => {
+    if (!isOpen || !authHydrated || user) return;
+    useUniverseStore.getState().setAddSubscriptionsModalOpen(false);
+    void signInWithGoogle({ resume: { kind: "add", preselectId, startAtBundlePick } });
+  }, [isOpen, authHydrated, user, preselectId, startAtBundlePick]);
+
+  // Also waits for the signed-in account to finish loading, so the flow's
+  // "already tracked" defaults reflect what's actually on the account.
+  const open = isOpen && Boolean(user) && ready;
+
   return (
-    <ResponsiveSheet open={isOpen} onClose={close} hideHeader desktopVariant="center" widthClassName="w-[560px]" panelVariant="glass">
-      {isOpen && <AddSubscriptionsFlow preselectId={preselectId} startAtBundlePick={startAtBundlePick} onClose={close} />}
+    <ResponsiveSheet open={open} onClose={close} hideHeader desktopVariant="center" widthClassName="w-[560px]" panelVariant="glass">
+      {open && <AddSubscriptionsFlow preselectId={preselectId} startAtBundlePick={startAtBundlePick} onClose={close} />}
     </ResponsiveSheet>
   );
 }

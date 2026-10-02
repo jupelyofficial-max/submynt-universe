@@ -9,11 +9,12 @@ import { SUBSCRIPTIONS_BY_ID, bestSavingsAlternative } from "@/data/subscription
 import { formatINR } from "@/lib/utils";
 import { annualSwitchSuggestion } from "@/lib/planOptimization";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
+import { useSubscriptionsReady } from "@/hooks/useSubscriptionsReady";
 import { useUniverseStore } from "@/store/useUniverseStore";
 
 export default function OptimizePage() {
   const owned = useMySubscriptionsStore((s) => s.owned);
-  const hydrated = useMySubscriptionsStore((s) => s.hydrated);
+  const hydrated = useSubscriptionsReady();
   const select = useUniverseStore((s) => s.select);
   const toggleUserStatus = useUniverseStore((s) => s.toggleUserStatus);
   const router = useRouter();

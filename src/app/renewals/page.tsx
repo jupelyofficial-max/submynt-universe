@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 import { daysUntil, formatDate } from "@/lib/utils";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
+import { useSubscriptionsReady } from "@/hooks/useSubscriptionsReady";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import type { OwnedSubscription, Subscription } from "@/types/subscription";
 
@@ -56,7 +57,7 @@ function buildEvents(owned: OwnedSubscription[]): RenewalEvent[] {
 
 export default function RenewalsPage() {
   const owned = useMySubscriptionsStore((s) => s.owned);
-  const hydrated = useMySubscriptionsStore((s) => s.hydrated);
+  const hydrated = useSubscriptionsReady();
   const select = useUniverseStore((s) => s.select);
   const router = useRouter();
 

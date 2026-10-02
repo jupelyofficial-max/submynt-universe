@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useSubscriptionStatusStore, type SubscriptionStatus } from "@/store/useSubscriptionStatusStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import type { Subscription } from "@/types/subscription";
 
 const OPTIONS: { value: SubscriptionStatus | "subscribed"; label: string }[] = [
@@ -35,7 +36,10 @@ export function SubscriptionStatusPicker({ sub }: { sub: Subscription }) {
   function handlePick(value: SubscriptionStatus | "subscribed") {
     if (value === "subscribed") {
       if (isOwned) return; // already real — Remove (in primary actions) is how you undo this
-      clearStatus(sub.id);
+      // Signed out: the add flow's own gate starts Google sign-in and
+      // replays this add afterwards — so don't drop the saved
+      // "considering" status for a sign-in that may never complete.
+      if (useAuthStore.getState().user) clearStatus(sub.id);
       useUniverseStore.getState().setAddSubscriptionsModalOpen(true, sub.id);
       return;
     }

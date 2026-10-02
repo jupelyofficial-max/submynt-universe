@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
+import { signInWithGoogle } from "@/lib/auth/signIn";
 
 /** Signed out: a labeled "Sign in" button that calls signInWithOAuth
  * directly — no confirmation modal in between, since that extra step
@@ -31,13 +32,13 @@ export function AccountMenu() {
 }
 
 function SignInButton() {
-  const [signingIn, setSigningIn] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const signingIn = useAuthStore((s) => s.signingIn);
+  const error = useAuthStore((s) => s.signInError);
   const triggerRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
   const [errorPos, setErrorPos] = useState({ top: 0, right: 0 });
   const outsideRefs = useMemo(() => [triggerRef, errorRef], []);
-  useOnClickOutside(outsideRefs, () => setError(null));
+  useOnClickOutside(outsideRefs, () => useAuthStore.getState().setSignInError(null));
 
   useLayoutEffect(() => {
     if (!error) return;
@@ -45,41 +46,11 @@ function SignInButton() {
     if (rect) setErrorPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
   }, [error]);
 
-  async function handleGoogleSignIn() {
-    setSigningIn(true);
-    setError(null);
-    const supabase = createClient();
-    const { data, error: signInError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-
-    if (signInError) {
-      setSigningIn(false);
-      setError(signInError.message);
-      return;
-    }
-
-    if (!data?.url) {
-      setSigningIn(false);
-      setError("Google sign-in didn't return a redirect URL. Please try again.");
-      return;
-    }
-
-    // Safety net: if navigation hasn't actually happened within 8s (blocked
-    // redirect, browser extension, etc.), stop hanging silently. The Google
-    // redirect is a two-hop chain (this page -> Supabase's /authorize ->
-    // Google) and the address bar can show the intermediate Supabase hop
-    // for a few seconds on a cold start — bail out of the fallback the
-    // moment the page actually starts navigating away instead of firing a
-    // false "didn't start" error mid-redirect.
-    const timeoutId = setTimeout(() => {
-      setSigningIn(false);
-      setError("Redirect to Google didn't start. Please try again.");
-    }, 8000);
-    window.addEventListener("pagehide", () => clearTimeout(timeoutId));
-
-    window.location.href = data.url;
+  // The actual sign-in lives in lib/auth/signIn.ts, shared with the gated
+  // add/edit actions, so a sign-in started from any of them is reflected
+  // on this one visible button. Lands on /my-subscriptions afterwards.
+  function handleGoogleSignIn() {
+    void signInWithGoogle();
   }
 
   return (

@@ -152,3 +152,60 @@ body {
 .animate-pulse-glow {
   animation: pulse-glow 2.6s ease-in-out infinite;
 }
+
+/* Track Subscriptions redesign — a self-contained "clean fintech" theme
+ * (cool near-white/near-black-green-ink neutrals, mint/teal accent),
+ * deliberately distinct from the app's warm cream/copper palette above.
+ * Scoped to .ts-theme (my-subscriptions + the owned-item view of
+ * DetailPanel) rather than touching :root, so the rest of the app is
+ * completely unaffected. Follows the OS's prefers-color-scheme since the
+ * app has no manual theme toggle anywhere to key off instead. */
+.ts-theme {
+  --ts-bg: #f5f9f8;
+  --ts-card: #ffffff;
+  --ts-ink-0: #0b1f18;
+  --ts-ink-300: #4c6159;
+  --ts-ink-500: #7c938c;
+  --ts-border: rgba(11, 31, 24, 0.08);
+  --ts-border-strong: rgba(11, 31, 24, 0.14);
+  --ts-mint-400: #0f9d73;
+  --ts-mint-500: #14b88a;
+  --ts-mint-tint: rgba(20, 184, 138, 0.12);
+  --ts-amber: #b8750f;
+  --ts-amber-tint: rgba(184, 117, 15, 0.12);
+  --ts-shadow-sm: 0 1px 2px rgba(11, 31, 24, 0.04);
+  --ts-shadow-md: 0 8px 24px rgba(11, 31, 24, 0.06);
+  --ts-radius: 16px;
+  background: var(--ts-bg);
+  color: var(--ts-ink-0);
+}
+
+@media (prefers-color-scheme: dark) {
+  .ts-theme {
+    --ts-bg: #071412;
+    --ts-card: #0d1e19;
+    --ts-ink-0: #eaf5f0;
+    --ts-ink-300: #9fb8af;
+    --ts-ink-500: #6c8880;
+    --ts-border: rgba(234, 245, 240, 0.08);
+    --ts-border-strong: rgba(234, 245, 240, 0.14);
+    --ts-mint-400: #2fe3a8;
+    --ts-mint-500: #22c796;
+    --ts-mint-tint: rgba(47, 227, 168, 0.14);
+    --ts-amber: #e3b24a;
+    --ts-amber-tint: rgba(227, 178, 74, 0.16);
+    --ts-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --ts-shadow-md: 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.ts-card {
+  background: var(--ts-card);
+  border: 1px solid var(--ts-border);
+  border-radius: var(--ts-radius);
+  box-shadow: var(--ts-shadow-sm), var(--ts-shadow-md);
+}
+
+.ts-tabular {
+  font-variant-numeric: tabular-nums;
+}

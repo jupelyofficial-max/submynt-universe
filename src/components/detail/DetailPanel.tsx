@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, Repeat, Scale, Share2, Trash2, X } from "lucide-react";
+import { Heart, Repeat, Scale, Share2, Sparkle, Trash2, X } from "lucide-react";
 import { ResponsiveSheet } from "@/components/ui/ResponsiveSheet";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -22,9 +22,11 @@ import { VERIFICATION_BY_ID } from "@/data/verification";
 import { computeBestFor, getProviderUrl, rankAlternatives } from "@/lib/subscriptionIntelligence";
 import { getRecommendation } from "@/lib/recommendations";
 import { canClaimSavings } from "@/lib/verification/claims";
-import { cn, formatDate, formatINR, formatPrice } from "@/lib/utils";
+import { cn, formatDate, formatINR, formatOwnedPrice, formatPrice } from "@/lib/utils";
 import { BILLING_LABELS } from "@/data/categories";
 import { bundleOptionsFor } from "@/components/onboarding/ServiceDetailsCard";
+import { computeSubmyntScore } from "@/lib/submyntScore";
+import { scoreBand } from "@/lib/trackPresentation";
 import type { BundleProvider, OwnedSubscription, Subscription, UsageFrequency } from "@/types/subscription";
 
 type Tab = DetailTab;
@@ -283,6 +285,36 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
   );
 }
 
+function FactTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="ts-card p-2.5">
+      <div className="ts-tabular truncate text-sm font-semibold" style={{ color: "var(--ts-ink-0)" }}>
+        {value}
+      </div>
+      <div className="text-[11px]" style={{ color: "var(--ts-ink-500)" }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function TsTapTile({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-lg px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer"
+      style={
+        active
+          ? { border: "1px solid var(--ts-mint-500)", background: "var(--ts-mint-tint)", color: "var(--ts-mint-400)" }
+          : { border: "1px solid var(--ts-border)", background: "var(--ts-card)", color: "var(--ts-ink-300)" }
+      }
+    >
+      {children}
+    </button>
+  );
+}
+
 const USAGE_FREQUENCY_OPTIONS: { value: UsageFrequency; label: string }[] = [
   { value: "daily", label: "Daily" },
   { value: "weekly", label: "Weekly" },
@@ -304,8 +336,9 @@ function OverviewTab({
   isOwned: boolean;
   owned: OwnedSubscription | undefined;
   updateUsageFrequency: (ownedId: string, usageFrequency: UsageFrequency) => void;
-  updateBundleProvider: (ownedId: string, bundleProvider: BundleProvider) => void;
+  updateBundleProvider: (ownedId: string, bundleProvider: BundleProvider | undefined) => void;
 }) {
+  const scoreResult = owned ? computeSubmyntScore(sub, owned.accessType ?? "direct", owned.usageFrequency) : null;
   return (
     <div className="flex flex-col gap-4 px-5 py-4">
       <div>
@@ -353,46 +386,78 @@ function OverviewTab({
       </div>
 
       {isOwned && owned && (
-        <div className="border-t border-[#E5E5E5] pt-4">
-          <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">How often do you use it?</h4>
-          <div className="grid grid-cols-5 gap-1.5">
-            {USAGE_FREQUENCY_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => updateUsageFrequency(owned.ownedId, opt.value)}
-                className={cn(
-                  "rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer",
-                  owned.usageFrequency === opt.value
-                    ? "border-nebula-500 bg-nebula-500/10 text-nebula-500"
-                    : "border-[#E5E5E5] bg-white text-[#6B6B6B] hover:border-black/20"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
+        <div className="ts-theme flex flex-col gap-4 rounded-2xl p-3.5" style={{ background: "var(--ts-bg)" }}>
+          {/* Facts grid */}
+          <div>
+            <h4 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--ts-ink-500)" }}>
+              Your subscription
+            </h4>
+            <div className="grid grid-cols-2 gap-2">
+              <FactTile label="You pay" value={formatOwnedPrice(owned.priceMonthly, owned.accessType ?? "direct")} />
+              <FactTile label="Billing" value={BILLING_LABELS[owned.billing]} />
+              <FactTile label="Next renewal" value={formatDate(owned.nextRenewal)} />
+              <FactTile
+                label="Standalone price"
+                value={sub.priceMonthly !== null ? `${formatINR(sub.priceMonthly)}/mo` : (sub.priceLabel ?? "—")}
+              />
+            </div>
           </div>
-        </div>
-      )}
 
-      {isOwned && owned && (owned.accessType === "bundled" || owned.accessType === "family") && (
-        <div className="border-t border-[#E5E5E5] pt-4">
-          <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Bundled with</h4>
-          <div className="grid grid-cols-4 gap-1.5">
-            {bundleOptionsFor(sub).map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => updateBundleProvider(owned.ownedId, opt.value)}
-                className={cn(
-                  "rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer",
-                  owned.bundleProvider === opt.value
-                    ? "border-nebula-500 bg-nebula-500/10 text-nebula-500"
-                    : "border-[#E5E5E5] bg-white text-[#6B6B6B] hover:border-black/20"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
+          {/* "How do you get this?" — the bundle-source editor, restyled;
+              self-exclusion (bundleOptionsFor) unchanged. A 6th "Direct"
+              tile clears it back to no bundle-source. */}
+          <div>
+            <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ts-ink-500)" }}>
+              How do you get this?
+            </h4>
+            <div className="grid grid-cols-2 gap-1.5">
+              <TsTapTile active={!owned.bundleProvider} onClick={() => updateBundleProvider(owned.ownedId, undefined)}>
+                Direct
+              </TsTapTile>
+              {bundleOptionsFor(sub).map((opt) => (
+                <TsTapTile
+                  key={opt.value}
+                  active={owned.bundleProvider === opt.value}
+                  onClick={() => updateBundleProvider(owned.ownedId, opt.value)}
+                >
+                  {opt.label}
+                </TsTapTile>
+              ))}
+            </div>
           </div>
+
+          {/* "How often do you use it?" — restyled as a 4-up grid. */}
+          <div>
+            <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ts-ink-500)" }}>
+              How often do you use it?
+            </h4>
+            <div className="grid grid-cols-4 gap-1.5">
+              {USAGE_FREQUENCY_OPTIONS.map((opt) => (
+                <TsTapTile key={opt.value} active={owned.usageFrequency === opt.value} onClick={() => updateUsageFrequency(owned.ownedId, opt.value)}>
+                  {opt.label}
+                </TsTapTile>
+              ))}
+            </div>
+          </div>
+
+          {/* Recommendation card — reuses computeSubmyntScore verbatim,
+              never a new scoring path. */}
+          {scoreResult && (
+            <div className="ts-card p-3">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ts-mint-400)" }}>
+                  <Sparkle size={12} />
+                  Submynt Score
+                </span>
+                <span className="ts-tabular text-xs font-semibold" style={{ color: "var(--ts-ink-500)" }}>
+                  {scoreResult.score} · {scoreBand(scoreResult.score)}
+                </span>
+              </div>
+              <p className="text-xs leading-snug" style={{ color: "var(--ts-ink-300)" }}>
+                {scoreResult.reasons.join(" · ")}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

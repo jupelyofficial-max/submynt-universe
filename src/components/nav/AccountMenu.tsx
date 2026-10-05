@@ -142,7 +142,6 @@ function LoggedInMenu({ email, name }: { email: string; name?: string }) {
     setOpen(false);
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/");
   }
 
   return (

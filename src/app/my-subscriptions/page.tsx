@@ -457,7 +457,7 @@ function EmptyState() {
           <Plus size={14} />
           Add your first subscription
         </Button>
-        <Button variant="outline" className="flex-1" style={{ color: "var(--ts-ink-300)" }} onClick={() => router.push("/explore")}>
+        <Button variant="outline" className="flex-1" onClick={() => router.push("/explore")}>
           <Compass size={14} />
           Browse popular services
         </Button>

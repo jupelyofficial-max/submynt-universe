@@ -8,6 +8,8 @@ import { usePriceAlertStore } from "@/store/usePriceAlertStore";
 import { useDemandSignalsStore } from "@/store/useDemandSignalsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
+import { consumeGateSignIn } from "@/lib/auth/signIn";
+import { trackEvent } from "@/lib/events";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -51,16 +53,26 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const authHydrated = useAuthStore((s) => s.hydrated);
   const subscriptionsHydrated = useMySubscriptionsStore((s) => s.hydrated);
 
-  // Drives My Subscriptions between its two backends: signed in migrates
-  // whatever's in localStorage up to Supabase and switches to it as the
-  // source of truth; signed out drops back to a clean, localStorage-only
-  // anonymous slate instead of leaving the previous account's list visible.
+  // Drives My Subscriptions between its two backends: signed in merges
+  // whatever's in localStorage into the account (see syncToUser — union,
+  // account wins, local cleared once merged) and switches to Supabase as
+  // the source of truth; signed out drops back to a clean, localStorage-
+  // only anonymous slate instead of leaving the previous account's list
+  // visible.
   useEffect(() => {
     if (!authHydrated || !subscriptionsHydrated) return;
     if (userId) {
-      useMySubscriptionsStore.getState().syncToUser(userId);
-    } else if (useMySubscriptionsStore.getState().userId) {
-      useMySubscriptionsStore.getState().clearUser();
+      void useMySubscriptionsStore
+        .getState()
+        .syncToUser(userId)
+        .then(() => {
+          const gate = consumeGateSignIn();
+          if (gate) trackEvent("signin_completed_from_gate", { action: gate.action });
+        });
+    } else {
+      const subs = useMySubscriptionsStore.getState();
+      if (subs.userId) subs.clearUser();
+      else if (subs.syncFailed) useMySubscriptionsStore.setState({ syncFailed: false });
     }
   }, [userId, authHydrated, subscriptionsHydrated]);
 

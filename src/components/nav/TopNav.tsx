@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/Button";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { SearchBar } from "@/components/search/SearchBar";
 import { AccountMenu } from "@/components/nav/AccountMenu";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export function TopNav() {
   const pathname = usePathname();
+  const user = useAuthStore((s) => s.user);
   const isExplore = pathname === "/explore" || pathname?.startsWith("/explore/");
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -86,20 +88,27 @@ export function TopNav() {
           </>
         )}
 
-        <Link
-          href="/my-subscriptions"
-          className="hidden sm:flex items-center gap-1.5 h-10 px-3 rounded-xl text-sm text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors shrink-0"
-        >
-          <Orbit size={16} />
-          Track Subscriptions
-        </Link>
-        <Link
-          href="/my-subscriptions"
-          aria-label="Track Subscriptions"
-          className="sm:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors shrink-0"
-        >
-          <Orbit size={18} />
-        </Link>
+        {/* Signed out: the nav's Sign In button (AccountMenu) stands in for
+            this entry — adding/tracking needs an account. Signed in: shows
+            Track Subscriptions as before. */}
+        {user && (
+          <>
+            <Link
+              href="/my-subscriptions"
+              className="hidden sm:flex items-center gap-1.5 h-10 px-3 rounded-xl text-sm text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors shrink-0"
+            >
+              <Orbit size={16} />
+              Track Subscriptions
+            </Link>
+            <Link
+              href="/my-subscriptions"
+              aria-label="Track Subscriptions"
+              className="sm:hidden h-10 w-10 flex items-center justify-center rounded-xl text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors shrink-0"
+            >
+              <Orbit size={18} />
+            </Link>
+          </>
+        )}
 
         <AccountMenu />
       </div>

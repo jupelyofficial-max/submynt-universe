@@ -9,6 +9,14 @@ interface AuthState {
    * before Supabase has had a chance to read the session cookie. */
   hydrated: boolean;
   setSession: (session: Session | null) => void;
+
+  /** Google sign-in progress/error, lifted out of the nav button so any
+   * add/edit gate can start the same sign-in (lib/auth/signIn.ts) and the
+   * one visible Sign In button still shows its "Redirecting…"/error state. */
+  signingIn: boolean;
+  signInError: string | null;
+  setSigningIn: (v: boolean) => void;
+  setSignInError: (message: string | null) => void;
 }
 
 /** Not a `persist` store like the others in this app — Supabase's own
@@ -21,4 +29,9 @@ export const useAuthStore = create<AuthState>()((set) => ({
   user: null,
   hydrated: false,
   setSession: (session) => set({ session, user: session?.user ?? null, hydrated: true }),
+
+  signingIn: false,
+  signInError: null,
+  setSigningIn: (signingIn) => set({ signingIn }),
+  setSignInError: (signInError) => set({ signInError }),
 }));

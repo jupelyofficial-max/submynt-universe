@@ -27,6 +27,7 @@ import { BILLING_LABELS } from "@/data/categories";
 import { bundleOptionsFor } from "@/components/onboarding/ServiceDetailsCard";
 import { computeSubmyntScore } from "@/lib/submyntScore";
 import { scoreBand } from "@/lib/trackPresentation";
+import { requireSignIn } from "@/lib/auth/requireSignIn";
 import type { BundleProvider, OwnedSubscription, Subscription, UsageFrequency } from "@/types/subscription";
 
 type Tab = DetailTab;
@@ -59,10 +60,19 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
 
   const isOwned = useMySubscriptionsStore((s) => s.isOwned(sub.id));
   const owned = useMySubscriptionsStore((s) => s.getOwned(sub.id));
-  const removeOwned = useMySubscriptionsStore((s) => s.remove);
-  const addOwned = useMySubscriptionsStore((s) => s.add);
-  const updateUsageFrequency = useMySubscriptionsStore((s) => s.updateUsageFrequency);
-  const updateBundleProvider = useMySubscriptionsStore((s) => s.updateBundleProvider);
+  const removeOwnedRaw = useMySubscriptionsStore((s) => s.remove);
+  const addOwnedRaw = useMySubscriptionsStore((s) => s.add);
+  const updateUsageFrequencyRaw = useMySubscriptionsStore((s) => s.updateUsageFrequency);
+  const updateBundleProviderRaw = useMySubscriptionsStore((s) => s.updateBundleProvider);
+  // Changing or removing a tracked item needs an account: signed out, these
+  // start Google sign-in instead (requireSignIn). The store actions
+  // themselves are unchanged.
+  const removeOwned: typeof removeOwnedRaw = (...args) => void requireSignIn(() => removeOwnedRaw(...args));
+  const addOwned: typeof addOwnedRaw = (...args) => void requireSignIn(() => addOwnedRaw(...args));
+  const updateUsageFrequency: typeof updateUsageFrequencyRaw = (...args) =>
+    void requireSignIn(() => updateUsageFrequencyRaw(...args));
+  const updateBundleProvider: typeof updateBundleProviderRaw = (...args) =>
+    void requireSignIn(() => updateBundleProviderRaw(...args));
   const ownedList = useMySubscriptionsStore((s) => s.owned);
   const savedStatus = useSubscriptionStatusStore((s) => s.statuses[sub.id]);
   const setSavedStatus = useSubscriptionStatusStore((s) => s.setStatus);

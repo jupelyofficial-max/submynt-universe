@@ -10,6 +10,7 @@ import { FilterBar } from "@/components/filters/FilterBar";
 import { SearchBar } from "@/components/search/SearchBar";
 import { AccountMenu } from "@/components/nav/AccountMenu";
 import { useAuthStore } from "@/store/useAuthStore";
+import { cn } from "@/lib/utils";
 
 export function TopNav() {
   const pathname = usePathname();
@@ -95,7 +96,10 @@ export function TopNav() {
           <>
             <Link
               href="/my-subscriptions"
-              className="hidden sm:flex items-center justify-center gap-1.5 h-9 px-3 rounded-full text-xs font-medium whitespace-nowrap text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors shrink-0"
+              className={cn(
+                "hidden sm:flex items-center justify-center gap-1.5 px-3.5 rounded-full border-[1.5px] border-black/15 bg-void-950 text-xs font-medium whitespace-nowrap text-ink-0 hover:border-ink-0 transition-colors shrink-0",
+                isExplore ? "h-9" : "h-10"
+              )}
             >
               <Orbit size={16} />
               Track Subscriptions
@@ -103,7 +107,10 @@ export function TopNav() {
             <Link
               href="/my-subscriptions"
               aria-label="Track Subscriptions"
-              className="sm:hidden h-9 w-9 flex items-center justify-center rounded-full text-ink-300 hover:text-ink-0 hover:bg-black/5 transition-colors shrink-0"
+              className={cn(
+                "sm:hidden flex items-center justify-center rounded-full border-[1.5px] border-black/15 bg-void-950 text-ink-0 hover:border-ink-0 transition-colors shrink-0",
+                isExplore ? "h-9 w-9" : "h-10 w-10"
+              )}
             >
               <Orbit size={18} />
             </Link>

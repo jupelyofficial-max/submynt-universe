@@ -8,6 +8,8 @@ import { usePriceAlertStore } from "@/store/usePriceAlertStore";
 import { useDemandSignalsStore } from "@/store/useDemandSignalsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
+import { consumeGateSignIn } from "@/lib/auth/signIn";
+import { trackEvent } from "@/lib/events";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -60,7 +62,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!authHydrated || !subscriptionsHydrated) return;
     if (userId) {
-      useMySubscriptionsStore.getState().syncToUser(userId);
+      void useMySubscriptionsStore
+        .getState()
+        .syncToUser(userId)
+        .then(() => {
+          const gate = consumeGateSignIn();
+          if (gate) trackEvent("signin_completed_from_gate", { action: gate.action });
+        });
     } else {
       const subs = useMySubscriptionsStore.getState();
       if (subs.userId) subs.clearUser();

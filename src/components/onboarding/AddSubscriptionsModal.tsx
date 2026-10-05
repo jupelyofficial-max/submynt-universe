@@ -75,7 +75,7 @@ export function AddSubscriptionsModal() {
   useEffect(() => {
     if (!isOpen || !authHydrated || user) return;
     useUniverseStore.getState().setAddSubscriptionsModalOpen(false);
-    void signInWithGoogle({ resume: { kind: "add", preselectId, startAtBundlePick } });
+    void signInWithGoogle({ resume: { kind: "add", preselectId, startAtBundlePick }, gate: "add" });
   }, [isOpen, authHydrated, user, preselectId, startAtBundlePick]);
 
   // Also waits for the signed-in account to finish loading, so the flow's

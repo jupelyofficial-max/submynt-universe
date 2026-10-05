@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { AccessType, BillingCycle, BundleProvider, OwnedSubscription, UsageFrequency } from "@/types/subscription";
 import { createClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/useAuthStore";
+import { trackEvent } from "@/lib/events";
 
 interface AddInput {
   subscriptionId: string;
@@ -258,6 +259,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           }
           const remoteOwned = (remoteRows ?? []).map(rowToOwned);
           const pushed = new Set(remoteOwned.map((o) => o.subscriptionId));
+          let migratedCount = 0;
 
           // Push every local item the account doesn't have yet (the
           // anonymous adds made before sign-in). Local state is re-read on
@@ -286,6 +288,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
               return;
             }
             for (const o of pending) pushed.add(o.subscriptionId);
+            migratedCount += pending.length;
           }
 
           // No await between the last pending check above and this set(),
@@ -301,6 +304,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
             userId,
             syncFailed: false,
           }));
+          if (migratedCount > 0) trackEvent("anon_subs_migrated", { count: migratedCount });
         },
 
         reloadFromServer: async () => {

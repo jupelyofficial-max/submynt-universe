@@ -19,5 +19,5 @@ export async function requireSignIn(action: () => void, resume?: ResumeIntent): 
     if (data.session) useAuthStore.getState().setSession(data.session);
   }
   if (signedIn) action();
-  else void signInWithGoogle({ resume });
+  else void signInWithGoogle({ resume, gate: resume ? "add" : "edit" });
 }

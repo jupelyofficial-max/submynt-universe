@@ -127,6 +127,8 @@ function requireAccount(action: string): boolean {
   return false;
 }
 
+let syncInFlight: { userId: string; promise: Promise<void> } | null = null;
+
 export const useMySubscriptionsStore = create<MySubscriptionsState>()(
   persist(
     (set, get) => {
@@ -247,64 +249,75 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
         isOwned: (subscriptionId) => get().owned.some((o) => o.subscriptionId === subscriptionId),
         getOwned: (subscriptionId) => get().owned.find((o) => o.subscriptionId === subscriptionId),
 
-        syncToUser: async (userId) => {
-          const supabase = createClient();
-          const { data: remoteRows, error } = await supabase.from("owned_subscriptions").select("*").eq("user_id", userId);
-          if (error) {
-            // Nothing has been touched — the local copy stays intact and
-            // the whole sync is retried on the next sign-in/page load.
-            console.error("Failed to load subscriptions:", error.message);
-            set({ syncFailed: true });
-            return;
-          }
-          const remoteOwned = (remoteRows ?? []).map(rowToOwned);
-          const pushed = new Set(remoteOwned.map((o) => o.subscriptionId));
-          let migratedCount = 0;
-
-          // Push every local item the account doesn't have yet (the
-          // anonymous adds made before sign-in). Local state is re-read on
-          // every pass, not snapshotted up front, so anything added while
-          // this sync was awaiting the network is picked up too instead of
-          // being overwritten below. Items the account already has are
-          // never pushed — the account's values win on conflict.
-          for (;;) {
-            const pendingBySub = new Map<string, OwnedSubscription>();
-            for (const o of get().owned) if (!pushed.has(o.subscriptionId)) pendingBySub.set(o.subscriptionId, o);
-            const pending = [...pendingBySub.values()];
-            if (pending.length === 0) break;
-
-            const { error: migrateError } = await supabase
-              .from("owned_subscriptions")
-              .upsert(
-                pending.map((o) => ownedToRow(userId, o)),
-                { onConflict: "user_id,subscription_id" }
-              );
-            if (migrateError) {
-              // Abort BEFORE switching to signed-in mode: persist only
-              // stops writing the local copy once userId is set, so an
-              // un-migrated item is never dropped on a failed upload.
-              console.error("Failed to migrate local subscriptions:", migrateError.message);
+        syncToUser: (userId) => {
+          // One sync per user at a time: a re-run of the provider effect
+          // (React StrictMode in dev, a fast double auth event) joins the
+          // sync already in flight instead of racing it — which would
+          // upload twice and double-count anon_subs_migrated.
+          if (syncInFlight?.userId === userId) return syncInFlight.promise;
+          const promise = (async () => {
+            const supabase = createClient();
+            const { data: remoteRows, error } = await supabase.from("owned_subscriptions").select("*").eq("user_id", userId);
+            if (error) {
+              // Nothing has been touched — the local copy stays intact and
+              // the whole sync is retried on the next sign-in/page load.
+              console.error("Failed to load subscriptions:", error.message);
               set({ syncFailed: true });
               return;
             }
-            for (const o of pending) pushed.add(o.subscriptionId);
-            migratedCount += pending.length;
-          }
+            const remoteOwned = (remoteRows ?? []).map(rowToOwned);
+            const pushed = new Set(remoteOwned.map((o) => o.subscriptionId));
+            let migratedCount = 0;
 
-          // No await between the last pending check above and this set(),
-          // so nothing can slip in unpushed. Setting userId is also what
-          // makes persist stop mirroring the account into localStorage —
-          // i.e. the local copy is cleared only after a successful merge.
-          const remoteIds = new Set(remoteOwned.map((o) => o.subscriptionId));
-          set((state) => ({
-            owned: [
-              ...remoteOwned,
-              ...state.owned.filter((o) => !remoteIds.has(o.subscriptionId)).map((o) => ({ ...o, ownedId: o.subscriptionId })),
-            ],
-            userId,
-            syncFailed: false,
-          }));
-          if (migratedCount > 0) trackEvent("anon_subs_migrated", { count: migratedCount });
+            // Push every local item the account doesn't have yet (the
+            // anonymous adds made before sign-in). Local state is re-read on
+            // every pass, not snapshotted up front, so anything added while
+            // this sync was awaiting the network is picked up too instead of
+            // being overwritten below. Items the account already has are
+            // never pushed — the account's values win on conflict.
+            for (;;) {
+              const pendingBySub = new Map<string, OwnedSubscription>();
+              for (const o of get().owned) if (!pushed.has(o.subscriptionId)) pendingBySub.set(o.subscriptionId, o);
+              const pending = [...pendingBySub.values()];
+              if (pending.length === 0) break;
+
+              const { error: migrateError } = await supabase
+                .from("owned_subscriptions")
+                .upsert(
+                  pending.map((o) => ownedToRow(userId, o)),
+                  { onConflict: "user_id,subscription_id" }
+                );
+              if (migrateError) {
+                // Abort BEFORE switching to signed-in mode: persist only
+                // stops writing the local copy once userId is set, so an
+                // un-migrated item is never dropped on a failed upload.
+                console.error("Failed to migrate local subscriptions:", migrateError.message);
+                set({ syncFailed: true });
+                return;
+              }
+              for (const o of pending) pushed.add(o.subscriptionId);
+              migratedCount += pending.length;
+            }
+
+            // No await between the last pending check above and this set(),
+            // so nothing can slip in unpushed. Setting userId is also what
+            // makes persist stop mirroring the account into localStorage —
+            // i.e. the local copy is cleared only after a successful merge.
+            const remoteIds = new Set(remoteOwned.map((o) => o.subscriptionId));
+            set((state) => ({
+              owned: [
+                ...remoteOwned,
+                ...state.owned.filter((o) => !remoteIds.has(o.subscriptionId)).map((o) => ({ ...o, ownedId: o.subscriptionId })),
+              ],
+              userId,
+              syncFailed: false,
+            }));
+            if (migratedCount > 0) trackEvent("anon_subs_migrated", { count: migratedCount });
+          })().finally(() => {
+            if (syncInFlight?.promise === promise) syncInFlight = null;
+          });
+          syncInFlight = { userId, promise };
+          return promise;
         },
 
         reloadFromServer: async () => {

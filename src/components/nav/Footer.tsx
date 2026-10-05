@@ -42,18 +42,22 @@ export function Footer() {
             <Link href="/explore" className="flex items-center gap-2 shrink-0 group w-fit">
               <svg width="22" height="22" viewBox="0 0 240 240" className="shrink-0" aria-hidden="true">
                 <defs>
-                  <linearGradient id="footerLogoGreen" x1="0%" y1="100%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#0EA672" />
-                    <stop offset="100%" stopColor="#5EEAA0" />
-                  </linearGradient>
-                  <linearGradient id="footerLogoBlue" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#38BDF8" />
-                    <stop offset="100%" stopColor="#1D4ED8" />
-                  </linearGradient>
+                  <linearGradient id="footerTop" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#FF5A3C" /><stop offset="30%" stopColor="#3B3BF5" />
+                  <stop offset="65%" stopColor="#38A8D8" /><stop offset="100%" stopColor="#4ADE80" /></linearGradient>
+                  <linearGradient id="footerBot" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#FF5A3C" /><stop offset="35%" stopColor="#3B3BF5" />
+                  <stop offset="75%" stopColor="#38A8D8" /><stop offset="100%" stopColor="#4ADE80" /></linearGradient>
+                  <linearGradient id="footerTri" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#FF5A3C" /><stop offset="50%" stopColor="#3B3BF5" /><stop offset="100%" stopColor="#4ADE80" /></linearGradient>
+                <filter id="footerGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b" />
+                  <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
                 </defs>
-                <rect x="10" y="26" width="220" height="96" rx="48" fill="url(#footerLogoGreen)" transform="rotate(-15 120 74)" />
-                <rect x="14" y="126" width="212" height="96" rx="48" fill="url(#footerLogoBlue)" />
-                <path d="M 55 118 L 185 118 L 120 152 Z" fill="#0B1F5C" />
+                <g transform="translate(120 120) scale(0.86) translate(-120 -124)" filter="url(#footerGlow)">
+                <g transform="rotate(-15 120 74)"><rect x="10" y="26" width="220" height="96" rx="48" fill="none" stroke="url(#footerTop)" strokeWidth="3.2" opacity="1.00" /><rect x="17.5" y="33.5" width="205" height="81" rx="40.5" fill="none" stroke="url(#footerTop)" strokeWidth="3.2" opacity="0.92" /><rect x="25" y="41" width="190" height="66" rx="33" fill="none" stroke="url(#footerTop)" strokeWidth="3.2" opacity="0.84" /><rect x="32.5" y="48.5" width="175" height="51" rx="25.5" fill="none" stroke="url(#footerTop)" strokeWidth="3.2" opacity="0.76" /><rect x="40" y="56" width="160" height="36" rx="18" fill="none" stroke="url(#footerTop)" strokeWidth="3.2" opacity="0.68" /><rect x="47.5" y="63.5" width="145" height="21" rx="10.5" fill="none" stroke="url(#footerTop)" strokeWidth="3.2" opacity="0.60" /></g>
+                <g><rect x="14" y="126" width="212" height="96" rx="48" fill="none" stroke="url(#footerBot)" strokeWidth="3.2" opacity="1.00" /><rect x="21.5" y="133.5" width="197" height="81" rx="40.5" fill="none" stroke="url(#footerBot)" strokeWidth="3.2" opacity="0.92" /><rect x="29" y="141" width="182" height="66" rx="33" fill="none" stroke="url(#footerBot)" strokeWidth="3.2" opacity="0.84" /><rect x="36.5" y="148.5" width="167" height="51" rx="25.5" fill="none" stroke="url(#footerBot)" strokeWidth="3.2" opacity="0.76" /><rect x="44" y="156" width="152" height="36" rx="18" fill="none" stroke="url(#footerBot)" strokeWidth="3.2" opacity="0.68" /><rect x="51.5" y="163.5" width="137" height="21" rx="10.5" fill="none" stroke="url(#footerBot)" strokeWidth="3.2" opacity="0.60" /></g>
+                <path d="M 55 152 L 185 152 L 120 118 Z" fill="url(#footerTri)" />
+                </g>
               </svg>
               <span className="font-display text-base font-bold tracking-tight">
                 <span className="text-ink-0">sub</span>

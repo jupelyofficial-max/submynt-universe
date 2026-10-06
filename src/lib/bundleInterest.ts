@@ -55,3 +55,58 @@ export async function registerBundleInterest(userId: string, bundleSlug: string)
     return false;
   }
 }
+
+/** The bundle slugs this user is interested in, newest first — or null if
+ * the lookup failed (callers then show nothing rather than a wrong list). */
+export async function listBundleInterests(userId: string): Promise<string[] | null> {
+  try {
+    const result = await withTimeout(
+      createClient().from("bundle_interest").select("bundle_slug").eq("user_id", userId).order("created_at", { ascending: false }),
+      REQUEST_TIMEOUT_MS
+    );
+    if (result === TIMED_OUT) {
+      console.error(`[bundle_interest] list didn't finish within ${REQUEST_TIMEOUT_MS}ms`);
+      return null;
+    }
+    if (result.error) {
+      console.error(`[bundle_interest] list failed: ${result.error.message}`);
+      return null;
+    }
+    return (result.data ?? []).map((row) => row.bundle_slug as string);
+  } catch (e) {
+    console.error("[bundle_interest] list threw:", e);
+    return null;
+  }
+}
+
+/** Deletes this user's interest in a bundle and logs bundle_interest_removed.
+ * Returns true only if a row was actually deleted: under RLS a delete with
+ * no matching policy "succeeds" while deleting nothing, so the deleted rows
+ * are read back and an empty result counts as a failure. */
+export async function removeBundleInterest(userId: string, bundleSlug: string): Promise<boolean> {
+  try {
+    const result = await withTimeout(
+      createClient().from("bundle_interest").delete().eq("user_id", userId).eq("bundle_slug", bundleSlug).select("id"),
+      REQUEST_TIMEOUT_MS
+    );
+    if (result === TIMED_OUT) {
+      console.error(`[bundle_interest] remove for "${bundleSlug}" didn't finish within ${REQUEST_TIMEOUT_MS}ms`);
+      return false;
+    }
+    if (result.error) {
+      console.error(`[bundle_interest] remove for "${bundleSlug}" failed: ${result.error.message}`);
+      return false;
+    }
+    if (!result.data || result.data.length === 0) {
+      console.error(
+        `[bundle_interest] remove for "${bundleSlug}" deleted nothing — is the delete policy (supabase/bundle_interest_delete.sql) in place?`
+      );
+      return false;
+    }
+    trackEvent("bundle_interest_removed", { bundle_slug: bundleSlug, source: "saved" });
+    return true;
+  } catch (e) {
+    console.error(`[bundle_interest] remove for "${bundleSlug}" threw:`, e);
+    return false;
+  }
+}

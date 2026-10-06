@@ -10,6 +10,7 @@ import { SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 import { formatPrice } from "@/lib/utils";
 import { useSubscriptionStatusStore } from "@/store/useSubscriptionStatusStore";
 import { useUniverseStore } from "@/store/useUniverseStore";
+import { BundleInterestsSection } from "@/components/saved/BundleInterestsSection";
 
 // "Interested in" — subscriptions marked "considering", the same signal the
 // Heart button on a subscription's detail panel toggles. Deliberately
@@ -100,6 +101,8 @@ export default function SavedSubscriptionsPage() {
           ))}
         </div>
       )}
+
+      <BundleInterestsSection />
     </div>
   );
 }

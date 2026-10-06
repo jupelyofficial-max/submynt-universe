@@ -142,8 +142,11 @@ function BundleInterestButton({ bundleSlug }: { bundleSlug: string }) {
 
   if (joined) {
     return (
-      <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-0" role="status">
+      <p className="mt-3 inline-flex items-center gap-3 text-sm font-medium text-ink-0" role="status">
         You&apos;re on the list ✓
+        <Link href="/saved-subscriptions" className="text-xs font-normal text-ink-400 underline-offset-2 hover:text-ink-0 hover:underline">
+          View in Saved
+        </Link>
       </p>
     );
   }

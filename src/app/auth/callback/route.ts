@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { sanitizeNextPath } from "@/lib/safeRedirect";
 import { POST_SIGNIN_COOKIE } from "@/lib/auth/constants";
@@ -22,6 +23,77 @@ function redirectClearingCookie(url: string): NextResponse {
   const response = NextResponse.redirect(url);
   response.cookies.set(POST_SIGNIN_COOKIE, "", { path: "/", maxAge: 0 });
   return response;
+}
+
+const LEGACY_FIELDS = "name,age,gender,location,profession,contact_number";
+
+type LegacyProfile = {
+  name: string;
+  age: number | null;
+  gender: string | null;
+  location: string | null;
+  profession: string | null;
+  contact_number: string | null;
+};
+
+/** The email Google itself verified for this sign-in, lowercased — null
+ * unless the account has a Google identity whose verified email is the
+ * account's email. Deliberately not user_metadata.email_verified: the
+ * project's email/password sign-up auto-confirms, so that flag would let
+ * anyone claim a legacy profile by signing up with someone else's email. */
+function googleVerifiedEmail(user: User): string | null {
+  const google = user.identities?.find((i) => i.provider === "google");
+  const email = typeof google?.identity_data?.email === "string" ? google.identity_data.email.trim().toLowerCase() : "";
+  if (!email || google?.identity_data?.email_verified !== true) return null;
+  return email === (user.email ?? "").trim().toLowerCase() ? email : null;
+}
+
+/** A pre-Google profile row with this email, most recent first. Read with
+ * the service role — RLS hides rows of other user_ids — server-side only,
+ * and only these profile fields come back; nothing here reaches the client
+ * except as this user's own new profile. Never modifies the legacy row. */
+async function findLegacyProfile(email: string, excludeUserId: string): Promise<LegacyProfile | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // PostgREST treats * as a wildcard and there's no way to escape it.
+  if (!url || !key || email.includes("*")) return null;
+  // ilike for a case-insensitive match, with its own wildcards escaped so
+  // it's still an exact match (emails often contain "_").
+  const exact = email.replace(/[\\%_]/g, (c) => `\\${c}`);
+  const params = new URLSearchParams({
+    select: LEGACY_FIELDS,
+    email: `ilike.${exact}`,
+    user_id: `neq.${excludeUserId}`,
+    name: "not.is.null",
+    order: "updated_at.desc",
+    limit: "1",
+  });
+  try {
+    const res = await fetch(`${url}/rest/v1/profiles?${params}`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const rows = (await res.json()) as LegacyProfile[];
+    return rows[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** First Google sign-in of someone who already had a profile before the
+ * move to Google sign-in: give the new account a copy of it (insert only —
+ * never overwrites, and the legacy row is left untouched) so they're
+ * treated as returning instead of facing a blank onboarding form. Written
+ * as the user themselves (RLS), not with the service role. */
+async function adoptLegacyProfile(supabase: Awaited<ReturnType<typeof createClient>>, user: User): Promise<boolean> {
+  const email = googleVerifiedEmail(user);
+  if (!email) return false;
+  const legacy = await findLegacyProfile(email, user.id);
+  if (!legacy) return false;
+  const { error } = await supabase.from("profiles").insert({ user_id: user.id, email: user.email, ...legacy });
+  if (error) console.error("auth callback: copying legacy profile failed", error.message);
+  return !error;
 }
 
 /** OAuth callback — Supabase redirects here with a `code` param after
@@ -58,6 +130,9 @@ export async function GET(request: Request) {
   const { data: profile } = await supabase.from("profiles").select("name").eq("user_id", data.user.id).maybeSingle();
 
   if (!profile?.name) {
+    if (!profile && (await adoptLegacyProfile(supabase, data.user))) {
+      return redirectClearingCookie(`${origin}${next}`);
+    }
     return redirectClearingCookie(`${origin}/onboarding?next=${encodeURIComponent(next)}`);
   }
 

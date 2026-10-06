@@ -13,10 +13,35 @@ export type SignInSource = "nav" | "gate" | "other";
 
 /** The add action a signed-out user clicked, replayed once they're back
  * and their account is loaded. Mirrors setAddSubscriptionsModalOpen's args. */
-export interface ResumeIntent {
+export interface AddResumeIntent {
   kind: "add";
   preselectId?: string | null;
   startAtBundlePick?: boolean;
+}
+
+/** "Notify me" on a curated bundle page, registered once they're back. */
+export interface BundleInterestResumeIntent {
+  kind: "bundle_interest";
+  bundleSlug: string;
+}
+
+/** What a signed-out user was doing when sign-in interrupted them. Each
+ * kind is replayed (and consumed) only by its own page. */
+export type ResumeIntent = AddResumeIntent | BundleInterestResumeIntent;
+
+function readResumeIntent(): (ResumeIntent & { ts?: number }) | null {
+  try {
+    const raw = sessionStorage.getItem(RESUME_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ResumeIntent & { ts?: number };
+    if (typeof parsed.ts === "number" && Date.now() - parsed.ts > RESUME_MAX_AGE_MS) {
+      sessionStorage.removeItem(RESUME_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
 }
 
 function storeResumeIntent(resume: ResumeIntent | undefined) {
@@ -30,19 +55,25 @@ function storeResumeIntent(resume: ResumeIntent | undefined) {
   }
 }
 
-/** Reads and clears the pending add action, if any and still fresh. */
-export function consumeResumeIntent(): ResumeIntent | null {
+/** Reads and clears the pending add action, if any and still fresh. A
+ * pending intent of another kind is left for its own page. */
+export function consumeResumeIntent(): AddResumeIntent | null {
+  const parsed = readResumeIntent();
+  if (!parsed || parsed.kind !== "add") return null;
   try {
-    const raw = sessionStorage.getItem(RESUME_KEY);
-    if (!raw) return null;
     sessionStorage.removeItem(RESUME_KEY);
-    const parsed = JSON.parse(raw) as ResumeIntent & { ts?: number };
-    if (parsed.kind !== "add") return null;
-    if (typeof parsed.ts === "number" && Date.now() - parsed.ts > RESUME_MAX_AGE_MS) return null;
-    return { kind: "add", preselectId: parsed.preselectId ?? null, startAtBundlePick: Boolean(parsed.startAtBundlePick) };
-  } catch {
-    return null;
-  }
+  } catch {}
+  return { kind: "add", preselectId: parsed.preselectId ?? null, startAtBundlePick: Boolean(parsed.startAtBundlePick) };
+}
+
+/** True once if a "notify me" for this bundle is pending (and clears it). */
+export function consumeBundleInterestIntent(bundleSlug: string): boolean {
+  const parsed = readResumeIntent();
+  if (!parsed || parsed.kind !== "bundle_interest" || parsed.bundleSlug !== bundleSlug) return false;
+  try {
+    sessionStorage.removeItem(RESUME_KEY);
+  } catch {}
+  return true;
 }
 
 /** True once after a sign-in that was started from a gated action (and
@@ -100,7 +131,14 @@ function failSignIn(reason: string, message: string) {
  * in useAuthStore so the visible Sign In button reflects a sign-in started
  * from anywhere. */
 export async function signInWithGoogle(
-  options: { resume?: ResumeIntent; gate?: string; source?: Exclude<SignInSource, "gate"> } = {}
+  options: {
+    resume?: ResumeIntent;
+    gate?: string;
+    source?: Exclude<SignInSource, "gate">;
+    /** Where /auth/callback lands them (sanitized there); defaults to
+     * Track Subscriptions. */
+    returnTo?: string;
+  } = {}
 ): Promise<void> {
   const auth = useAuthStore.getState();
   if (auth.signingIn) return;
@@ -128,7 +166,7 @@ export async function signInWithGoogle(
     } catch {}
   }
   const secure = window.location.protocol === "https:" ? "; Secure" : "";
-  document.cookie = `${POST_SIGNIN_COOKIE}=${encodeURIComponent(POST_SIGNIN_TARGET)}; Path=/; Max-Age=600; SameSite=Lax${secure}`;
+  document.cookie = `${POST_SIGNIN_COOKIE}=${encodeURIComponent(options.returnTo ?? POST_SIGNIN_TARGET)}; Path=/; Max-Age=600; SameSite=Lax${secure}`;
 
   let result;
   try {

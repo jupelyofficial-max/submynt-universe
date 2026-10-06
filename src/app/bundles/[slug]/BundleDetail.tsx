@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
@@ -10,6 +11,9 @@ import { formatINR, formatPrice } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
 import { BundleBanner } from "@/components/bundles/BundleBanner";
 import { bundleSeparateLabel } from "@/lib/bundlePricing";
+import { hasBundleInterest, registerBundleInterest } from "@/lib/bundleInterest";
+import { consumeBundleInterestIntent, signInWithGoogle } from "@/lib/auth/signIn";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export function BundleDetail({ bundle }: { bundle: LifestyleBundle }) {
   const select = useUniverseStore((s) => s.select);
@@ -39,6 +43,7 @@ export function BundleDetail({ bundle }: { bundle: LifestyleBundle }) {
         <p className="mt-3 text-sm text-ink-300">
           Bought separately: <span className="font-semibold text-ink-0">{bundleSeparateLabel(bundle)}</span>
         </p>
+        <BundleInterestButton bundleSlug={bundle.slug} />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -88,6 +93,65 @@ export function BundleDetail({ bundle }: { bundle: LifestyleBundle }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/** "Notify me when bundle pricing launches." Signed in: saves interest and
+ * shows "on the list". Signed out: the usual sign-in gate, returning to
+ * this page, where the pending interest is registered automatically. */
+function BundleInterestButton({ bundleSlug }: { bundleSlug: string }) {
+  const userId = useAuthStore((s) => s.user?.id ?? null);
+  const hydrated = useAuthStore((s) => s.hydrated);
+  // The account that's on the list for this bundle — derived per user, so
+  // signing out (or switching account) never shows someone else's state.
+  const [joinedBy, setJoinedBy] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const joined = userId !== null && joinedBy === userId;
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    // Back from a sign-in started by this button → register it now;
+    // otherwise just look up whether they already are on the list.
+    const check = consumeBundleInterestIntent(bundleSlug)
+      ? registerBundleInterest(userId, bundleSlug)
+      : hasBundleInterest(userId, bundleSlug);
+    void check.then((on) => {
+      if (!cancelled && on) setJoinedBy(userId);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, bundleSlug]);
+
+  async function handleClick() {
+    if (!userId) {
+      void signInWithGoogle({
+        resume: { kind: "bundle_interest", bundleSlug },
+        gate: "bundle_interest",
+        returnTo: `/bundles/${bundleSlug}`,
+      });
+      return;
+    }
+    setSaving(true);
+    const ok = await registerBundleInterest(userId, bundleSlug);
+    setSaving(false);
+    if (ok) setJoinedBy(userId);
+  }
+
+  if (joined) {
+    return (
+      <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-0" role="status">
+        You&apos;re on the list ✓
+      </p>
+    );
+  }
+  return (
+    <div className="mt-3">
+      <Button size="sm" onClick={() => void handleClick()} disabled={!hydrated || saving}>
+        I&apos;m interested — notify me when bundle pricing launches
+      </Button>
     </div>
   );
 }

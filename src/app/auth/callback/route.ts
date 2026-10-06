@@ -26,6 +26,9 @@ function redirectClearingCookie(url: string): NextResponse {
 }
 
 const LEGACY_FIELDS = "name,age,gender,location,profession,contact_number";
+// Each legacy-prefill request gets this long before sign-in moves on
+// without it (straight to onboarding, as before this feature).
+const LEGACY_TIMEOUT_MS = 2500;
 
 type LegacyProfile = {
   name: string;
@@ -72,6 +75,7 @@ async function findLegacyProfile(email: string, excludeUserId: string): Promise<
     const res = await fetch(`${url}/rest/v1/profiles?${params}`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
       cache: "no-store",
+      signal: AbortSignal.timeout(LEGACY_TIMEOUT_MS),
     });
     if (!res.ok) return null;
     const rows = (await res.json()) as LegacyProfile[];
@@ -91,7 +95,10 @@ async function adoptLegacyProfile(supabase: Awaited<ReturnType<typeof createClie
   if (!email) return false;
   const legacy = await findLegacyProfile(email, user.id);
   if (!legacy) return false;
-  const { error } = await supabase.from("profiles").insert({ user_id: user.id, email: user.email, ...legacy });
+  const { error } = await supabase
+    .from("profiles")
+    .insert({ user_id: user.id, email: user.email, ...legacy })
+    .abortSignal(AbortSignal.timeout(LEGACY_TIMEOUT_MS));
   if (error) console.error("auth callback: copying legacy profile failed", error.message);
   return !error;
 }
@@ -130,9 +137,18 @@ export async function GET(request: Request) {
   const { data: profile } = await supabase.from("profiles").select("name").eq("user_id", data.user.id).maybeSingle();
 
   if (!profile?.name) {
-    if (!profile && (await adoptLegacyProfile(supabase, data.user))) {
-      return redirectClearingCookie(`${origin}${next}`);
+    // Best effort only: any failure here (lookup/insert error, timeout,
+    // anything thrown) falls through to the normal onboarding redirect —
+    // it must never block sign-in or surface an error.
+    let adopted = false;
+    if (!profile) {
+      try {
+        adopted = await adoptLegacyProfile(supabase, data.user);
+      } catch (e) {
+        console.error("auth callback: legacy profile prefill skipped", e instanceof Error ? e.message : e);
+      }
     }
+    if (adopted) return redirectClearingCookie(`${origin}${next}`);
     return redirectClearingCookie(`${origin}/onboarding?next=${encodeURIComponent(next)}`);
   }
 

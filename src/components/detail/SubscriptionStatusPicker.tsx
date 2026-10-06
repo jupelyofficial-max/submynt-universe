@@ -25,7 +25,7 @@ const OPTIONS: { value: SubscriptionStatus | "subscribed"; label: string }[] = [
  * (Sprint 8+), rather than a second, divergent inline plan-chooser that
  * used to live here and skipped access-type/bundle-source entirely.
  */
-export function SubscriptionStatusPicker({ sub }: { sub: Subscription }) {
+export function SubscriptionStatusPicker({ sub, only }: { sub: Subscription; only?: (SubscriptionStatus | "subscribed")[] }) {
   const isOwned = useMySubscriptionsStore((s) => s.isOwned(sub.id));
   const status = useSubscriptionStatusStore((s) => s.statuses[sub.id]);
   const setStatus = useSubscriptionStatusStore((s) => s.setStatus);
@@ -48,9 +48,11 @@ export function SubscriptionStatusPicker({ sub }: { sub: Subscription }) {
 
   return (
     <div>
-      <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Add to Track Subscriptions</h4>
+      <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">
+        {only ? "Status" : "Add to Track Subscriptions"}
+      </h4>
       <div className="grid grid-cols-2 gap-1.5">
-        {OPTIONS.map((opt) => {
+        {(only ? OPTIONS.filter((opt) => only.includes(opt.value)) : OPTIONS).map((opt) => {
           const isActive = active === opt.value;
           return (
             <button

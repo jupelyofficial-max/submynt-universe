@@ -17,6 +17,13 @@ import { signOutAndReset } from "@/lib/auth/signOut";
  * redirect. Signed in: initial-letter avatar that opens a dropdown (same
  * portaled/positioned pattern as FilterDropdown), styled with Submynt's
  * own tokens. */
+/** The header's green pill (Sign in, Track Subscriptions): an outline/sm
+ * Button with these overrides. bg-[#22c55e] is the same hex the "mynt"
+ * wordmark uses (TopNav.tsx), not a theme token. ink-0 text (not white) for
+ * contrast on this green — white measures ~2.0-2.3:1 against it (WCAG AA
+ * needs 4.5:1), ink-0 measures ~7.9-8.9:1. */
+export const GREEN_PILL_CLASSES = "h-9 rounded-full border-transparent bg-[#22c55e] text-ink-0 hover:bg-[#22c55e]/90";
+
 export function AccountMenu() {
   const user = useAuthStore((s) => s.user);
 
@@ -56,15 +63,10 @@ function SignInButton() {
   return (
     <>
       <div ref={triggerRef} className="shrink-0">
-        {/* bg-[#22c55e] — same hex the "mynt" wordmark uses (TopNav.tsx) and
-            the removed Universe/List switcher used to use, not a theme
-            token. ink-0 text (not white) for contrast on this green — white
-            measures ~2.0-2.3:1 against it (WCAG AA needs 4.5:1), ink-0
-            measures ~7.9-8.9:1. */}
         <Button
           variant="outline"
           size="sm"
-          className="h-9 rounded-full border-transparent bg-[#22c55e] text-ink-0 hover:bg-[#22c55e]/90"
+          className={GREEN_PILL_CLASSES}
           onClick={handleGoogleSignIn}
           disabled={signingIn}
         >

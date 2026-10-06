@@ -1,18 +1,19 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Orbit, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClasses } from "@/components/ui/Button";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { SearchBar } from "@/components/search/SearchBar";
 import { SearchResults } from "@/components/search/SearchResults";
 import { SEARCH_EXAMPLES, searchCatalogue } from "@/lib/search";
 import { useUniverseStore } from "@/store/useUniverseStore";
-import { AccountMenu } from "@/components/nav/AccountMenu";
+import { AccountMenu, GREEN_PILL_CLASSES } from "@/components/nav/AccountMenu";
 import { useAuthStore } from "@/store/useAuthStore";
+import { cn } from "@/lib/utils";
 
 export function TopNav() {
   const pathname = usePathname();
@@ -98,23 +99,23 @@ export function TopNav() {
         )}
 
         {/* Signed out: the nav's Sign In button (AccountMenu) stands in for
-            this entry — adding/tracking needs an account. Signed in: shows
-            Track Subscriptions as before. */}
+            this entry — adding/tracking needs an account. Signed in: Track
+            Subscriptions, styled exactly like Sign in (same Button classes,
+            as a Link so navigation stays client-side). */}
         {user && (
           <>
             <Link
               href="/my-subscriptions"
-              className="hidden sm:flex items-center justify-center gap-1.5 h-9 px-3 rounded-full border-[1.5px] border-black/15 bg-void-950 text-xs font-medium whitespace-nowrap text-ink-0 hover:border-ink-0 transition-colors shrink-0"
+              className={buttonClasses("outline", "sm", cn("hidden sm:inline-flex shrink-0", GREEN_PILL_CLASSES))}
             >
-              <Orbit size={16} />
               Track Subscriptions
             </Link>
             <Link
               href="/my-subscriptions"
               aria-label="Track Subscriptions"
-              className="sm:hidden flex h-9 w-9 items-center justify-center rounded-full border-[1.5px] border-black/15 bg-void-950 text-ink-0 hover:border-ink-0 transition-colors shrink-0"
+              className={buttonClasses("outline", "sm", cn("sm:hidden shrink-0", GREEN_PILL_CLASSES))}
             >
-              <Orbit size={18} />
+              Track
             </Link>
           </>
         )}

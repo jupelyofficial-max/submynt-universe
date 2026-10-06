@@ -42,8 +42,16 @@ interface LinkButtonProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   href: string;
 }
 
+/** The exact classes a Button of this variant/size renders — for an
+ * element that must look identical but isn't a Button (e.g. a Next Link,
+ * which keeps client-side navigation where Button's `href` mode is a
+ * plain <a>). */
+export function buttonClasses(variant: Variant = "primary", size: Size = "md", className?: string): string {
+  return cn(BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className);
+}
+
 export function Button({ variant = "primary", size = "md", className, href, ...props }: ButtonProps | LinkButtonProps) {
-  const classes = cn(BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className);
+  const classes = buttonClasses(variant, size, className);
   if (href !== undefined) {
     return <a href={href} className={classes} {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)} />;
   }

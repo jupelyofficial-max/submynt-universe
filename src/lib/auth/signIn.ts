@@ -138,7 +138,14 @@ export async function signInWithGoogle(
       // redirects on its own, and the two back-to-back navigations to the
       // same URL can cancel each other in Chromium — the page then never
       // leaves and sign-in looks like it "didn't start".
-      options: { redirectTo: `${window.location.origin}/auth/callback`, skipBrowserRedirect: true },
+      // prompt=select_account: Google always shows the account chooser, so
+      // switching accounts on a shared browser doesn't silently reuse the
+      // last Google session.
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        skipBrowserRedirect: true,
+        queryParams: { prompt: "select_account" },
+      },
     });
   } catch {
     failSignIn("exception", "Couldn't start Google sign-in. Please try again.");

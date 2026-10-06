@@ -3,11 +3,14 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Orbit, Search } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { SearchBar } from "@/components/search/SearchBar";
+import { SearchResults } from "@/components/search/SearchResults";
+import { SEARCH_EXAMPLES, searchCatalogue } from "@/lib/search";
+import { useUniverseStore } from "@/store/useUniverseStore";
 import { AccountMenu } from "@/components/nav/AccountMenu";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -15,14 +18,20 @@ export function TopNav() {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const isExplore = pathname === "/explore" || pathname?.startsWith("/explore/");
-  const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
 
+  // A result opens the detail panel in place (mounted app-wide) — no
+  // navigation. Enter opens the top result.
+  function pickResult(id: string) {
+    setSearchOpen(false);
+    useUniverseStore.getState().select(id);
+  }
+
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
-    setSearchOpen(false);
-    router.push(`/explore${query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ""}`);
+    const top = searchCatalogue(query)[0];
+    if (top) pickResult(top.id);
   }
 
   return (
@@ -143,6 +152,24 @@ export function TopNav() {
                   Search
                 </Button>
               </form>
+              <div className="glass-panel mt-2 max-h-[60vh] overflow-y-auto no-scrollbar rounded-2xl p-1.5">
+                {query.trim() ? (
+                  <SearchResults query={query} source="header" onPick={pickResult} />
+                ) : (
+                  <div className="flex flex-wrap gap-1.5 p-2">
+                    {SEARCH_EXAMPLES.map((ex) => (
+                      <button
+                        key={ex}
+                        type="button"
+                        onClick={() => setQuery(ex)}
+                        className="rounded-full border border-black/10 bg-void-900/50 px-2.5 py-1 text-[11px] text-ink-300 hover:text-ink-0 hover:border-black/20 transition-colors cursor-pointer"
+                      >
+                        {ex}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </motion.div>
           </>
         )}

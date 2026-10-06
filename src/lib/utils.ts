@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import type { AccessType, BillingCycle, OwnedSubscription } from "@/types/subscription";
+import type { AccessType, BillingCycle, OwnedSubscription, Subscription } from "@/types/subscription";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -74,6 +74,19 @@ const CYCLE_SUFFIX: Record<BillingCycle, string> = {
 /** "/month", "/year", … — shown after a per-cycle amount. */
 export function cycleSuffix(billing: BillingCycle): string {
   return CYCLE_SUFFIX[billing];
+}
+
+/** A catalogue entry's headline price with its cycle ("₹649/month",
+ * "₹1,500/year") — its monthly plan if it has one, else its first plan,
+ * else the plain catalogue price (or its "Contact for pricing" label). */
+export function catalogPriceLabel(sub: Subscription): string {
+  const plan = sub.plans.find((p) => p.billing === "monthly") ?? sub.plans[0];
+  if (plan) {
+    const amount = planCycleAmount(plan);
+    return amount > 0 ? `${formatINR(amount)}${cycleSuffix(plan.billing)}` : formatINR(0);
+  }
+  if (sub.priceMonthly === null) return sub.priceLabel ?? "Contact for pricing";
+  return sub.priceMonthly > 0 ? `${formatINR(sub.priceMonthly)}/month` : formatINR(0);
 }
 
 /** Days from now until `iso` (negative if already past). */

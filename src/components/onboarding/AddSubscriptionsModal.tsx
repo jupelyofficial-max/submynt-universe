@@ -445,7 +445,9 @@ function AddSubscriptionsFlow({
                         ? `${value.accessType} · ${value.bundleProvider ?? "unspecified"}`
                         : value.accessType}
                       {" · "}
-                      {value.planName || "Plan"} · {BILLING_LABELS[value.billing]}
+                      {(value.planName || "Plan").toLowerCase() === BILLING_LABELS[value.billing].toLowerCase()
+                        ? value.planName
+                        : `${value.planName || "Plan"} · ${BILLING_LABELS[value.billing]}`}
                     </div>
                   </div>
                   <div className="shrink-0 text-right text-sm font-semibold text-ink-0">

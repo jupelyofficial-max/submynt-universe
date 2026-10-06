@@ -150,7 +150,7 @@ function LoggedInMenu({ email, name }: { email: string; name?: string }) {
         onClick={() => setOpen((v) => !v)}
         aria-label="Account"
         aria-expanded={open}
-        className="h-10 w-10 flex shrink-0 items-center justify-center rounded-xl hover:bg-black/5 transition-colors cursor-pointer"
+        className="h-9 w-9 flex shrink-0 items-center justify-center rounded-full hover:bg-black/5 transition-colors cursor-pointer"
       >
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ocean-600 text-xs font-semibold text-white">
           {initial}

@@ -54,3 +54,14 @@ export const ECOSYSTEMS: Ecosystem[] = [
 export function ecosystemServices(ecosystem: Ecosystem): Subscription[] {
   return ecosystem.serviceIds.map((id) => SUBSCRIPTIONS_BY_ID[id]).filter((s): s is Subscription => Boolean(s));
 }
+
+/** Only brands with at least this many catalogue subscriptions are shown —
+ * a "family" of one isn't an ecosystem. */
+export const MIN_ECOSYSTEM_SERVICES = 2;
+
+/** The ecosystems that are shown (and have a page), with their subscriptions. */
+export function shownEcosystems(): (Ecosystem & { services: Subscription[] })[] {
+  return ECOSYSTEMS.map((eco) => ({ ...eco, services: ecosystemServices(eco) })).filter(
+    (eco) => eco.services.length >= MIN_ECOSYSTEM_SERVICES
+  );
+}

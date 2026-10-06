@@ -3,28 +3,14 @@
 import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  AlarmClock,
-  ArrowLeft,
-  Compass,
-  FileText,
-  Gem,
-  Layers,
-  Orbit,
-  Plus,
-  Sparkles,
-  Trash2,
-  Wallet,
-} from "lucide-react";
+import { AlarmClock, Compass, Gem, Layers, Orbit, Plus, Sparkles, Wallet } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { ScoreRing } from "@/components/track/ScoreRing";
 import { SUBSCRIPTIONS_BY_ID, potentialSavingsMonthly } from "@/data/subscriptions";
 import { cycleSuffix, daysUntil, formatDate, formatINR, formatOwnedPrice, ownedPriceAmount } from "@/lib/utils";
-import { computeSubmyntScore, type Recommendation } from "@/lib/submyntScore";
 import { computeMonthlySpend, directItemsOf, type OwnedItem } from "@/lib/subscriptionStats";
-import { findDuplicateCategories, groupByBundleProvider } from "@/lib/bundleIntelligence";
+import { findDuplicateCategories } from "@/lib/bundleIntelligence";
 import { annualSwitchSuggestion } from "@/lib/planOptimization";
 import { accessChipFor } from "@/lib/trackPresentation";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
@@ -33,48 +19,33 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useSubscriptionsReady } from "@/hooks/useSubscriptionsReady";
 import { consumeResumeIntent } from "@/lib/auth/signIn";
 import { trackEvent } from "@/lib/events";
-import { requireSignIn } from "@/lib/auth/requireSignIn";
+import type { OwnedSubscription } from "@/types/subscription";
 
-const RENEWAL_WINDOW_DAYS = 30;
 const SOON_WINDOW_DAYS = 7;
-// Card-level "Renews in Nd" chip uses a tighter window than the 30-day
-// aggregate insight below — a renewal 4 weeks out doesn't need its own
-// per-card badge, only the ones genuinely coming up soon do.
+// A row's "Renews in Nd" badge uses a wider window than the one-line
+// "this week" alert — a renewal 4 weeks out doesn't need a badge, but one
+// in the next two weeks does.
 const CARD_RENEWAL_CHIP_DAYS = 14;
 
-const RECOMMENDATION_LABELS: Record<Recommendation, string> = {
-  keep: "Keep",
-  optimize: "Optimize",
-  reassess: "Reassess",
-};
+type RowBadge = ReturnType<typeof accessChipFor>;
 
-const RECOMMENDATION_TONES: Record<Recommendation, "neutral" | "aurora" | "gold" | "nebula" | "danger"> = {
-  keep: "nebula",
-  optimize: "gold",
-  reassess: "danger",
-};
-
-// Covers both the current fixed enum (Airtel Black/Jio/Family/Employer/
-// Others) and legacy Amazon/Apple/Google values already stored for
-// existing users, so old data still renders a real label, never a raw key.
-const BUNDLE_PROVIDER_LABELS: Record<string, string> = {
-  airtel: "Airtel Black",
-  jio: "Jio",
-  amazon: "Amazon",
-  apple: "Apple",
-  google: "Google",
-  employer: "your employer",
-  family: "a family plan",
-  other: "that provider",
-};
+/** At most one badge per row, by priority: promo ends > renews soon >
+ * overlaps another tracked sub > how it's paid for (non-direct only). */
+function rowBadge(o: OwnedSubscription, overlapName: string | undefined): RowBadge | null {
+  const accessType = o.accessType ?? "direct";
+  if (accessType === "promotional" && o.promoEndDate) return { label: `Promo ends ${formatDate(o.promoEndDate)}`, tone: "gold" };
+  const days = Math.ceil(daysUntil(o.nextRenewal));
+  if (days >= 0 && days <= CARD_RENEWAL_CHIP_DAYS) return { label: `Renews in ${days}d`, tone: "gold" };
+  if (overlapName) return { label: `Overlaps ${overlapName}`, tone: "nebula" };
+  if (accessType !== "direct") return accessChipFor(o);
+  return null;
+}
 
 export default function MySubscriptionsPage() {
   const owned = useMySubscriptionsStore((s) => s.owned);
   const ready = useSubscriptionsReady();
   const user = useAuthStore((s) => s.user);
-  const remove = useMySubscriptionsStore((s) => s.remove);
   const select = useUniverseStore((s) => s.select);
-  const router = useRouter();
 
   // Back from signing in with an add action pending (see AddSubscriptionsModal's
   // gate) — replay it once the account has loaded, so the user lands on the
@@ -106,21 +77,15 @@ export default function MySubscriptionsPage() {
 
   // priceMonthly is already the monthly-equivalent cost regardless of
   // billing cycle. computeMonthlySpend already excludes bundled/family/
-  // promotional (₹0-to-the-user) entries — the "You pay / month" figure
-  // the redesign asks for, unchanged from the Sprint 3/6 formula.
+  // promotional (₹0-to-the-user) entries — the "You pay / month" figure.
   const monthlySpend = useMemo(() => computeMonthlySpend(items), [items]);
   const annualSpend = monthlySpend * 12;
 
   const directItems = useMemo(() => directItemsOf(items), [items]);
   const savingsCandidateCount = useMemo(() => directItems.filter((x) => potentialSavingsMonthly(x.sub) > 0).length, [directItems]);
 
-  const renewalsSoonCount = useMemo(
-    () => items.filter((x) => { const days = daysUntil(x.owned.nextRenewal); return days >= 0 && days <= RENEWAL_WINDOW_DAYS; }).length,
-    [items]
-  );
-
-  // Sprint 5 — a tighter 7-day window, and renewals/promo-expiries counted
-  // and worded separately (a promo ending is never called a "renewal").
+  // Renewals and promo-expiries in the next 7 days, counted and worded
+  // separately (a promo ending is never called a "renewal").
   const renewalsWithin7 = useMemo(
     () => items.filter((x) => { const days = daysUntil(x.owned.nextRenewal); return days >= 0 && days <= SOON_WINDOW_DAYS; }).length,
     [items]
@@ -135,47 +100,25 @@ export default function MySubscriptionsPage() {
     [items]
   );
 
-  // Sprint 7 — category-based overlap only (no bundle-content data exists
-  // to check "already included in a bundle you own"; see bundleIntelligence.ts).
-  const duplicateGroups = useMemo(() => findDuplicateCategories(items), [items]);
-  // subscriptionId -> name of the other overlapping item, for the new
-  // per-card "Overlaps X" chip (first other member of its duplicate group).
+  // Category-based overlap only — subscriptionId -> name of the other
+  // overlapping item, for the row's "Overlaps X" badge.
   const overlapNameBySubId = useMemo(() => {
     const map = new Map<string, string>();
-    for (const group of duplicateGroups) {
+    for (const group of findDuplicateCategories(items)) {
       for (const item of group.items) {
         const other = group.items.find((x) => x.sub.id !== item.sub.id);
         if (other) map.set(item.sub.id, other.sub.name);
       }
     }
     return map;
-  }, [duplicateGroups]);
-  // Purely reflects the bundle_provider the user themselves recorded —
-  // not a claim about what that provider's bundle actually contains.
-  const bundleProviderGroups = useMemo(
-    () => groupByBundleProvider(items).filter((g) => g.items.length >= 2),
-    [items]
-  );
+  }, [items]);
 
-  // Sprint 8 — annual-switch candidates, separate from the cross-subscription
-  // "alternative" savings above.
+  // Annual-switch candidates, separate from the cross-subscription
+  // "alternative" savings — both feed the one "N ways to save" line.
   const annualSwitchCandidates = useMemo(
     () => items.filter((x) => annualSwitchSuggestion(x.owned, x.sub) !== null),
     [items]
   );
-
-  // Redesign — aggregate Submynt Score ring + the combined savings nudge
-  // ("N ways to save ₹X/mo"), both pure presentation derived from the
-  // same per-item computeSubmyntScore/potentialSavingsMonthly/
-  // annualSwitchSuggestion calls already used elsewhere on this page.
-  const scoredItems = useMemo(
-    () => items.map((x) => ({ ...x, result: computeSubmyntScore(x.sub, x.owned.accessType ?? "direct", x.owned.usageFrequency) })),
-    [items]
-  );
-  const aggregateScore = useMemo(() => {
-    if (scoredItems.length === 0) return 0;
-    return Math.round(scoredItems.reduce((sum, x) => sum + x.result.score, 0) / scoredItems.length);
-  }, [scoredItems]);
   const savingsWaysCount = savingsCandidateCount + annualSwitchCandidates.length;
   const savingsAmountMonthly = useMemo(() => {
     const altSavings = directItems.reduce((sum, x) => sum + potentialSavingsMonthly(x.sub), 0);
@@ -183,54 +126,19 @@ export default function MySubscriptionsPage() {
     return altSavings + annualSavings;
   }, [directItems, annualSwitchCandidates]);
 
-  function openDetails(id: string) {
-    select(id);
-    router.push(`/explore?focus=${id}`);
-  }
-
-  // "Explore Alternative" (US-038) — reuses DetailPanel's existing
-  // Alternatives tab rather than building a new view; selectWithTab deep-
-  // links it open directly on that tab instead of Overview.
-  function exploreAlternative(id: string) {
-    useUniverseStore.getState().selectWithTab(id, "alternatives");
-    router.push(`/explore?focus=${id}`);
-  }
+  // formatINR shows 0 as "Free", which reads wrong as a spend total.
+  const spend = (amount: number) => (amount > 0 ? formatINR(amount) : "₹0");
 
   return (
-    <div className="ts-theme mx-auto w-full max-w-5xl flex-1 px-4 py-10 lg:px-8">
-      <Link
-        href="/explore"
-        className="mb-4 inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm transition-colors hover:bg-[var(--ts-mint-tint)]"
-        style={{ color: "var(--ts-ink-300)" }}
-      >
-        <ArrowLeft size={16} />
-        Back
-      </Link>
-
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span
-            className="flex h-11 w-11 items-center justify-center rounded-2xl"
-            style={{ background: "var(--ts-mint-tint)", color: "var(--ts-mint-400)" }}
-          >
-            <Orbit size={20} />
+    <div className="ts-theme mx-auto w-full max-w-5xl flex-1 px-4 py-8 lg:px-8">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-2xl font-semibold" style={{ color: "var(--ts-ink-0)" }}>
+          Track Subscriptions
+          <span className="ml-1.5 text-base font-normal" style={{ color: "var(--ts-ink-500)" }}>
+            · {items.length > 0 ? `${items.length} tracked` : "nothing tracked yet"}
           </span>
-          <div>
-            <h1 className="font-display text-2xl font-semibold" style={{ color: "var(--ts-ink-0)" }}>
-              Track Subscriptions
-            </h1>
-            <p className="text-sm" style={{ color: "var(--ts-ink-500)" }}>
-              {items.length > 0 ? `${items.length} tracked` : "Nothing tracked yet."}
-            </p>
-          </div>
-        </div>
+        </h1>
         <div className="flex flex-wrap items-center gap-2">
-          {items.length > 0 && (
-            <Button size="sm" variant="outline" style={{ color: "var(--ts-ink-300)" }} onClick={() => router.push("/report")}>
-              <FileText size={14} />
-              Monthly Report
-            </Button>
-          )}
           {/* Shown signed out too: the add flow's sign-in gate replays it
               (straight to the bundle picker) once they're back. */}
           <Button
@@ -245,7 +153,7 @@ export default function MySubscriptionsPage() {
           {items.length > 0 && (
             <Button size="sm" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, false, "page_header")}>
               <Plus size={14} />
-              Add subscriptions
+              Add subscription
             </Button>
           )}
         </div>
@@ -257,180 +165,89 @@ export default function MySubscriptionsPage() {
         <EmptyState />
       ) : (
         <>
-          {/* Summary strip */}
-          <div className="ts-card mb-4 flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="ts-card mb-3 flex flex-col gap-3 p-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--ts-ink-500)" }}>
-                You pay / month
-              </div>
               <div className="ts-tabular font-display text-3xl font-bold" style={{ color: "var(--ts-ink-0)" }}>
-                {formatINR(monthlySpend)}
+                {spend(monthlySpend)}
+                <span className="text-base font-medium" style={{ color: "var(--ts-ink-500)" }}>
+                  /month
+                </span>
               </div>
-              <div className="ts-tabular mt-0.5 text-xs" style={{ color: "var(--ts-ink-500)" }}>
-                {formatINR(annualSpend)} / year
+              <div className="ts-tabular mt-0.5 text-sm" style={{ color: "var(--ts-ink-500)" }}>
+                {spend(annualSpend)}/year
               </div>
             </div>
-
-            <ScoreRing score={aggregateScore} />
+            <div className="flex flex-col gap-1 text-sm sm:items-end">
+              {savingsWaysCount > 0 && (
+                <Link href="/optimize" className="inline-flex items-center gap-1.5 font-medium hover:underline" style={{ color: "var(--ts-mint-400)" }}>
+                  <Sparkles size={14} />
+                  {savingsWaysCount} way{savingsWaysCount === 1 ? "" : "s"} to save {formatINR(savingsAmountMonthly)}/mo → Optimize
+                </Link>
+              )}
+              <Link href="/report" className="hover:underline" style={{ color: "var(--ts-ink-300)" }}>
+                Monthly report
+              </Link>
+            </div>
           </div>
 
-          {savingsWaysCount > 0 && (
+          {(renewalsWithin7 > 0 || promosEndingWithin7 > 0) && (
             <Link
-              href="/optimize"
-              className="mb-4 flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors"
-              style={{ background: "var(--ts-mint-tint)", color: "var(--ts-mint-400)" }}
+              href="/renewals"
+              className="mb-3 flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors"
+              style={{ background: "var(--ts-amber-tint)", color: "var(--ts-amber)" }}
             >
-              <Sparkles size={14} />
-              {savingsWaysCount} way{savingsWaysCount === 1 ? "" : "s"} to save {formatINR(savingsAmountMonthly)}/mo
+              <AlarmClock size={14} />
+              {soonInsightText(renewalsWithin7, promosEndingWithin7)} → calendar
             </Link>
           )}
 
-          {/* Insights — unchanged from Sprint 5/7/8, restyled */}
-          <div className="mb-6 flex flex-col gap-2">
-            {renewalsSoonCount > 0 && (
-              <div
-                className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm"
-                style={{ background: "var(--ts-card)", color: "var(--ts-ink-300)", border: "1px solid var(--ts-border)" }}
-              >
-                <Orbit size={14} />
-                {renewalsSoonCount} renewal{renewalsSoonCount === 1 ? "" : "s"} coming up in the next {RENEWAL_WINDOW_DAYS} days
-              </div>
-            )}
-            {(renewalsWithin7 > 0 || promosEndingWithin7 > 0) && (
-              <Link
-                href="/renewals"
-                className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors"
-                style={{ background: "var(--ts-amber-tint)", color: "var(--ts-amber)" }}
-              >
-                <AlarmClock size={14} />
-                {soonInsightText(renewalsWithin7, promosEndingWithin7)} — view calendar
-              </Link>
-            )}
-            {bundleProviderGroups.map((group) => (
-              <div
-                key={group.provider}
-                className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm"
-                style={{ background: "var(--ts-card)", color: "var(--ts-ink-300)", border: "1px solid var(--ts-border)" }}
-              >
-                <Gem size={14} />
-                You have {group.items.length} subscriptions bundled via {BUNDLE_PROVIDER_LABELS[group.provider] ?? group.provider}:{" "}
-                {group.items.map((x) => x.sub.name).join(", ")}
-              </div>
-            ))}
-          </div>
-
-          {/* Subscription cards — flat list, default sort by next renewal */}
-          <div className="flex flex-col gap-3">
-            {scoredItems.map(({ owned: o, sub, result: scoreResult }) => {
-              const savings = (o.accessType ?? "direct") === "direct" ? potentialSavingsMonthly(sub) : 0;
+          {/* Compact rows, soonest renewal first. A row opens the detail
+              panel in place (it's mounted app-wide in the layout). */}
+          <ul className="ts-card overflow-hidden">
+            {items.map(({ owned: o, sub }, i) => {
               const accessType = o.accessType ?? "direct";
-              const accessChip = accessChipFor(o);
-              const daysToRenewal = Math.ceil(daysUntil(o.nextRenewal));
-              const overlapName = overlapNameBySubId.get(sub.id);
-              const rarelyUsed = o.usageFrequency === "rarely" || o.usageFrequency === "never";
-
+              const amount = ownedPriceAmount(o);
+              const badge = rowBadge(o, overlapNameBySubId.get(sub.id));
               return (
-                <div key={o.ownedId} className="ts-card flex flex-col gap-3 p-4">
-                  <div className="flex items-start gap-3">
-                    <SubscriptionLogo subscription={sub} size="md" ring />
+                <li key={o.ownedId} style={i > 0 ? { borderTop: "1px solid var(--ts-border)" } : undefined}>
+                  <button
+                    type="button"
+                    onClick={() => select(sub.id)}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--ts-mint-tint)] cursor-pointer"
+                  >
+                    <SubscriptionLogo subscription={sub} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <h3 className="truncate text-sm font-semibold" style={{ color: "var(--ts-ink-0)" }}>
+                      <div className="truncate text-sm font-semibold" style={{ color: "var(--ts-ink-0)" }}>
                         {sub.name}
-                      </h3>
-                      <p className="truncate text-xs" style={{ color: "var(--ts-ink-500)" }}>
-                        {o.planName}
-                      </p>
+                      </div>
+                      <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs" style={{ color: "var(--ts-ink-500)" }}>
+                        <span className="truncate">
+                          {/* Plan name is dropped on phones so the date fits beside a badge. */}
+                          {o.planName && <span className="hidden sm:inline">{o.planName} · </span>}
+                          Renews {formatDate(o.nextRenewal)}
+                        </span>
+                        {badge && (
+                          <span className="shrink-0">
+                            <Badge tone={badge.tone}>{badge.label}</Badge>
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="shrink-0 text-right">
                       <div className="ts-tabular text-sm font-semibold" style={{ color: "var(--ts-ink-0)" }}>
-                        {formatOwnedPrice(ownedPriceAmount(o), accessType)}
+                        {formatOwnedPrice(amount, accessType)}
                       </div>
-                      {ownedPriceAmount(o) > 0 ? (
+                      {amount > 0 && (
                         <div className="text-[11px]" style={{ color: "var(--ts-ink-500)" }}>
                           {cycleSuffix(o.billing)}
                         </div>
-                      ) : (
-                        accessType !== "direct" && (
-                          <div className="text-[11px]" style={{ color: "var(--ts-ink-500)" }}>
-                            included
-                          </div>
-                        )
                       )}
                     </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <Badge tone={accessChip.tone}>{accessChip.label}</Badge>
-                    {daysToRenewal >= 0 && daysToRenewal <= CARD_RENEWAL_CHIP_DAYS && (
-                      <Badge tone="gold">Renews in {daysToRenewal}d</Badge>
-                    )}
-                    {rarelyUsed && <Badge tone="coral">Rarely opened</Badge>}
-                    {overlapName && <Badge tone="nebula">Overlaps {overlapName}</Badge>}
-                  </div>
-
-                  <div className="text-xs" style={{ color: "var(--ts-ink-500)" }}>
-                    Renews {formatDate(o.nextRenewal)}
-                  </div>
-
-                  {/* Displayed as its own distinct line, never merged
-                      into "Renews" — a promo ending is a different
-                      event from the subscription's own renewal. */}
-                  {accessType === "promotional" && o.promoEndDate && (
-                    <div className="flex items-center gap-1.5 text-xs" style={{ color: "var(--ts-amber)" }}>
-                      <AlarmClock size={12} />
-                      Promo ends {formatDate(o.promoEndDate)}
-                    </div>
-                  )}
-
-                  {savings > 0 && (
-                    <div
-                      className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px]"
-                      style={{ background: "var(--ts-amber-tint)", color: "var(--ts-amber)" }}
-                    >
-                      <Sparkles size={12} />
-                      Save ~{formatINR(savings)}/mo (estimated) — see Optimize
-                    </div>
-                  )}
-
-                  {/* Submynt Score (Sprint 4) — rule-based, explainable
-                      factors only (usage / price-value / cheaper
-                      alternatives), never a raw quality number. */}
-                  <div className="rounded-lg px-2.5 py-2" style={{ border: "1px solid var(--ts-border)" }}>
-                    <div className="mb-1 flex items-center justify-between gap-2">
-                      <Badge tone={RECOMMENDATION_TONES[scoreResult.recommendation]}>
-                        {RECOMMENDATION_LABELS[scoreResult.recommendation]}
-                      </Badge>
-                      <span className="ts-tabular text-[11px] font-semibold" style={{ color: "var(--ts-ink-500)" }}>
-                        Score {scoreResult.score}
-                      </span>
-                    </div>
-                    <p className="text-[11px] leading-snug" style={{ color: "var(--ts-ink-500)" }}>
-                      {scoreResult.reasons.join(" · ")}
-                    </p>
-                  </div>
-
-                  <div className="mt-auto flex gap-2 pt-1">
-                    <Button size="sm" variant="outline" className="flex-1" onClick={() => openDetails(sub.id)}>
-                      View Details
-                    </Button>
-                    {scoreResult.recommendation === "reassess" && (
-                      <Button size="sm" variant="ghost" className="flex-1 text-gold-400" onClick={() => exploreAlternative(sub.id)}>
-                        Explore Alternative
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-red-300 hover:text-red-200"
-                      onClick={() => void requireSignIn(() => remove(o.ownedId))}
-                    >
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
-                </div>
+                  </button>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </>
       )}
     </div>
@@ -510,11 +327,8 @@ function PerkRow({ icon, text }: { icon: React.ReactNode; text: string }) {
 // Never calls a promo expiry a "renewal" — the wording branches on which
 // event types are actually present rather than merging them into one count.
 function soonInsightText(renewals: number, promos: number): string {
-  if (renewals > 0 && promos > 0) {
-    return `${renewals} renewing and ${promos} promo${promos === 1 ? "" : "s"} ending in the next ${SOON_WINDOW_DAYS} days`;
-  }
-  if (promos > 0) {
-    return `${promos} promo${promos === 1 ? "" : "s"} ending in the next ${SOON_WINDOW_DAYS} days`;
-  }
-  return `${renewals} renewal${renewals === 1 ? "" : "s"} coming up in the next ${SOON_WINDOW_DAYS} days`;
+  const promoText = `${promos} promo${promos === 1 ? "" : "s"} end${promos === 1 ? "s" : ""}`;
+  if (renewals > 0 && promos > 0) return `${renewals} renew and ${promoText} this week`;
+  if (promos > 0) return `${promoText} this week`;
+  return `${renewals} renew${renewals === 1 ? "s" : ""} this week`;
 }

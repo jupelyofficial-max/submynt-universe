@@ -38,7 +38,7 @@ export default function SavedSubscriptionsPage() {
   }
 
   function trackIt(id: string) {
-    useUniverseStore.getState().setAddSubscriptionsModalOpen(true, id);
+    useUniverseStore.getState().setAddSubscriptionsModalOpen(true, id, false, "saved");
   }
 
   return (

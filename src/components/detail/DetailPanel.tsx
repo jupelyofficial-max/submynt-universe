@@ -28,7 +28,8 @@ import { bundleOptionsFor } from "@/components/onboarding/ServiceDetailsCard";
 import { computeSubmyntScore } from "@/lib/submyntScore";
 import { scoreBand } from "@/lib/trackPresentation";
 import { requireSignIn } from "@/lib/auth/requireSignIn";
-import type { BundleProvider, OwnedSubscription, Subscription, UsageFrequency } from "@/types/subscription";
+import { trackEvent } from "@/lib/events";
+import type { BillingCycle, BundleProvider, OwnedSubscription, Subscription, UsageFrequency } from "@/types/subscription";
 
 type Tab = DetailTab;
 const TABS: { id: Tab; label: string }[] = [
@@ -61,14 +62,20 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
   const isOwned = useMySubscriptionsStore((s) => s.isOwned(sub.id));
   const owned = useMySubscriptionsStore((s) => s.getOwned(sub.id));
   const removeOwnedRaw = useMySubscriptionsStore((s) => s.remove);
-  const addOwnedRaw = useMySubscriptionsStore((s) => s.add);
+  const updatePlanRaw = useMySubscriptionsStore((s) => s.updatePlan);
   const updateUsageFrequencyRaw = useMySubscriptionsStore((s) => s.updateUsageFrequency);
   const updateBundleProviderRaw = useMySubscriptionsStore((s) => s.updateBundleProvider);
   // Changing or removing a tracked item needs an account: signed out, these
   // start Google sign-in instead (requireSignIn). The store actions
   // themselves are unchanged.
   const removeOwned: typeof removeOwnedRaw = (...args) => void requireSignIn(() => removeOwnedRaw(...args));
-  const addOwned: typeof addOwnedRaw = (...args) => void requireSignIn(() => addOwnedRaw(...args));
+  // A plan switch is an edit of the existing entry (plan fields only) and
+  // logs the plan pick alongside it.
+  const switchPlan = (ownedId: string, plan: Parameters<typeof updatePlanRaw>[1]) =>
+    void requireSignIn(() => {
+      trackEvent("plan_selected", { service_id: sub.id, plan_id: plan.planName });
+      updatePlanRaw(ownedId, plan);
+    });
   const updateUsageFrequency: typeof updateUsageFrequencyRaw = (...args) =>
     void requireSignIn(() => updateUsageFrequencyRaw(...args));
   const updateBundleProvider: typeof updateBundleProviderRaw = (...args) =>
@@ -254,7 +261,7 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
             owned={owned}
             switchingPlan={switchingPlan}
             setSwitchingPlan={setSwitchingPlan}
-            addOwned={addOwned}
+            switchPlan={switchPlan}
             removeOwned={removeOwned}
           />
         )}
@@ -484,7 +491,7 @@ function PlansTab({
   owned,
   switchingPlan,
   setSwitchingPlan,
-  addOwned,
+  switchPlan,
   removeOwned,
 }: {
   sub: Subscription;
@@ -492,7 +499,7 @@ function PlansTab({
   owned: ReturnType<typeof useMySubscriptionsStore.getState>["owned"][number] | undefined;
   switchingPlan: boolean;
   setSwitchingPlan: (fn: (v: boolean) => boolean) => void;
-  addOwned: ReturnType<typeof useMySubscriptionsStore.getState>["add"];
+  switchPlan: (ownedId: string, plan: { planName: string; priceMonthly: number; billing: BillingCycle }) => void;
   removeOwned: ReturnType<typeof useMySubscriptionsStore.getState>["remove"];
 }) {
   return (
@@ -529,12 +536,10 @@ function PlansTab({
                   <button
                     key={plan.name}
                     onClick={() => {
-                      addOwned({
-                        subscriptionId: sub.id,
+                      switchPlan(owned.ownedId, {
                         planName: plan.name,
                         priceMonthly: plan.priceMonthly,
                         billing: plan.billing,
-                        nextRenewal: owned.nextRenewal,
                       });
                       setSwitchingPlan(() => false);
                     }}

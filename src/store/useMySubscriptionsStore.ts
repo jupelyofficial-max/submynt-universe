@@ -4,6 +4,7 @@ import type { AccessType, BillingCycle, BundleProvider, OwnedSubscription, Usage
 import { createClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/useAuthStore";
 import { trackEvent } from "@/lib/events";
+import { SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 
 interface AddInput {
   subscriptionId: string;
@@ -48,6 +49,9 @@ interface MySubscriptionsState {
    * OverviewTab) — mirrors updateUsageFrequency exactly. undefined clears
    * it back to no bundle-source (the redesign's "Direct" tile). */
   updateBundleProvider: (ownedId: string, bundleProvider: BundleProvider | undefined) => void;
+  /** Switches an entry's plan (DetailPanel's "Choose a plan") — writes only
+   * the plan fields, leaving kept/access type/bundle/usage/promo intact. */
+  updatePlan: (ownedId: string, plan: { planName: string; priceMonthly: number; billing: BillingCycle }) => void;
   isOwned: (subscriptionId: string) => boolean;
   getOwned: (subscriptionId: string) => OwnedSubscription | undefined;
   /** Called once on sign-in (see providers.tsx): merges whatever was
@@ -113,7 +117,18 @@ function ownedToRow(userId: string, o: OwnedSubscription | AddInput) {
     bundle_provider: o.bundleProvider ?? null,
     usage_frequency: o.usageFrequency ?? null,
     promo_end_date: o.promoEndDate ?? null,
+    // Only a migrated local entry has an addedAt — keep its real add time
+    // instead of the DB stamping the migration time. A fresh add omits it
+    // (DB default), and an upsert onto an existing row leaves it alone.
+    ...("addedAt" in o && o.addedAt ? { added_at: o.addedAt } : {}),
   };
+}
+
+/** The catalogue plan an entry's (free-text) plan name matches, for event
+ * props — null when it's a custom name. */
+function planIdFor(subscriptionId: string, planName: string): string | null {
+  const name = planName.trim().toLowerCase();
+  return SUBSCRIPTIONS_BY_ID[subscriptionId]?.plans.find((p) => p.name.toLowerCase() === name)?.name ?? null;
 }
 
 /** Defense in depth for the Track Subscriptions sign-in requirement. The UI
@@ -161,6 +176,12 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
               { ownedId, addedAt: new Date().toISOString(), ...input, accessType },
             ],
           }));
+          trackEvent("subscription_added", {
+            service_id: input.subscriptionId,
+            plan_id: planIdFor(input.subscriptionId, input.planName),
+            price: input.priceMonthly,
+            billing_cycle: input.billing,
+          });
           if (userId) {
             createClient()
               .from("owned_subscriptions")
@@ -176,6 +197,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           const { userId, owned } = get();
           const entry = owned.find((o) => o.ownedId === ownedId);
           set((state) => ({ owned: state.owned.filter((o) => o.ownedId !== ownedId) }));
+          if (entry) trackEvent("subscription_removed", { service_id: entry.subscriptionId });
           if (userId && entry) {
             createClient()
               .from("owned_subscriptions")
@@ -196,6 +218,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           set((state) => ({
             owned: state.owned.map((o) => (o.ownedId === ownedId ? { ...o, kept: !o.kept } : o)),
           }));
+          if (entry) trackEvent("subscription_edited", { service_id: entry.subscriptionId, fields_changed: ["kept"] });
           if (userId && entry && nextKept !== undefined) {
             createClient()
               .from("owned_subscriptions")
@@ -215,6 +238,9 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           set((state) => ({
             owned: state.owned.map((o) => (o.ownedId === ownedId ? { ...o, usageFrequency } : o)),
           }));
+          if (entry && entry.usageFrequency !== usageFrequency) {
+            trackEvent("subscription_edited", { service_id: entry.subscriptionId, fields_changed: ["usage_frequency"] });
+          }
           if (userId && entry) {
             createClient()
               .from("owned_subscriptions")
@@ -234,10 +260,40 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           set((state) => ({
             owned: state.owned.map((o) => (o.ownedId === ownedId ? { ...o, bundleProvider } : o)),
           }));
+          if (entry && entry.bundleProvider !== bundleProvider) {
+            trackEvent("subscription_edited", { service_id: entry.subscriptionId, fields_changed: ["bundle_provider"] });
+          }
           if (userId && entry) {
             createClient()
               .from("owned_subscriptions")
               .update({ bundle_provider: bundleProvider ?? null })
+              .eq("user_id", userId)
+              .eq("subscription_id", entry.subscriptionId)
+              .then(({ error }) => {
+                if (error) onWriteError("Failed to update subscription", error.message);
+              });
+          }
+        },
+
+        updatePlan: (ownedId, plan) => {
+          if (!requireAccount("updatePlan")) return;
+          const { userId, owned } = get();
+          const entry = owned.find((o) => o.ownedId === ownedId);
+          if (!entry) return;
+          const fieldsChanged = [
+            entry.planName !== plan.planName && "plan_name",
+            entry.priceMonthly !== plan.priceMonthly && "price",
+            entry.billing !== plan.billing && "billing_cycle",
+          ].filter((f): f is string => Boolean(f));
+          if (fieldsChanged.length === 0) return;
+          set((state) => ({
+            owned: state.owned.map((o) => (o.ownedId === ownedId ? { ...o, ...plan } : o)),
+          }));
+          trackEvent("subscription_edited", { service_id: entry.subscriptionId, fields_changed: fieldsChanged });
+          if (userId) {
+            createClient()
+              .from("owned_subscriptions")
+              .update({ plan_name: plan.planName, price_monthly: plan.priceMonthly, billing: plan.billing })
               .eq("user_id", userId)
               .eq("subscription_id", entry.subscriptionId)
               .then(({ error }) => {
@@ -255,9 +311,19 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           // sync already in flight instead of racing it — which would
           // upload twice and double-count anon_subs_migrated.
           if (syncInFlight?.userId === userId) return syncInFlight.promise;
+          // Every await below re-checks that this user is still the one
+          // signed in: a sync that outlives a sign-out (or a switch to
+          // another account) must drop its result, never apply it.
+          const stillCurrent = () => useAuthStore.getState().user?.id === userId;
           const promise = (async () => {
+            // Anything held for a different, previous account is that
+            // account's data, not anonymous items — never migrate it.
+            const heldFor = get().userId;
+            if (heldFor && heldFor !== userId) set({ owned: [], userId: null, syncFailed: false });
+
             const supabase = createClient();
             const { data: remoteRows, error } = await supabase.from("owned_subscriptions").select("*").eq("user_id", userId);
+            if (!stillCurrent()) return;
             if (error) {
               // Nothing has been touched — the local copy stays intact and
               // the whole sync is retried on the next sign-in/page load.
@@ -285,8 +351,10 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
                 .from("owned_subscriptions")
                 .upsert(
                   pending.map((o) => ownedToRow(userId, o)),
-                  { onConflict: "user_id,subscription_id" }
+                  // Rows without an addedAt use the DB default, not null.
+                  { onConflict: "user_id,subscription_id", defaultToNull: false }
                 );
+              if (!stillCurrent()) return;
               if (migrateError) {
                 // Abort BEFORE switching to signed-in mode: persist only
                 // stops writing the local copy once userId is set, so an
@@ -303,6 +371,7 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
             // so nothing can slip in unpushed. Setting userId is also what
             // makes persist stop mirroring the account into localStorage —
             // i.e. the local copy is cleared only after a successful merge.
+            if (!stillCurrent()) return;
             const remoteIds = new Set(remoteOwned.map((o) => o.subscriptionId));
             set((state) => ({
               owned: [
@@ -324,6 +393,8 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           const { userId } = get();
           if (!userId) return;
           const { data, error } = await createClient().from("owned_subscriptions").select("*").eq("user_id", userId);
+          // Signed out or switched account meanwhile — don't resurrect it.
+          if (get().userId !== userId || useAuthStore.getState().user?.id !== userId) return;
           if (error) {
             console.error("Failed to reload subscriptions:", error.message);
             return;

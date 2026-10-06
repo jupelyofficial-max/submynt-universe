@@ -40,7 +40,7 @@ export function SubscriptionStatusPicker({ sub }: { sub: Subscription }) {
       // replays this add afterwards — so don't drop the saved
       // "considering" status for a sign-in that may never complete.
       if (useAuthStore.getState().user) clearStatus(sub.id);
-      useUniverseStore.getState().setAddSubscriptionsModalOpen(true, sub.id);
+      useUniverseStore.getState().setAddSubscriptionsModalOpen(true, sub.id, false, "detail_panel");
       return;
     }
     setStatus(sub.id, value);

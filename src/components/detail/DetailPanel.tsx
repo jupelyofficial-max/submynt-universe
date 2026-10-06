@@ -282,10 +282,24 @@ function DetailContent({ subscriptionId, onClose }: { subscriptionId: string; on
 
       {/* Sticky bottom price + primary CTA */}
       <div className="sticky bottom-0 flex shrink-0 items-center gap-3 border-t border-[#E5E5E5] bg-white px-5 py-3">
-        <div className="shrink-0">
-          <div className="font-display text-lg font-bold leading-none text-black">{formatPrice(sub.priceMonthly, sub.priceLabel)}</div>
-          {sub.priceMonthly !== null && sub.priceMonthly > 0 && <div className="mt-1 text-[11px] text-[#6B6B6B]">per month</div>}
-        </div>
+        {/* Tracked: what this user actually pays, per their own cycle (reads
+            the store, so a plan switch shows here immediately). Otherwise
+            the catalogue's headline price. */}
+        {owned ? (
+          <div className="shrink-0">
+            <div className="font-display text-lg font-bold leading-none text-black">
+              {formatOwnedPrice(ownedPriceAmount(owned), owned.accessType ?? "direct")}
+            </div>
+            {ownedPriceAmount(owned) > 0 && (
+              <div className="mt-1 text-[11px] text-[#6B6B6B]">{cycleSuffix(owned.billing).replace(/^\//, "per ").trim()}</div>
+            )}
+          </div>
+        ) : (
+          <div className="shrink-0">
+            <div className="font-display text-lg font-bold leading-none text-black">{formatPrice(sub.priceMonthly, sub.priceLabel)}</div>
+            {sub.priceMonthly !== null && sub.priceMonthly > 0 && <div className="mt-1 text-[11px] text-[#6B6B6B]">per month</div>}
+          </div>
+        )}
         {ctaHref && (
           <Button
             href={ctaHref}
@@ -549,7 +563,9 @@ function PlansTab({
                     className="flex flex-col items-start rounded-lg border border-[#E5E5E5] bg-white px-3 py-2 text-left hover:border-aurora-500/40 transition-colors cursor-pointer"
                   >
                     <span className="text-xs text-[#6B6B6B]">
-                      {plan.name} · {BILLING_LABELS[plan.billing]}
+                      {plan.name.toLowerCase() === BILLING_LABELS[plan.billing].toLowerCase()
+                        ? plan.name
+                        : `${plan.name} · ${BILLING_LABELS[plan.billing]}`}
                     </span>
                     <span className="text-sm font-semibold text-black">{formatINR(plan.priceMonthly)}</span>
                   </button>

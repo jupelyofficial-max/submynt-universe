@@ -32,7 +32,11 @@ export function PlansSection({ sub }: { sub: Subscription }) {
           const annualSavings = monthlyPlan && plan.name !== monthlyPlan.name ? (monthlyPlan.priceMonthly - plan.priceMonthly) * 12 : 0;
           return (
             <div key={plan.name} className="flex flex-col items-start rounded-lg border border-[#E5E5E5] bg-white px-3 py-2">
-              <span className="text-xs text-[#6B6B6B]">{plan.name} · {BILLING_LABELS[plan.billing]}</span>
+              <span className="text-xs text-[#6B6B6B]">
+                {plan.name.toLowerCase() === BILLING_LABELS[plan.billing].toLowerCase()
+                  ? plan.name
+                  : `${plan.name} · ${BILLING_LABELS[plan.billing]}`}
+              </span>
               <span className="text-sm font-semibold text-black">{formatINR(plan.priceMonthly)}</span>
               {annualSavings > 0 && <span className="mt-0.5 text-[10px] font-medium text-nebula-500">Save {formatINR(annualSavings)}/yr</span>}
             </div>

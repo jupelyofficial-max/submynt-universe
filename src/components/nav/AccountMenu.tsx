@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { useAuthStore } from "@/store/useAuthStore";
-import { createClient } from "@/lib/supabase/client";
 import { signInWithGoogle } from "@/lib/auth/signIn";
+import { signOutAndReset } from "@/lib/auth/signOut";
 
 /** Signed out: a labeled "Sign in" button that calls signInWithOAuth
  * directly — no confirmation modal in between, since that extra step
@@ -50,7 +50,7 @@ function SignInButton() {
   // add/edit actions, so a sign-in started from any of them is reflected
   // on this one visible button. Lands on /my-subscriptions afterwards.
   function handleGoogleSignIn() {
-    void signInWithGoogle();
+    void signInWithGoogle({ source: "nav" });
   }
 
   return (
@@ -138,10 +138,9 @@ function LoggedInMenu({ email, name }: { email: string; name?: string }) {
     router.push(href);
   }
 
-  async function handleSignOut() {
+  function handleSignOut() {
     setOpen(false);
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    void signOutAndReset();
   }
 
   return (

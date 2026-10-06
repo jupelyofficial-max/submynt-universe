@@ -8,8 +8,40 @@ import { usePriceAlertStore } from "@/store/usePriceAlertStore";
 import { useDemandSignalsStore } from "@/store/useDemandSignalsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
-import { consumeGateSignIn } from "@/lib/auth/signIn";
+import { consumeGateSignIn, consumeSignInSource } from "@/lib/auth/signIn";
 import { trackEvent } from "@/lib/events";
+
+const LAST_VISIT_PREFIX = "submynt-last-visit:";
+const VISIT_LOGGED_PREFIX = "submynt-visit-logged:";
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** return_visit, at most once per browser session per signed-in user:
+ * days since this user's previous page load in this browser. The very
+ * first visit here only records the timestamp. Keyed by user id, so one
+ * user's history is never attributed to another on a shared browser. */
+function logReturnVisit(userId: string) {
+  try {
+    const now = Date.now();
+    const last = Number(localStorage.getItem(LAST_VISIT_PREFIX + userId));
+    localStorage.setItem(LAST_VISIT_PREFIX + userId, String(now));
+    if (sessionStorage.getItem(VISIT_LOGGED_PREFIX + userId)) return;
+    sessionStorage.setItem(VISIT_LOGGED_PREFIX + userId, "1");
+    if (last > 0) trackEvent("return_visit", { days_since_last: Math.floor((now - last) / DAY_MS) });
+  } catch {}
+}
+
+/** signin_completed for a sign-in this tab started (see signInWithGoogle),
+ * once — the source marker is consumed here. New = the account was
+ * created by this very sign-in. */
+function logSignInCompleted() {
+  const source = consumeSignInSource();
+  if (!source) return;
+  const user = useAuthStore.getState().user;
+  const created = Date.parse(user?.created_at ?? "");
+  const lastSignIn = Date.parse(user?.last_sign_in_at ?? "");
+  const isNewUser = Number.isFinite(created) && Number.isFinite(lastSignIn) && Math.abs(lastSignIn - created) < 60_000;
+  trackEvent("signin_completed", { source, is_new_user: isNewUser });
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -30,6 +62,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
     usePriceAlertStore.getState().setHydrated();
     useDemandSignalsStore.persist.rehydrate();
     useDemandSignalsStore.getState().setHydrated();
+
+    // /auth/callback sends a failed code exchange here as ?auth_error=1 —
+    // otherwise a silent failure. Log it, surface it on the Sign In
+    // button, and drop the param so a reload doesn't repeat it.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("auth_error")) {
+      consumeSignInSource();
+      trackEvent("signin_failed", { reason: "callback" });
+      useAuthStore.getState().setSignInError("Sign-in didn't complete. Please try again.");
+      url.searchParams.delete("auth_error");
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    }
 
     // Fail open, not closed: if the Supabase env vars aren't set (e.g. not
     // yet added to this deploy target), the rest of the app must still
@@ -62,6 +106,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!authHydrated || !subscriptionsHydrated) return;
     if (userId) {
+      logSignInCompleted();
+      logReturnVisit(userId);
       void useMySubscriptionsStore
         .getState()
         .syncToUser(userId)

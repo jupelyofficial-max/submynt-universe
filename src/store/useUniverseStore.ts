@@ -16,6 +16,8 @@ function toggleInArray<T>(arr: T[], value: T): T[] {
 
 export type DetailTab = "overview" | "plans" | "alternatives";
 
+export type AddFlowEntry = "page_header" | "empty_state" | "saved" | "detail_panel" | "resume" | "bundle";
+
 interface UniverseUIState {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -42,7 +44,15 @@ interface UniverseUIState {
    * state's primary CTA uses this; the modal's own "Add from a bundle"
    * button inside the normal flow reaches the same step without this. */
   addSubscriptionsStartAtBundlePick: boolean;
-  setAddSubscriptionsModalOpen: (v: boolean, preselectId?: string | null, startAtBundlePick?: boolean) => void;
+  /** Which control opened the add flow — the add_flow_opened event's
+   * `entry` prop. */
+  addSubscriptionsEntry: AddFlowEntry | null;
+  setAddSubscriptionsModalOpen: (
+    v: boolean,
+    preselectId?: string | null,
+    startAtBundlePick?: boolean,
+    entry?: AddFlowEntry
+  ) => void;
 
   selectedId: string | null;
   select: (id: string | null) => void;
@@ -85,11 +95,13 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
   isAddSubscriptionsModalOpen: false,
   addSubscriptionsPreselectId: null,
   addSubscriptionsStartAtBundlePick: false,
-  setAddSubscriptionsModalOpen: (v, preselectId = null, startAtBundlePick = false) =>
+  addSubscriptionsEntry: null,
+  setAddSubscriptionsModalOpen: (v, preselectId = null, startAtBundlePick = false, entry) =>
     set({
       isAddSubscriptionsModalOpen: v,
       addSubscriptionsPreselectId: v ? preselectId : null,
       addSubscriptionsStartAtBundlePick: v ? startAtBundlePick : false,
+      addSubscriptionsEntry: v ? entry ?? null : null,
     }),
 
   selectedId: null,

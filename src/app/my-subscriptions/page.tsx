@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -32,6 +32,7 @@ import { useUniverseStore } from "@/store/useUniverseStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSubscriptionsReady } from "@/hooks/useSubscriptionsReady";
 import { consumeResumeIntent } from "@/lib/auth/signIn";
+import { trackEvent } from "@/lib/events";
 import { requireSignIn } from "@/lib/auth/requireSignIn";
 
 const RENEWAL_WINDOW_DAYS = 30;
@@ -82,9 +83,17 @@ export default function MySubscriptionsPage() {
     if (!user || !ready) return;
     const intent = consumeResumeIntent();
     if (intent) {
-      useUniverseStore.getState().setAddSubscriptionsModalOpen(true, intent.preselectId ?? null, intent.startAtBundlePick);
+      useUniverseStore.getState().setAddSubscriptionsModalOpen(true, intent.preselectId ?? null, intent.startAtBundlePick, "resume");
     }
   }, [user, ready]);
+
+  // Once per visit to this page, as soon as the list is trustworthy.
+  const viewLogged = useRef(false);
+  useEffect(() => {
+    if (!ready || viewLogged.current) return;
+    viewLogged.current = true;
+    trackEvent("track_page_viewed", { has_subs: owned.length > 0 });
+  }, [ready, owned.length]);
 
   const items: OwnedItem[] = useMemo(
     () =>
@@ -221,7 +230,7 @@ export default function MySubscriptionsPage() {
               <FileText size={14} />
               Monthly Report
             </Button>
-            <Button size="sm" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true)}>
+            <Button size="sm" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, false, "page_header")}>
               <Plus size={14} />
               Add subscriptions
             </Button>
@@ -453,11 +462,11 @@ function EmptyState() {
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-2 sm:flex-row">
-        <Button className="flex-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, true)}>
+        <Button className="flex-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, true, "empty_state")}>
           <Plus size={14} />
           Add your first subscription
         </Button>
-        <Button variant="outline" className="flex-1" onClick={() => router.push("/explore")}>
+        <Button variant="outline" className="flex-1" style={{ color: "var(--ts-ink-300)" }} onClick={() => router.push("/explore")}>
           <Compass size={14} />
           Browse popular services
         </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Search, Trash2 } from "lucide-react";
 import { ResponsiveSheet } from "@/components/ui/ResponsiveSheet";
@@ -11,10 +11,11 @@ import { BILLING_LABELS } from "@/data/categories";
 import { BUNDLE_CATALOGUE, type BundleCatalogueEntry, type BundleId } from "@/data/bundleCatalogue";
 import { cn, formatOwnedPrice } from "@/lib/utils";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
-import { useUniverseStore } from "@/store/useUniverseStore";
+import { useUniverseStore, type AddFlowEntry } from "@/store/useUniverseStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSubscriptionsReady } from "@/hooks/useSubscriptionsReady";
 import { signInWithGoogle } from "@/lib/auth/signIn";
+import { trackEvent } from "@/lib/events";
 import { ServiceDetailsCard, defaultServiceDetails, type ServiceDetailsValue } from "./ServiceDetailsCard";
 import { BundleConfirmManualStep, BundleConfirmPresetStep, BundlePickStep } from "./BundleFirstSteps";
 
@@ -61,6 +62,7 @@ export function AddSubscriptionsModal() {
   const isOpen = useUniverseStore((s) => s.isAddSubscriptionsModalOpen);
   const preselectId = useUniverseStore((s) => s.addSubscriptionsPreselectId);
   const startAtBundlePick = useUniverseStore((s) => s.addSubscriptionsStartAtBundlePick);
+  const entry = useUniverseStore((s) => s.addSubscriptionsEntry);
   const user = useAuthStore((s) => s.user);
   const authHydrated = useAuthStore((s) => s.hydrated);
   const ready = useSubscriptionsReady();
@@ -84,7 +86,7 @@ export function AddSubscriptionsModal() {
 
   return (
     <ResponsiveSheet open={open} onClose={close} hideHeader desktopVariant="center" widthClassName="w-[560px]" panelVariant="glass">
-      {open && <AddSubscriptionsFlow preselectId={preselectId} startAtBundlePick={startAtBundlePick} onClose={close} />}
+      {open && <AddSubscriptionsFlow preselectId={preselectId} startAtBundlePick={startAtBundlePick} entry={entry} onClose={close} />}
     </ResponsiveSheet>
   );
 }
@@ -92,13 +94,24 @@ export function AddSubscriptionsModal() {
 function AddSubscriptionsFlow({
   preselectId,
   startAtBundlePick,
+  entry,
   onClose,
 }: {
   preselectId: string | null;
   startAtBundlePick: boolean;
+  entry: AddFlowEntry | null;
   onClose: () => void;
 }) {
   const router = useRouter();
+
+  // Mounts once per opening of the flow (see AddSubscriptionsModal), so
+  // this logs once per open; the ref guards React's dev double-effect.
+  const openLogged = useRef(false);
+  useEffect(() => {
+    if (openLogged.current) return;
+    openLogged.current = true;
+    trackEvent("add_flow_opened", { entry: entry ?? "other" });
+  }, [entry]);
   const addOwned = useMySubscriptionsStore((s) => s.add);
   const isOwned = useMySubscriptionsStore((s) => s.isOwned);
 
@@ -121,6 +134,9 @@ function AddSubscriptionsFlow({
   const [presetOverrides, setPresetOverrides] = useState<Record<string, boolean>>({});
   const [manualPicks, setManualPicks] = useState<Record<BundleId, string[]>>({ "airtel-black": [], jio: [], family: [], employer: [] });
   const [bundleAddedCount, setBundleAddedCount] = useState(0);
+  // Which confirmed bundle each bundle-added service came from, so the
+  // final confirm can log bundle_added per bundle.
+  const [bundleOf, setBundleOf] = useState<Record<string, BundleId>>({});
 
   const currentBundle: BundleCatalogueEntry | undefined = BUNDLE_CATALOGUE.find((b) => b.id === selectedBundles[bundleConfirmIndex]);
 
@@ -172,6 +188,7 @@ function AddSubscriptionsFlow({
   function finishBundlePhase(bundles: BundleId[]) {
     const mergedIds: string[] = [];
     const mergedDetails: Record<string, ServiceDetailsValue> = {};
+    const mergedBundleOf: Record<string, BundleId> = {};
     for (const bundleId of bundles) {
       const bundle = BUNDLE_CATALOGUE.find((b) => b.id === bundleId);
       if (!bundle) continue;
@@ -183,10 +200,12 @@ function AddSubscriptionsFlow({
         if (!SUBSCRIPTIONS_BY_ID[serviceId]) continue;
         mergedIds.push(serviceId);
         mergedDetails[serviceId] = bundledServiceDetails(bundle);
+        mergedBundleOf[serviceId] = bundleId;
       }
     }
     setSelectedIds((prev) => [...prev, ...mergedIds.filter((id) => !prev.includes(id))]);
     setDetails((prev) => ({ ...prev, ...mergedDetails }));
+    setBundleOf((prev) => ({ ...prev, ...mergedBundleOf }));
     setBundleAddedCount(mergedIds.length);
     setStep("select");
   }
@@ -206,6 +225,7 @@ function AddSubscriptionsFlow({
   }, [query]);
 
   function toggleSelected(id: string) {
+    trackEvent(selectedIds.includes(id) ? "service_deselected" : "service_selected", { service_id: id });
     setSelectedIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
       return [...prev, id];
@@ -218,6 +238,7 @@ function AddSubscriptionsFlow({
   }
 
   function removeSelected(id: string) {
+    trackEvent("service_deselected", { service_id: id });
     setSelectedIds((prev) => prev.filter((x) => x !== id));
     setDetails((prev) => {
       const next = { ...prev };
@@ -255,6 +276,12 @@ function AddSubscriptionsFlow({
         promoEndDate: entry.promoEndDate,
       });
     }
+    const servicesPerBundle = new Map<BundleId, number>();
+    for (const id of selectedIds) {
+      const bundleId = bundleOf[id];
+      if (bundleId && details[id]) servicesPerBundle.set(bundleId, (servicesPerBundle.get(bundleId) ?? 0) + 1);
+    }
+    for (const [bundleId, count] of servicesPerBundle) trackEvent("bundle_added", { bundle_id: bundleId, service_count: count });
     setAddedCount(selectedIds.length);
     setStep("done");
   }

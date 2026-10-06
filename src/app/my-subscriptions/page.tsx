@@ -226,7 +226,7 @@ export default function MySubscriptionsPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {items.length > 0 && (
-            <Button size="sm" variant="outline" onClick={() => router.push("/report")}>
+            <Button size="sm" variant="outline" style={{ color: "var(--ts-ink-300)" }} onClick={() => router.push("/report")}>
               <FileText size={14} />
               Monthly Report
             </Button>

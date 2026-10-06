@@ -224,18 +224,31 @@ export default function MySubscriptionsPage() {
             </p>
           </div>
         </div>
-        {items.length > 0 && (
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {items.length > 0 && (
             <Button size="sm" variant="outline" onClick={() => router.push("/report")}>
               <FileText size={14} />
               Monthly Report
             </Button>
+          )}
+          {/* Shown signed out too: the add flow's sign-in gate replays it
+              (straight to the bundle picker) once they're back. */}
+          <Button
+            size="sm"
+            variant="outline"
+            style={{ color: "var(--ts-ink-300)" }}
+            onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, true, "bundle")}
+          >
+            <Layers size={14} />
+            Add a bundle
+          </Button>
+          {items.length > 0 && (
             <Button size="sm" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, false, "page_header")}>
               <Plus size={14} />
               Add subscriptions
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {!ready ? (

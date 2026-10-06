@@ -9,9 +9,9 @@ import type { BundleProvider } from "@/types/subscription";
  * why this distinction matters). Bump BUNDLE_CATALOGUE_VERSION on any
  * content change so consumers can tell a stale cached copy apart.
  */
-export const BUNDLE_CATALOGUE_VERSION = 1;
+export const BUNDLE_CATALOGUE_VERSION = 2;
 
-export type BundleId = "airtel-black" | "jio" | "family" | "employer";
+export type BundleId = "airtel-black" | "jio" | "amazon-prime" | "family" | "employer";
 
 export interface BundleIncludedService {
   /** Must be a real id in SUBSCRIPTIONS_BY_ID. */
@@ -39,6 +39,13 @@ export interface BundleCatalogueEntry {
    * preset toggle list. */
   hasPresetList: boolean;
   includedServices: BundleIncludedService[];
+  /** The paid plan the bundle comes with — a real SUBSCRIPTIONS_BY_ID id,
+   * tracked as a Direct row so the bundle's actual cost counts in spend
+   * (the included services stay ₹0). prefillPrice is false where the
+   * catalogue's price for that service isn't this bundle's price (the
+   * "airtel" entry is a prepaid plan, not Airtel Black), so the user
+   * must enter it. Absent for Family/Employer, which have no plan. */
+  plan?: { serviceId: string; prefillPrice: boolean };
 }
 
 export const BUNDLE_CATALOGUE: BundleCatalogueEntry[] = [
@@ -47,6 +54,7 @@ export const BUNDLE_CATALOGUE: BundleCatalogueEntry[] = [
     name: "Airtel Black",
     bundleProvider: "airtel",
     hasPresetList: true,
+    plan: { serviceId: "airtel", prefillPrice: false },
     includedServices: [
       { serviceId: "jiohotstar", standalonePrice: 299 },
       { serviceId: "airtel-xstream", standalonePrice: 149, note: "Included on all Airtel Black tiers" },
@@ -59,11 +67,22 @@ export const BUNDLE_CATALOGUE: BundleCatalogueEntry[] = [
     name: "Jio",
     bundleProvider: "jio",
     hasPresetList: true,
+    plan: { serviceId: "jio", prefillPrice: true },
     includedServices: [
       { serviceId: "jiohotstar", standalonePrice: 299, note: "Plan-dependent — verify against your current Jio plan" },
       { serviceId: "jiosaavn-pro", standalonePrice: 89, note: "Plan-dependent — verify against your current Jio plan" },
       { serviceId: "netflix", standalonePrice: 649, note: "Plan-dependent — only select high-value plans", defaultOn: false },
       { serviceId: "amazon-prime", standalonePrice: 300, note: "Plan-dependent — only select plans", defaultOn: false },
+    ],
+  },
+  {
+    id: "amazon-prime",
+    name: "Amazon Prime",
+    bundleProvider: "amazon",
+    hasPresetList: true,
+    plan: { serviceId: "amazon-prime", prefillPrice: true },
+    includedServices: [
+      { serviceId: "amazon-prime-video", standalonePrice: 299, note: "Included with every Amazon Prime membership" },
     ],
   },
   {

@@ -9,15 +9,16 @@ import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 import { BILLING_LABELS } from "@/data/categories";
 import { BUNDLE_CATALOGUE, type BundleCatalogueEntry, type BundleId } from "@/data/bundleCatalogue";
-import { cn, cycleSuffix, formatOwnedPrice } from "@/lib/utils";
+import { cn, cycleSuffix, formatOwnedPrice, ownedPriceAmount } from "@/lib/utils";
+import type { BillingCycle } from "@/types/subscription";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore, type AddFlowEntry } from "@/store/useUniverseStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSubscriptionsReady } from "@/hooks/useSubscriptionsReady";
 import { signInWithGoogle } from "@/lib/auth/signIn";
 import { trackEvent } from "@/lib/events";
-import { ServiceDetailsCard, defaultServiceDetails, type ServiceDetailsValue } from "./ServiceDetailsCard";
-import { BundleConfirmManualStep, BundleConfirmPresetStep, BundlePickStep } from "./BundleFirstSteps";
+import { ServiceDetailsCard, catalogPriceFor, defaultServiceDetails, type ServiceDetailsValue } from "./ServiceDetailsCard";
+import { BundleConfirmManualStep, BundleConfirmPresetStep, BundlePickStep, BundlePlanRow, type BundlePlanValue } from "./BundleFirstSteps";
 
 type Step = "welcome" | "bundlePick" | "bundleConfirm" | "select" | "details" | "review" | "done";
 const STEP_ORDER: Step[] = ["welcome", "select", "details", "review"];
@@ -114,6 +115,7 @@ function AddSubscriptionsFlow({
   }, [entry]);
   const addOwned = useMySubscriptionsStore((s) => s.add);
   const isOwned = useMySubscriptionsStore((s) => s.isOwned);
+  const ownedList = useMySubscriptionsStore((s) => s.owned);
 
   const [step, setStep] = useState<Step>(startAtBundlePick ? "bundlePick" : preselectId ? "details" : "welcome");
   const [query, setQuery] = useState("");
@@ -132,7 +134,19 @@ function AddSubscriptionsFlow({
   // (see effectivePresetOn) so an already-tracked service still defaults
   // off without needing an upfront init pass over the whole catalogue.
   const [presetOverrides, setPresetOverrides] = useState<Record<string, boolean>>({});
-  const [manualPicks, setManualPicks] = useState<Record<BundleId, string[]>>({ "airtel-black": [], jio: [], family: [], employer: [] });
+  const [manualPicks, setManualPicks] = useState<Record<BundleId, string[]>>({
+    "airtel-black": [],
+    jio: [],
+    "amazon-prime": [],
+    family: [],
+    employer: [],
+  });
+  // Each bundle's own plan (price/cycle) — only explicit edits are stored;
+  // the default comes from planValueFor. planOf maps a plan's service id to
+  // the bundle it was added for, so a re-confirm can update it.
+  const [planOverrides, setPlanOverrides] = useState<Partial<Record<BundleId, BundlePlanValue>>>({});
+  const [planOf, setPlanOf] = useState<Record<string, BundleId>>({});
+  const overlapLogged = useRef(new Set<string>());
   const [bundleAddedCount, setBundleAddedCount] = useState(0);
   // Which confirmed bundle each bundle-added service came from, so the
   // final confirm can log bundle_added per bundle.
@@ -140,7 +154,67 @@ function AddSubscriptionsFlow({
 
   const currentBundle: BundleCatalogueEntry | undefined = BUNDLE_CATALOGUE.find((b) => b.id === selectedBundles[bundleConfirmIndex]);
 
+  // bundle_overlap_shown — once per bundle/service per open of this flow,
+  // when that bundle's confirm screen shows the "you pay directly" note.
+  useEffect(() => {
+    if (step !== "bundleConfirm" || !currentBundle?.hasPresetList) return;
+    for (const item of currentBundle.includedServices) {
+      const owned = ownedList.find((o) => o.subscriptionId === item.serviceId);
+      if (!owned || (owned.accessType ?? "direct") !== "direct") continue;
+      const key = `${currentBundle.id}:${item.serviceId}`;
+      if (overlapLogged.current.has(key)) continue;
+      overlapLogged.current.add(key);
+      trackEvent("bundle_overlap_shown", { bundle_id: currentBundle.id, service_id: item.serviceId, direct_price: owned.priceMonthly });
+    }
+  }, [step, currentBundle, ownedList]);
+
+  function trackedOwned(serviceId: string) {
+    return ownedList.find((o) => o.subscriptionId === serviceId);
+  }
+
+  /** Included services the user already pays for directly → their monthly
+   * equivalent. Shown as a possible overlap and locked off: turning one on
+   * would replace the Direct row with a ₹0 bundled one. */
+  function directPricesFor(bundle: BundleCatalogueEntry): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const item of bundle.includedServices) {
+      const owned = trackedOwned(item.serviceId);
+      if (owned && (owned.accessType ?? "direct") === "direct") out[item.serviceId] = owned.priceMonthly;
+    }
+    return out;
+  }
+
+  /** The bundle's plan as currently entered — catalogue price prefilled
+   * (when the catalogue's price is this bundle's price), else blank. */
+  function planValueFor(bundle: BundleCatalogueEntry): BundlePlanValue {
+    const override = planOverrides[bundle.id];
+    if (override) return override;
+    const sub = bundle.plan ? SUBSCRIPTIONS_BY_ID[bundle.plan.serviceId] : undefined;
+    const prefill = Boolean(sub && bundle.plan?.prefillPrice);
+    const billing: BillingCycle =
+      prefill && sub && catalogPriceFor(sub, "monthly") === null && catalogPriceFor(sub, "annual") !== null ? "annual" : "monthly";
+    return { billing, priceAmount: prefill && sub ? catalogPriceFor(sub, billing) : null };
+  }
+
+  /** Same rule as the per-service form: a cycle switch prefills the
+   * catalogue's price for that cycle (or clears it) — never ×12/÷12. */
+  function setPlanValue(bundle: BundleCatalogueEntry, billing: BillingCycle, priceAmount: number | null) {
+    const current = planValueFor(bundle);
+    let next = priceAmount;
+    if (billing !== current.billing) {
+      const sub = bundle.plan ? SUBSCRIPTIONS_BY_ID[bundle.plan.serviceId] : undefined;
+      next = sub && bundle.plan?.prefillPrice ? catalogPriceFor(sub, billing) : null;
+    }
+    setPlanOverrides((prev) => ({ ...prev, [bundle.id]: { billing, priceAmount: next } }));
+  }
+
+  function planMissing(bundle: BundleCatalogueEntry): boolean {
+    return Boolean(bundle.plan && !trackedOwned(bundle.plan.serviceId) && planValueFor(bundle).priceAmount === null);
+  }
+
   function effectivePresetOn(bundleId: BundleId, serviceId: string, defaultOn: boolean): boolean {
+    const owned = trackedOwned(serviceId);
+    if (owned && (owned.accessType ?? "direct") === "direct") return false;
     const key = `${bundleId}:${serviceId}`;
     if (key in presetOverrides) return presetOverrides[key];
     // Already tracked (e.g. added individually before) — default this
@@ -154,6 +228,8 @@ function AddSubscriptionsFlow({
   }
 
   function togglePresetService(bundleId: BundleId, serviceId: string, defaultOn: boolean) {
+    const owned = trackedOwned(serviceId);
+    if (owned && (owned.accessType ?? "direct") === "direct") return;
     const current = effectivePresetOn(bundleId, serviceId, defaultOn);
     setPresetOverrides((prev) => ({ ...prev, [`${bundleId}:${serviceId}`]: !current }));
   }
@@ -189,6 +265,32 @@ function AddSubscriptionsFlow({
     const mergedIds: string[] = [];
     const mergedDetails: Record<string, ServiceDetailsValue> = {};
     const mergedBundleOf: Record<string, BundleId> = {};
+    const mergedPlanOf: Record<string, BundleId> = {};
+    // Each bundle's own plan first, as a Direct row at the entered price —
+    // that's the bundle's real cost in spend. Skipped if already tracked,
+    // or already picked individually in this flow. Done before included
+    // services, so a plan that's also listed inside another selected
+    // bundle stays Direct at the price the user entered.
+    for (const bundleId of bundles) {
+      const bundle = BUNDLE_CATALOGUE.find((b) => b.id === bundleId);
+      const planId = bundle?.plan?.serviceId;
+      const sub = planId ? SUBSCRIPTIONS_BY_ID[planId] : undefined;
+      if (!bundle?.plan || !planId || !sub || trackedOwned(planId) || mergedDetails[planId]) continue;
+      if (selectedIds.includes(planId) && planOf[planId] !== bundleId) continue;
+      const plan = planValueFor(bundle);
+      mergedIds.push(planId);
+      mergedDetails[planId] = {
+        accessType: "direct",
+        bundleProvider: undefined,
+        planName: bundle.plan.prefillPrice ? sub.plans.find((p) => p.billing === plan.billing)?.name ?? bundle.name : bundle.name,
+        priceAmount: plan.priceAmount,
+        billing: plan.billing,
+        nextRenewal: defaultRenewal(),
+        usageFrequency: undefined,
+        promoEndDate: undefined,
+      };
+      mergedPlanOf[planId] = bundleId;
+    }
     for (const bundleId of bundles) {
       const bundle = BUNDLE_CATALOGUE.find((b) => b.id === bundleId);
       if (!bundle) continue;
@@ -206,6 +308,7 @@ function AddSubscriptionsFlow({
     setSelectedIds((prev) => [...prev, ...mergedIds.filter((id) => !prev.includes(id))]);
     setDetails((prev) => ({ ...prev, ...mergedDetails }));
     setBundleOf((prev) => ({ ...prev, ...mergedBundleOf }));
+    setPlanOf((prev) => ({ ...prev, ...mergedPlanOf }));
     setBundleAddedCount(mergedIds.length);
     setStep("select");
   }
@@ -261,6 +364,23 @@ function AddSubscriptionsFlow({
   }
 
   function handleConfirm() {
+    // Worked out before the adds below change what's "already tracked".
+    const bundleEvents = selectedBundles.map((bundleId) => {
+      const bundle = BUNDLE_CATALOGUE.find((b) => b.id === bundleId);
+      const planId = bundle?.plan?.serviceId;
+      const trackedPlan = planId ? trackedOwned(planId) : undefined;
+      const addedPlan = planId && planOf[planId] === bundleId && selectedIds.includes(planId) ? details[planId] : undefined;
+      return {
+        bundle_id: bundleId,
+        service_count: selectedIds.filter((id) => bundleOf[id] === bundleId && details[id]).length,
+        // Whether the bundle's own plan is tracked once this confirm is
+        // done (already was, or added now) — i.e. its cost is in spend.
+        anchor_tracked: Boolean(trackedPlan || addedPlan),
+        anchor_price: trackedPlan ? ownedPriceAmount(trackedPlan) : addedPlan?.priceAmount ?? null,
+        anchor_billing_cycle: trackedPlan?.billing ?? addedPlan?.billing ?? null,
+        overlap_count: bundle?.hasPresetList ? Object.keys(directPricesFor(bundle)).length : 0,
+      };
+    });
     for (const id of selectedIds) {
       const entry = details[id];
       if (!entry) continue;
@@ -276,12 +396,7 @@ function AddSubscriptionsFlow({
         promoEndDate: entry.promoEndDate,
       });
     }
-    const servicesPerBundle = new Map<BundleId, number>();
-    for (const id of selectedIds) {
-      const bundleId = bundleOf[id];
-      if (bundleId && details[id]) servicesPerBundle.set(bundleId, (servicesPerBundle.get(bundleId) ?? 0) + 1);
-    }
-    for (const [bundleId, count] of servicesPerBundle) trackEvent("bundle_added", { bundle_id: bundleId, service_count: count });
+    for (const props of bundleEvents) trackEvent("bundle_added", props);
     setAddedCount(selectedIds.length);
     setStep("done");
   }
@@ -325,6 +440,16 @@ function AddSubscriptionsFlow({
 
         {step === "bundlePick" && <BundlePickStep selected={selectedBundles} onToggle={toggleBundleSelected} />}
 
+        {step === "bundleConfirm" && currentBundle && currentBundle.plan && SUBSCRIPTIONS_BY_ID[currentBundle.plan.serviceId] && (
+          <div className="ts-theme mb-3 rounded-2xl p-3" style={{ background: "var(--ts-bg)" }}>
+            <BundlePlanRow
+              bundle={currentBundle}
+              tracked={trackedOwned(currentBundle.plan.serviceId)}
+              value={planValueFor(currentBundle)}
+              onChange={(billing, priceAmount) => setPlanValue(currentBundle, billing, priceAmount)}
+            />
+          </div>
+        )}
         {step === "bundleConfirm" && currentBundle && (
           currentBundle.hasPresetList ? (
             <BundleConfirmPresetStep
@@ -339,6 +464,7 @@ function AddSubscriptionsFlow({
                 const item = currentBundle.includedServices.find((x) => x.serviceId === serviceId);
                 togglePresetService(currentBundle.id, serviceId, item?.defaultOn ?? true);
               }}
+              directPrices={directPricesFor(currentBundle)}
             />
           ) : (
             <BundleConfirmManualStep
@@ -504,7 +630,7 @@ function AddSubscriptionsFlow({
             <Button variant="ghost" onClick={() => setStep("bundlePick")}>
               Back
             </Button>
-            <Button onClick={proceedFromBundleConfirm}>
+            <Button onClick={proceedFromBundleConfirm} disabled={Boolean(currentBundle && planMissing(currentBundle))}>
               {bundleConfirmIndex + 1 < selectedBundles.length ? "Next bundle" : "Continue"}
             </Button>
           </>

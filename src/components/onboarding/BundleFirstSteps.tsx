@@ -5,7 +5,8 @@ import { Check, Search } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 import { BUNDLE_CATALOGUE, type BundleCatalogueEntry, type BundleId } from "@/data/bundleCatalogue";
-import { formatINR } from "@/lib/utils";
+import { cycleSuffix, formatINR, formatOwnedPrice, ownedPriceAmount } from "@/lib/utils";
+import type { BillingCycle, OwnedSubscription } from "@/types/subscription";
 
 /** Step 1 — pick which bundles you have, multi-select, "skip" always
  * available. Styled to the Track Subscriptions .ts-theme look. */
@@ -41,7 +42,7 @@ export function BundlePickStep({
               </div>
               <div className="text-xs" style={{ color: "var(--ts-ink-500)" }}>
                 {bundle.hasPresetList
-                  ? `${bundle.includedServices.length} services typically included`
+                  ? `${bundle.includedServices.length} ${bundle.includedServices.length === 1 ? "service" : "services"} typically included`
                   : "You pick what's included"}
               </div>
             </div>
@@ -62,17 +63,94 @@ export function BundlePickStep({
   );
 }
 
-/** Step 2 (preset) — one screen per selected Airtel Black/Jio bundle,
- * default-on toggles per the catalogue (minus anything already tracked,
- * which the caller defaults off before this renders). */
+export interface BundlePlanValue {
+  /** Per `billing` cycle; null = must be entered before continuing. */
+  priceAmount: number | null;
+  billing: BillingCycle;
+}
+
+/** The bundle's own paid plan ("Your Jio plan: ₹___ per month"), shown
+ * above the included services. Already tracked → shown as tracked, with no
+ * input; it won't be added again. */
+export function BundlePlanRow({
+  bundle,
+  tracked,
+  value,
+  onChange,
+}: {
+  bundle: BundleCatalogueEntry;
+  tracked: OwnedSubscription | undefined;
+  value: BundlePlanValue;
+  onChange: (billing: BillingCycle, priceAmount: number | null) => void;
+}) {
+  if (tracked) {
+    const amount = ownedPriceAmount(tracked);
+    return (
+      <div className="rounded-xl p-3 text-sm" style={{ border: "1px solid var(--ts-border)", background: "var(--ts-card)", color: "var(--ts-ink-300)" }}>
+        Your {bundle.name} plan is already tracked
+        {amount > 0 ? ` — ${formatOwnedPrice(amount, tracked.accessType ?? "direct")}${cycleSuffix(tracked.billing)}` : ""}.
+      </div>
+    );
+  }
+  const missing = value.priceAmount === null;
+  return (
+    <div className="rounded-xl p-3" style={{ border: "1px solid var(--ts-border)", background: "var(--ts-card)" }}>
+      <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--ts-ink-300)" }}>
+        Your {bundle.name} plan
+      </label>
+      <div className="flex items-center gap-2">
+        <span className="text-sm" style={{ color: "var(--ts-ink-300)" }}>
+          ₹
+        </span>
+        <input
+          type="number"
+          min={0}
+          value={value.priceAmount ?? ""}
+          onChange={(e) => onChange(value.billing, e.target.value === "" ? null : Number(e.target.value))}
+          placeholder="Enter price"
+          aria-invalid={missing}
+          className="min-w-0 flex-1 rounded-lg px-3 py-2 text-sm outline-none"
+          style={{
+            border: `1px solid ${missing ? "rgba(248,113,113,0.6)" : "var(--ts-border)"}`,
+            background: "var(--ts-bg)",
+            color: "var(--ts-ink-0)",
+          }}
+        />
+        <select
+          value={value.billing}
+          onChange={(e) => onChange(e.target.value as BillingCycle, null)}
+          className="rounded-lg px-2 py-2 text-sm outline-none"
+          style={{ border: "1px solid var(--ts-border)", background: "var(--ts-bg)", color: "var(--ts-ink-0)" }}
+        >
+          <option value="monthly">per month</option>
+          <option value="annual">per year</option>
+        </select>
+      </div>
+      {missing && (
+        <p className="mt-1 text-[11px]" style={{ color: "var(--ts-ink-500)" }}>
+          Enter what you pay for this plan — it counts toward your spend; the services below stay ₹0.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Step 2 (preset) — one screen per selected preset bundle, default-on
+ * toggles per the catalogue (minus anything already tracked, which the
+ * caller defaults off before this renders). `directPrices` = included
+ * services the user already pays for directly (monthly equivalent): those
+ * get an overlap note and can't be toggled on here, so their Direct row is
+ * never overwritten by a ₹0 bundled one. */
 export function BundleConfirmPresetStep({
   bundle,
   toggles,
   onToggleService,
+  directPrices,
 }: {
   bundle: BundleCatalogueEntry;
   toggles: Record<string, boolean>;
   onToggleService: (serviceId: string) => void;
+  directPrices: Record<string, number>;
 }) {
   return (
     <div className="ts-theme flex flex-col gap-2 rounded-2xl p-3" style={{ background: "var(--ts-bg)" }}>
@@ -83,12 +161,15 @@ export function BundleConfirmPresetStep({
         const sub = SUBSCRIPTIONS_BY_ID[item.serviceId];
         if (!sub) return null;
         const on = toggles[item.serviceId] ?? false;
+        const directPrice = directPrices[item.serviceId];
+        const paysDirectly = directPrice !== undefined;
         return (
+          <div key={item.serviceId} className="flex flex-col gap-1">
           <button
-            key={item.serviceId}
             type="button"
             onClick={() => onToggleService(item.serviceId)}
-            className="flex items-center gap-3 rounded-xl p-2.5 text-left transition-colors cursor-pointer"
+            disabled={paysDirectly}
+            className="flex items-center gap-3 rounded-xl p-2.5 text-left transition-colors cursor-pointer disabled:cursor-default"
             style={
               on
                 ? { border: "1px solid var(--ts-mint-500)", background: "var(--ts-mint-tint)" }
@@ -122,6 +203,13 @@ export function BundleConfirmPresetStep({
               {on && <Check size={12} />}
             </div>
           </button>
+          {paysDirectly && (
+            <p className="px-1 text-[11px]" style={{ color: "var(--ts-amber)" }}>
+              {directPrice > 0 ? `You pay ${formatINR(directPrice)}/month for ${sub.name} directly` : `You track ${sub.name} as paid directly`}
+              {" "}— it may be included with your {bundle.name} plan. Check your plan.
+            </p>
+          )}
+          </div>
         );
       })}
     </div>

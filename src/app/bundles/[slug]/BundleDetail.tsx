@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
@@ -9,6 +8,8 @@ import { SUBSCRIPTIONS_BY_ID, getPriceForward } from "@/data/subscriptions";
 import type { LifestyleBundle } from "@/data/bundles";
 import { formatINR, formatPrice } from "@/lib/utils";
 import { useUniverseStore } from "@/store/useUniverseStore";
+import { BundleBanner } from "@/components/bundles/BundleBanner";
+import { bundleSeparateLabel } from "@/lib/bundlePricing";
 
 export function BundleDetail({ bundle }: { bundle: LifestyleBundle }) {
   const select = useUniverseStore((s) => s.select);
@@ -27,12 +28,17 @@ export function BundleDetail({ bundle }: { bundle: LifestyleBundle }) {
             route's LCP element, hence `priority`. Real 2172x724 intrinsic
             size (not `fill`) so w-full/h-auto scales it responsively
             without a wrapping aspect-ratio box. */}
-        <Image src={bundle.image} alt={bundle.title} width={2172} height={724} sizes="100vw" priority className="h-auto w-full" />
+        <BundleBanner bundle={bundle} sizes="100vw" priority intrinsic />
       </div>
 
       <div className="mt-6">
         <h1 className="font-display text-2xl font-bold text-ink-0">{bundle.title}</h1>
         <p className="mt-1 max-w-2xl text-sm text-ink-400">{bundle.tagline}</p>
+        {/* There's no bundle price yet — this is the honest number: what
+            these services cost bought one by one (cheapest plan each). */}
+        <p className="mt-3 text-sm text-ink-300">
+          Bought separately: <span className="font-semibold text-ink-0">{bundleSeparateLabel(bundle)}</span>
+        </p>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

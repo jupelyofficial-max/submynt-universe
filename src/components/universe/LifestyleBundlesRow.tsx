@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { LIFESTYLE_BUNDLES, NOT_SURE_BUNDLE_IMAGE } from "@/data/bundles";
+import { LIFESTYLE_BUNDLES, NOT_SURE_BUNDLE_IMAGE, type LifestyleBundle } from "@/data/bundles";
+import { BundleBanner } from "@/components/bundles/BundleBanner";
 
 // All 5 banners share the same real pixel dimensions (2172x724, i.e. 3:1).
 // Every breakpoint uses that same 3:1 ratio, so object-cover fills every
@@ -13,8 +14,8 @@ import { LIFESTYLE_BUNDLES, NOT_SURE_BUNDLE_IMAGE } from "@/data/bundles";
 // handwritten annotation off entirely at the bottom (confirmed via
 // screenshot). 3:1 everywhere trades some extra mobile height for
 // guaranteed zero cropping of baked-in text/icons.
-const CARDS: { key: string; image: string; alt: string; href: string }[] = [
-  ...LIFESTYLE_BUNDLES.map((b) => ({ key: b.slug, image: b.image, alt: b.title, href: `/bundles/${b.slug}` })),
+const CARDS: { key: string; image: string; alt: string; href: string; bundle?: LifestyleBundle }[] = [
+  ...LIFESTYLE_BUNDLES.map((b) => ({ key: b.slug, image: b.image, alt: b.title, href: `/bundles/${b.slug}`, bundle: b })),
   { key: "not-sure", image: NOT_SURE_BUNDLE_IMAGE, alt: "Not sure which bundle is right for you?", href: "/explore" },
 ];
 
@@ -35,7 +36,11 @@ export function LifestyleBundlesRow() {
               {/* next/image: these PNGs are ~1.7MB full-size; below-the-fold
                   here so this is really about total page weight, not LCP —
                   lazy by default (no `priority`), auto-resized + WebP/AVIF. */}
-              <Image src={card.image} alt={card.alt} fill sizes="(max-width: 639px) 100vw, 50vw" className="object-cover" />
+              {card.bundle ? (
+                <BundleBanner bundle={card.bundle} sizes="(max-width: 639px) 100vw, 50vw" />
+              ) : (
+                <Image src={card.image} alt={card.alt} fill sizes="(max-width: 639px) 100vw, 50vw" className="object-cover" />
+              )}
             </Link>
           ))}
         </div>

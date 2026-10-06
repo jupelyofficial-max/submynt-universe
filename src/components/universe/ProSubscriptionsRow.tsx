@@ -2,13 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { NOT_SURE_BUNDLE_IMAGE, PRO_BUNDLES } from "@/data/bundles";
+import { NOT_SURE_BUNDLE_IMAGE, PRO_BUNDLES, type LifestyleBundle } from "@/data/bundles";
+import { BundleBanner } from "@/components/bundles/BundleBanner";
 
 // Mirrors LifestyleBundlesRow.tsx exactly (same banner pixel dimensions,
 // same 2x2 grid, sizing, spacing and responsive behavior) — see that
 // file's comment for the aspect-ratio/object-cover rationale.
-const CARDS: { key: string; image: string; alt: string; href: string }[] = [
-  ...PRO_BUNDLES.map((b) => ({ key: b.slug, image: b.image, alt: b.title, href: `/bundles/${b.slug}` })),
+const CARDS: { key: string; image: string; alt: string; href: string; bundle?: LifestyleBundle }[] = [
+  ...PRO_BUNDLES.map((b) => ({ key: b.slug, image: b.image, alt: b.title, href: `/bundles/${b.slug}`, bundle: b })),
   { key: "not-sure", image: NOT_SURE_BUNDLE_IMAGE, alt: "Not sure which bundle is right for you?", href: "/explore" },
 ];
 
@@ -28,7 +29,11 @@ export function ProSubscriptionsRow() {
             >
               {/* next/image: same rationale as LifestyleBundlesRow — ~1.7MB
                   PNGs, below the fold, lazy by default, auto-resized. */}
-              <Image src={card.image} alt={card.alt} fill sizes="(max-width: 639px) 100vw, 50vw" className="object-cover" />
+              {card.bundle ? (
+                <BundleBanner bundle={card.bundle} sizes="(max-width: 639px) 100vw, 50vw" />
+              ) : (
+                <Image src={card.image} alt={card.alt} fill sizes="(max-width: 639px) 100vw, 50vw" className="object-cover" />
+              )}
             </Link>
           ))}
         </div>

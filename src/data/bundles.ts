@@ -3,8 +3,10 @@
  * src/data/subscriptions.ts; an id with no real catalog match is left
  * out rather than fabricated (e.g. "Apple TV+" isn't in the catalog —
  * only Apple Music/Arcade are — so it's omitted from Family below).
- * Bundle pricing/savings copy lives on the banner image itself — this
- * file never restates or recomputes it.
+ * The banners also have a "From ₹X/month · Save up to N%" block baked
+ * into their pixels; no real bundle price exists behind those numbers, so
+ * BundleBanner covers that block with the computed "bought separately"
+ * total (lib/bundlePricing.ts) — see bakedPriceClaim below.
  *
  * NOTE: as of the 2026-09-19 update, these ids intentionally no longer
  * match the icon row baked into each banner PNG's pixels (the images
@@ -18,11 +20,15 @@ export interface LifestyleBundle {
   image: string;
   /** Real SUBSCRIPTIONS_BY_ID keys, verified against the banner artwork. */
   subscriptionIds: string[];
+  /** The banner PNG has a hard-coded "From ₹X/month · Save up to N%" block
+   * in its bottom-right corner, which BundleBanner covers. */
+  bakedPriceClaim?: boolean;
 }
 
 export const LIFESTYLE_BUNDLES: LifestyleBundle[] = [
   {
     slug: "student-essentials",
+    bakedPriceClaim: true,
     title: "Student Bundle",
     tagline: "Everything you need to study, learn, create and stay ahead.",
     image: "/bundles/student-bundle.png",
@@ -30,6 +36,7 @@ export const LIFESTYLE_BUNDLES: LifestyleBundle[] = [
   },
   {
     slug: "working-professional",
+    bakedPriceClaim: true,
     title: "Working Professional Bundle",
     tagline: "Essential tools for productivity, communication, AI and career growth.",
     image: "/bundles/working-professional-bundle.png",
@@ -37,6 +44,7 @@ export const LIFESTYLE_BUNDLES: LifestyleBundle[] = [
   },
   {
     slug: "family-bundle",
+    bakedPriceClaim: true,
     title: "Family Bundle",
     tagline: "Entertainment, learning and everyday digital services for the whole family.",
     image: "/bundles/family-bundle.png",
@@ -55,6 +63,7 @@ export const NOT_SURE_BUNDLE_IMAGE = "/bundles/find-your-bundle.png";
 export const PRO_BUNDLES: LifestyleBundle[] = [
   {
     slug: "genz-bundle",
+    bakedPriceClaim: true,
     title: "Gen Z Bundle",
     tagline: "All the apps you love, in one bundle for a smarter, brighter you.",
     image: "/bundles/genz-bundle.png",
@@ -62,6 +71,7 @@ export const PRO_BUNDLES: LifestyleBundle[] = [
   },
   {
     slug: "couple-bundle",
+    bakedPriceClaim: true,
     title: "Couple Bundle",
     tagline: "All the apps you both love, in one bundle for a more connected you.",
     image: "/bundles/couple-bundle.png",

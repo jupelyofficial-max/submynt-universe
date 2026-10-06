@@ -22,7 +22,7 @@ import { VERIFICATION_BY_ID } from "@/data/verification";
 import { computeBestFor, getProviderUrl, rankAlternatives } from "@/lib/subscriptionIntelligence";
 import { getRecommendation } from "@/lib/recommendations";
 import { canClaimSavings } from "@/lib/verification/claims";
-import { cn, formatDate, formatINR, formatOwnedPrice, formatPrice } from "@/lib/utils";
+import { cn, cycleSuffix, formatDate, formatINR, formatOwnedPrice, formatPrice, ownedPriceAmount, planCycleAmount } from "@/lib/utils";
 import { BILLING_LABELS } from "@/data/categories";
 import { bundleOptionsFor } from "@/components/onboarding/ServiceDetailsCard";
 import { computeSubmyntScore } from "@/lib/submyntScore";
@@ -410,7 +410,10 @@ function OverviewTab({
               Your subscription
             </h4>
             <div className="grid grid-cols-2 gap-2">
-              <FactTile label="You pay" value={formatOwnedPrice(owned.priceMonthly, owned.accessType ?? "direct")} />
+              <FactTile
+                label="You pay"
+                value={`${formatOwnedPrice(ownedPriceAmount(owned), owned.accessType ?? "direct")}${ownedPriceAmount(owned) > 0 ? cycleSuffix(owned.billing) : ""}`}
+              />
               <FactTile label="Billing" value={BILLING_LABELS[owned.billing]} />
               <FactTile label="Next renewal" value={formatDate(owned.nextRenewal)} />
               <FactTile
@@ -499,7 +502,7 @@ function PlansTab({
   owned: ReturnType<typeof useMySubscriptionsStore.getState>["owned"][number] | undefined;
   switchingPlan: boolean;
   setSwitchingPlan: (fn: (v: boolean) => boolean) => void;
-  switchPlan: (ownedId: string, plan: { planName: string; priceMonthly: number; billing: BillingCycle }) => void;
+  switchPlan: (ownedId: string, plan: { planName: string; priceAmount: number; billing: BillingCycle }) => void;
   removeOwned: ReturnType<typeof useMySubscriptionsStore.getState>["remove"];
 }) {
   return (
@@ -538,7 +541,7 @@ function PlansTab({
                     onClick={() => {
                       switchPlan(owned.ownedId, {
                         planName: plan.name,
-                        priceMonthly: plan.priceMonthly,
+                        priceAmount: planCycleAmount(plan),
                         billing: plan.billing,
                       });
                       setSwitchingPlan(() => false);

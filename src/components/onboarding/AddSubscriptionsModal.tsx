@@ -9,7 +9,7 @@ import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
 import { BILLING_LABELS } from "@/data/categories";
 import { BUNDLE_CATALOGUE, type BundleCatalogueEntry, type BundleId } from "@/data/bundleCatalogue";
-import { cn, formatOwnedPrice } from "@/lib/utils";
+import { cn, cycleSuffix, formatOwnedPrice } from "@/lib/utils";
 import { useMySubscriptionsStore } from "@/store/useMySubscriptionsStore";
 import { useUniverseStore, type AddFlowEntry } from "@/store/useUniverseStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -50,7 +50,7 @@ function bundledServiceDetails(bundle: BundleCatalogueEntry): ServiceDetailsValu
     accessType: bundle.id === "family" ? "family" : "bundled",
     bundleProvider: bundle.bundleProvider,
     planName: "Bundled",
-    priceMonthly: 0,
+    priceAmount: 0,
     billing: "monthly",
     nextRenewal: defaultRenewal(),
     usageFrequency: undefined,
@@ -267,7 +267,7 @@ function AddSubscriptionsFlow({
       addOwned({
         subscriptionId: id,
         planName: entry.planName || SUBSCRIPTIONS_BY_ID[id]?.name || "Plan",
-        priceMonthly: entry.priceMonthly,
+        priceAmount: entry.priceAmount ?? 0,
         billing: entry.billing,
         nextRenewal: entry.nextRenewal,
         accessType: entry.accessType,
@@ -449,8 +449,8 @@ function AddSubscriptionsFlow({
                     </div>
                   </div>
                   <div className="shrink-0 text-right text-sm font-semibold text-ink-0">
-                    {formatOwnedPrice(value.priceMonthly, value.accessType)}
-                    {value.priceMonthly > 0 && "/mo"}
+                    {formatOwnedPrice(value.priceAmount ?? 0, value.accessType)}
+                    {(value.priceAmount ?? 0) > 0 && cycleSuffix(value.billing)}
                   </div>
                   <button
                     onClick={() => removeSelected(id)}
@@ -522,7 +522,11 @@ function AddSubscriptionsFlow({
             <Button variant="ghost" onClick={() => setStep("select")}>
               Back
             </Button>
-            <Button onClick={() => setStep("review")}>Review</Button>
+            {/* A cycle the catalogue has no price for leaves the amount
+                blank — it must be entered before review. */}
+            <Button onClick={() => setStep("review")} disabled={selectedIds.some((id) => details[id]?.priceAmount === null)}>
+              Review
+            </Button>
           </>
         )}
         {step === "review" && (

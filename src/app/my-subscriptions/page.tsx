@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ScoreRing } from "@/components/track/ScoreRing";
 import { SUBSCRIPTIONS_BY_ID, potentialSavingsMonthly } from "@/data/subscriptions";
-import { daysUntil, formatDate, formatINR, formatOwnedPrice } from "@/lib/utils";
+import { cycleSuffix, daysUntil, formatDate, formatINR, formatOwnedPrice, ownedPriceAmount } from "@/lib/utils";
 import { computeSubmyntScore, type Recommendation } from "@/lib/submyntScore";
 import { computeMonthlySpend, directItemsOf, type OwnedItem } from "@/lib/subscriptionStats";
 import { findDuplicateCategories, groupByBundleProvider } from "@/lib/bundleIntelligence";
@@ -330,11 +330,11 @@ export default function MySubscriptionsPage() {
                     </div>
                     <div className="shrink-0 text-right">
                       <div className="ts-tabular text-sm font-semibold" style={{ color: "var(--ts-ink-0)" }}>
-                        {formatOwnedPrice(o.priceMonthly, accessType)}
+                        {formatOwnedPrice(ownedPriceAmount(o), accessType)}
                       </div>
-                      {o.priceMonthly > 0 ? (
+                      {ownedPriceAmount(o) > 0 ? (
                         <div className="text-[11px]" style={{ color: "var(--ts-ink-500)" }}>
-                          /month
+                          {cycleSuffix(o.billing)}
                         </div>
                       ) : (
                         accessType !== "direct" && (

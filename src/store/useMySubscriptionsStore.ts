@@ -5,11 +5,13 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/useAuthStore";
 import { trackEvent } from "@/lib/events";
 import { SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
+import { monthlyEquivalent, ownedPriceAmount } from "@/lib/utils";
 
 interface AddInput {
   subscriptionId: string;
   planName: string;
-  priceMonthly: number;
+  /** Charged per `billing` cycle — see OwnedSubscription.priceAmount. */
+  priceAmount: number;
   billing: BillingCycle;
   nextRenewal: string;
   /** Set true when this add is triggered by the top-of-panel Heart button
@@ -51,7 +53,7 @@ interface MySubscriptionsState {
   updateBundleProvider: (ownedId: string, bundleProvider: BundleProvider | undefined) => void;
   /** Switches an entry's plan (DetailPanel's "Choose a plan") — writes only
    * the plan fields, leaving kept/access type/bundle/usage/promo intact. */
-  updatePlan: (ownedId: string, plan: { planName: string; priceMonthly: number; billing: BillingCycle }) => void;
+  updatePlan: (ownedId: string, plan: { planName: string; priceAmount: number; billing: BillingCycle }) => void;
   isOwned: (subscriptionId: string) => boolean;
   getOwned: (subscriptionId: string) => OwnedSubscription | undefined;
   /** Called once on sign-in (see providers.tsx): merges whatever was
@@ -73,6 +75,9 @@ function rowToOwned(row: {
   subscription_id: string;
   plan_name: string | null;
   price_monthly: number | null;
+  /** Null only on a row from before the price_amount backfill. */
+  price_amount?: number | null;
+  currency?: string | null;
   billing: string | null;
   next_renewal: string | null;
   added_at: string;
@@ -82,12 +87,16 @@ function rowToOwned(row: {
   usage_frequency: string | null;
   promo_end_date: string | null;
 }): OwnedSubscription {
+  const billing = (row.billing ?? "monthly") as BillingCycle;
+  const priceAmount = row.price_amount ?? ownedPriceAmount({ priceMonthly: row.price_monthly ?? 0, billing });
   return {
     ownedId: row.subscription_id,
     subscriptionId: row.subscription_id,
     planName: row.plan_name ?? "",
-    priceMonthly: row.price_monthly ?? 0,
-    billing: (row.billing ?? "monthly") as BillingCycle,
+    priceAmount,
+    currency: row.currency ?? "INR",
+    priceMonthly: monthlyEquivalent(priceAmount, billing),
+    billing,
     nextRenewal: row.next_renewal ?? "",
     addedAt: row.added_at,
     kept: row.kept,
@@ -101,11 +110,17 @@ function rowToOwned(row: {
 }
 
 function ownedToRow(userId: string, o: OwnedSubscription | AddInput) {
+  // A legacy local entry (being migrated) may predate priceAmount.
+  const priceAmount = "priceMonthly" in o ? ownedPriceAmount(o) : o.priceAmount;
   return {
     user_id: userId,
     subscription_id: o.subscriptionId,
     plan_name: o.planName,
-    price_monthly: o.priceMonthly,
+    price_amount: priceAmount,
+    currency: ("currency" in o && o.currency) || "INR",
+    // Still written (as the monthly equivalent) until the column is
+    // dropped in a later change, so a rollback keeps working.
+    price_monthly: monthlyEquivalent(priceAmount, o.billing),
     billing: o.billing,
     next_renewal: o.nextRenewal || null,
     kept: o.kept ?? false,
@@ -173,14 +188,22 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           set((state) => ({
             owned: [
               ...state.owned.filter((o) => o.subscriptionId !== input.subscriptionId),
-              { ownedId, addedAt: new Date().toISOString(), ...input, accessType },
+              {
+                ownedId,
+                addedAt: new Date().toISOString(),
+                ...input,
+                currency: "INR",
+                priceMonthly: monthlyEquivalent(input.priceAmount, input.billing),
+                accessType,
+              },
             ],
           }));
           trackEvent("subscription_added", {
             service_id: input.subscriptionId,
             plan_id: planIdFor(input.subscriptionId, input.planName),
-            price: input.priceMonthly,
+            price: input.priceAmount,
             billing_cycle: input.billing,
+            currency: "INR",
           });
           if (userId) {
             createClient()
@@ -282,18 +305,25 @@ export const useMySubscriptionsStore = create<MySubscriptionsState>()(
           if (!entry) return;
           const fieldsChanged = [
             entry.planName !== plan.planName && "plan_name",
-            entry.priceMonthly !== plan.priceMonthly && "price",
+            ownedPriceAmount(entry) !== plan.priceAmount && "price",
             entry.billing !== plan.billing && "billing_cycle",
           ].filter((f): f is string => Boolean(f));
           if (fieldsChanged.length === 0) return;
           set((state) => ({
-            owned: state.owned.map((o) => (o.ownedId === ownedId ? { ...o, ...plan } : o)),
+            owned: state.owned.map((o) =>
+              o.ownedId === ownedId ? { ...o, ...plan, priceMonthly: monthlyEquivalent(plan.priceAmount, plan.billing) } : o
+            ),
           }));
           trackEvent("subscription_edited", { service_id: entry.subscriptionId, fields_changed: fieldsChanged });
           if (userId) {
             createClient()
               .from("owned_subscriptions")
-              .update({ plan_name: plan.planName, price_monthly: plan.priceMonthly, billing: plan.billing })
+              .update({
+                plan_name: plan.planName,
+                price_amount: plan.priceAmount,
+                price_monthly: monthlyEquivalent(plan.priceAmount, plan.billing),
+                billing: plan.billing,
+              })
               .eq("user_id", userId)
               .eq("subscription_id", entry.subscriptionId)
               .then(({ error }) => {

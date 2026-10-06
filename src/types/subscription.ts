@@ -124,6 +124,14 @@ export interface OwnedSubscription {
   ownedId: string;
   subscriptionId: string;
   planName: string;
+  /** What's charged per `billing` cycle (per month for monthly, per year
+   * for annual) — the source of truth. Absent only on a legacy local entry
+   * saved before this field existed; read it via ownedPriceAmount(). */
+  priceAmount?: number;
+  /** ISO 4217; every entry is 'INR' today. */
+  currency?: string;
+  /** Monthly equivalent of priceAmount (annual ÷ 12), derived — what spend
+   * totals sum. Never entered directly. */
   priceMonthly: number;
   billing: BillingCycle;
   nextRenewal: string;

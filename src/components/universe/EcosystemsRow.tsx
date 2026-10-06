@@ -1,44 +1,52 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
+import { ECOSYSTEMS, ecosystemServices, type EcosystemId } from "@/data/ecosystems";
+import { catalogPriceLabel, cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/events";
 import { useUniverseStore } from "@/store/useUniverseStore";
 
-// Real logo assets in public/ecosystems/ (see chat) — not recreated here.
-// Clicking a brand searches the live catalog for it, reusing the same
-// substring-match search (matchesSearch in filterSubscriptions.ts) the
-// search bar already uses, so results are always real catalog entries
-// (e.g. "Google" surfaces Google AI Pro + Google One), never a fabricated
-// per-brand listing.
-const ECOSYSTEMS = [
-  { name: "Google", logo: "/ecosystems/google.png" },
-  { name: "Microsoft", logo: "/ecosystems/microsoft.png" },
-  { name: "Apple", logo: "/ecosystems/apple.png" },
-  { name: "Adobe", logo: "/ecosystems/adobe.png" },
-  { name: "Amazon", logo: "/ecosystems/amazon.png" },
-];
+// Only brands with at least this many catalogue subscriptions are shown —
+// a "family" of one isn't an ecosystem.
+const MIN_SERVICES = 2;
 
 export function EcosystemsRow() {
-  const searchQuery = useUniverseStore((s) => s.searchQuery);
-  const setSearchQuery = useUniverseStore((s) => s.setSearchQuery);
+  const select = useUniverseStore((s) => s.select);
+  const [openId, setOpenId] = useState<EcosystemId | null>(null);
 
-  function openEcosystem(name: string) {
-    setSearchQuery(searchQuery.toLowerCase() === name.toLowerCase() ? "" : name);
+  const ecosystems = ECOSYSTEMS.map((eco) => ({ ...eco, services: ecosystemServices(eco) })).filter(
+    (eco) => eco.services.length >= MIN_SERVICES
+  );
+  const open = ecosystems.find((eco) => eco.id === openId);
+
+  // Clicking a brand opens its strip below; clicking it again closes it,
+  // clicking another switches to that one.
+  function toggle(id: EcosystemId) {
+    if (openId === id) {
+      setOpenId(null);
+      return;
+    }
+    setOpenId(id);
+    trackEvent("ecosystem_opened", { brand: id });
   }
+
+  if (ecosystems.length === 0) return null;
 
   return (
     <div className="px-4 pb-2 pt-5 lg:px-8">
       <div className="mx-auto max-w-[92rem]">
         <h2 className="mb-3 text-lg font-semibold text-ink-0">Subscription Ecosystems</h2>
         <div className="flex items-center justify-center gap-4 overflow-x-auto no-scrollbar pb-1 sm:gap-7">
-          {ECOSYSTEMS.map((eco) => {
-            const active = searchQuery.toLowerCase() === eco.name.toLowerCase();
+          {ecosystems.map((eco) => {
+            const active = eco.id === openId;
             return (
               <button
-                key={eco.name}
+                key={eco.id}
                 type="button"
-                onClick={() => openEcosystem(eco.name)}
-                aria-pressed={active}
+                onClick={() => toggle(eco.id)}
+                aria-expanded={active}
                 aria-label={`${eco.name} subscriptions`}
                 className="group flex shrink-0 flex-col items-center gap-2 cursor-pointer"
               >
@@ -69,6 +77,29 @@ export function EcosystemsRow() {
             );
           })}
         </div>
+
+        {/* The open brand's subscriptions; a card opens its detail panel in place. */}
+        {open && (
+          <div className="mt-4">
+            <p className="mb-2 text-sm font-medium text-ink-300">{open.name} subscriptions</p>
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+              {open.services.map((sub) => (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => select(sub.id)}
+                  className="flex w-60 shrink-0 items-center gap-3 rounded-2xl border border-black/10 bg-void-900 p-3 text-left transition-colors hover:border-black/20 cursor-pointer"
+                >
+                  <SubscriptionLogo subscription={sub} size="sm" />
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-ink-0">{sub.name}</div>
+                    <div className="truncate text-xs text-ink-500">{catalogPriceLabel(sub)}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

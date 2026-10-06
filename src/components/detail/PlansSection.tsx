@@ -1,6 +1,6 @@
 import { BILLING_LABELS } from "@/data/categories";
 import { getPriceForward } from "@/data/subscriptions";
-import { formatINR } from "@/lib/utils";
+import { cycleSuffix, formatINR, planCycleAmount } from "@/lib/utils";
 import type { Subscription } from "@/types/subscription";
 
 /** "What does it really cost?" — capability 5. A plan grid with an
@@ -37,7 +37,12 @@ export function PlansSection({ sub }: { sub: Subscription }) {
                   ? plan.name
                   : `${plan.name} · ${BILLING_LABELS[plan.billing]}`}
               </span>
-              <span className="text-sm font-semibold text-black">{formatINR(plan.priceMonthly)}</span>
+              {/* What the plan charges per its own cycle (₹1,500/year), not
+                  the catalogue's monthly equivalent — same as the switch-plan cards. */}
+              <span className="text-sm font-semibold text-black">
+                {formatINR(planCycleAmount(plan))}
+                {planCycleAmount(plan) > 0 && cycleSuffix(plan.billing)}
+              </span>
               {annualSavings > 0 && <span className="mt-0.5 text-[10px] font-medium text-nebula-500">Save {formatINR(annualSavings)}/yr</span>}
             </div>
           );

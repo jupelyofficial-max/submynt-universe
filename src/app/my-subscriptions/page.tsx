@@ -221,14 +221,16 @@ export default function MySubscriptionsPage() {
                         {sub.name}
                       </div>
                       <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs" style={{ color: "var(--ts-ink-500)" }}>
-                        <span className="truncate">
-                          {/* Plan name is dropped on phones so the date fits beside a badge. */}
-                          {o.planName && <span className="hidden sm:inline">{o.planName} · </span>}
-                          Renews {formatDate(o.nextRenewal)}
-                        </span>
+                        {/* The date never shrinks: the plan name (hidden on
+                            phones) and the badge give way first, truncating
+                            with an ellipsis. */}
+                        {o.planName && <span className="hidden min-w-0 truncate sm:inline">{o.planName} ·</span>}
+                        <span className="shrink-0 whitespace-nowrap">Renews {formatDate(o.nextRenewal)}</span>
                         {badge && (
-                          <span className="shrink-0">
-                            <Badge tone={badge.tone}>{badge.label}</Badge>
+                          <span className="min-w-0 max-w-[10rem] sm:max-w-[16rem]">
+                            <Badge tone={badge.tone} className="block max-w-full truncate" title={badge.label}>
+                              {badge.label}
+                            </Badge>
                           </span>
                         )}
                       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, planCycleAmount } from "@/lib/utils";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import type { AccessType, BillingCycle, BundleProvider, Subscription, UsageFrequency } from "@/types/subscription";
 
@@ -49,7 +49,9 @@ export interface ServiceDetailsValue {
   accessType: AccessType;
   bundleProvider?: BundleProvider;
   planName: string;
-  priceMonthly: number;
+  /** Charged per `billing` cycle (₹ per month / ₹ per year). null = not
+   * known for this cycle yet; the user must enter it before continuing. */
+  priceAmount: number | null;
   billing: BillingCycle;
   /** yyyy-mm-dd, matches the native date input's value format. */
   nextRenewal: string;
@@ -61,16 +63,28 @@ export interface ServiceDetailsValue {
   promoEndDate?: string;
 }
 
+/** The catalogue's own price for `billing` (per that cycle), or null when
+ * the catalogue doesn't list one — never derived by ×12 or ÷12. */
+export function catalogPriceFor(sub: Subscription, billing: BillingCycle): number | null {
+  const plan = sub.plans.find((p) => p.billing === billing);
+  if (plan) return planCycleAmount(plan);
+  if (billing === "monthly" && sub.billing.includes("monthly") && sub.priceMonthly !== null) return sub.priceMonthly;
+  return null;
+}
+
 export function defaultServiceDetails(sub: Subscription): ServiceDetailsValue {
-  const plan = sub.plans[0];
+  // Start on whichever flow cycle the catalogue actually prices (monthly
+  // first), so the prefilled amount always matches the selected cycle.
+  const billing = FLOW_BILLING_OPTIONS.map((o) => o.value).find((b) => catalogPriceFor(sub, b) !== null) ?? "monthly";
+  const plan = sub.plans.find((p) => p.billing === billing) ?? sub.plans[0];
   const renewal = new Date();
   renewal.setDate(renewal.getDate() + 30);
   return {
     accessType: "direct",
     bundleProvider: undefined,
     planName: plan?.name ?? "",
-    priceMonthly: plan?.priceMonthly ?? sub.priceMonthly ?? 0,
-    billing: "monthly",
+    priceAmount: catalogPriceFor(sub, billing),
+    billing,
     nextRenewal: renewal.toISOString().slice(0, 10),
     usageFrequency: undefined,
     promoEndDate: undefined,
@@ -88,6 +102,16 @@ export function ServiceDetailsCard({
 }) {
   function set<K extends keyof ServiceDetailsValue>(key: K, v: ServiceDetailsValue[K]) {
     onChange({ ...value, [key]: v });
+  }
+
+  // Switching cycle prefills the catalogue's price for the new cycle, or
+  // clears the amount so it must be re-entered — never ×12/÷12, since an
+  // annual plan is usually discounted. A catalogue plan name follows along;
+  // a custom one is left as typed.
+  function setBilling(billing: BillingCycle) {
+    const isCatalogPlanName = sub.plans.some((p) => p.name === value.planName);
+    const nextPlanName = isCatalogPlanName ? sub.plans.find((p) => p.billing === billing)?.name ?? value.planName : value.planName;
+    onChange({ ...value, billing, priceAmount: catalogPriceFor(sub, billing), planName: nextPlanName });
   }
 
   const showBundleProvider = value.accessType === "bundled" || value.accessType === "family";
@@ -170,20 +194,27 @@ export function ServiceDetailsCard({
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-ink-300">Price (₹/month)</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-300">
+            Price (₹ per {value.billing === "annual" ? "year" : "month"})
+          </label>
           <input
             type="number"
             min={0}
-            value={value.priceMonthly}
-            onChange={(e) => set("priceMonthly", Number(e.target.value))}
-            className="w-full rounded-lg border border-black/10 bg-void-900/70 px-3 py-2 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
+            value={value.priceAmount ?? ""}
+            onChange={(e) => set("priceAmount", e.target.value === "" ? null : Number(e.target.value))}
+            placeholder="Enter price"
+            aria-invalid={value.priceAmount === null}
+            className={cn(
+              "w-full rounded-lg border bg-void-900/70 px-3 py-2 text-sm text-ink-0 outline-none focus:border-aurora-500/50",
+              value.priceAmount === null ? "border-red-400/60" : "border-black/10"
+            )}
           />
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-ink-300">Billing</label>
           <select
             value={value.billing}
-            onChange={(e) => set("billing", e.target.value as BillingCycle)}
+            onChange={(e) => setBilling(e.target.value as BillingCycle)}
             className="w-full rounded-lg border border-black/10 bg-void-900/70 px-3 py-2 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
           >
             {FLOW_BILLING_OPTIONS.map((opt) => (

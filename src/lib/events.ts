@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/useAuthStore";
+import { firstTouch } from "@/lib/attribution";
 
 const ANON_ID_KEY = "submynt-anon-id";
+// Funnel events that also carry the first-touch utm_* / ref (lib/attribution).
+const ATTRIBUTED_EVENTS = new Set(["signin_completed", "add_flow_opened", "subscription_added", "bundle_interest"]);
 
 /** Stable per-browser id so signed-out events (the gate being shown) can be
  * tied to the sign-in that follows. Not an identity: random, local only. */
@@ -41,7 +44,7 @@ export function trackEvent(eventName: string, props: Record<string, unknown> = {
           event_name: eventName,
           user_id: useAuthStore.getState().user?.id ?? null,
           anon_id: anonId(),
-          props,
+          props: ATTRIBUTED_EVENTS.has(eventName) ? { ...props, ...firstTouch() } : props,
         })
     ).then(
       ({ error }) => {

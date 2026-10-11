@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
 import { consumeGateSignIn, consumeSignInSource } from "@/lib/auth/signIn";
 import { trackEvent } from "@/lib/events";
+import { captureFirstTouch } from "@/lib/attribution";
 
 const LAST_VISIT_PREFIX = "submynt-last-visit:";
 const VISIT_LOGGED_PREFIX = "submynt-visit-logged:";
@@ -45,6 +46,8 @@ function logSignInCompleted() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
+    captureFirstTouch();
+
     // Awaited (unlike the other stores' fire-and-forget rehydrate calls
     // below) so any pre-sign-in localStorage items are actually loaded
     // into `owned` before the auth-driven sync effect can read them for

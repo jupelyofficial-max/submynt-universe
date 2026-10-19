@@ -28,10 +28,13 @@ export const INDIA_POPULARITY_ORDER: string[] = [
   "duolingo-super",
 ];
 
-/** Categories kept out of the "What do you use?" list (mobile and broadband
- * plans). They stay available — and keep working as bundle plans — in the
- * "Add from a bundle instead" flow. */
-export const LIST_EXCLUDED_CATEGORIES: Category[] = ["Telecom"];
+/** Categories kept out of the "What do you use?" list and its search: mobile
+ * and broadband plans (they stay available in "Add from a bundle instead")
+ * and gaming. Only the list is affected — the catalogue, Explore, ecosystem
+ * pages, detail panels and anything already tracked are untouched, and a
+ * hidden service can still arrive as an included child (e.g. Apple Arcade
+ * with Apple One, see PARENT_SERVICES). */
+export const LIST_EXCLUDED_CATEGORIES: Category[] = ["Telecom", "Gaming"];
 
 export interface ParentService {
   /** Catalogue ids this service includes. Selecting the parent adds each as

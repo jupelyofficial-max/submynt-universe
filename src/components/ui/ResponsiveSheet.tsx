@@ -18,6 +18,9 @@ interface ResponsiveSheetProps {
    * hairline border, for surfaces that need to read as flat/editorial
    * rather than translucent. */
   panelVariant?: "glass" | "solid";
+  /** Extra classes for the panel itself — e.g. a scoped light/dark surface
+   * (see .af-panel in globals.css). Unset for every existing consumer. */
+  panelClassName?: string;
   /** Skips the default title/close header bar entirely — for content that
    * supplies its own top area (e.g. DetailPanel's banner hero with its own
    * close button). `title` is ignored when true. Default false — every
@@ -33,6 +36,7 @@ export function ResponsiveSheet({
   desktopVariant = "side",
   widthClassName = "w-[440px]",
   panelVariant = "glass",
+  panelClassName,
   hideHeader = false,
 }: ResponsiveSheetProps) {
   const isDesktop = useIsDesktop();
@@ -89,6 +93,7 @@ export function ResponsiveSheet({
               className={cn(
                 "relative flex flex-col overflow-hidden",
                 panelVariant === "solid" ? "bg-white border border-[#E5E5E5]" : "glass-panel",
+                panelClassName,
                 isDesktop && desktopVariant === "center"
                   ? cn("rounded-2xl max-h-[86vh]", widthClassName)
                   : isDesktop

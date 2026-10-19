@@ -209,3 +209,66 @@ body {
 .ts-tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* Add-subscriptions flow ("What do you use?" → confirm). A solid, opaque
+ * surface — white in light mode, near-black in dark — instead of the
+ * translucent glass panel. .af-panel colours the sheet itself; .af-theme
+ * wraps the content and carries the tokens. Dark follows the OS scheme (the
+ * app has no manual toggle), and re-points the app's own ink/void/nebula
+ * tokens and Tailwind's black so the confirm and bundle steps — which use
+ * those — stay readable on the dark surface. */
+.af-panel {
+  background: #ffffff;
+  border-color: #dde3e0;
+}
+.af-theme {
+  --af-bg: #ffffff;
+  --af-card: #ffffff;
+  --af-ink: #0b0f0e;
+  --af-meta: #4b5563;
+  --af-border: #dde3e0;
+  --af-pill-bg: #eef2f0;
+  --af-pill-ink: #3a4541;
+  --af-green: #22c55e;
+  --af-green-solid: #16a34a;
+  --af-green-tint: #f0fdf4;
+  --af-green-ink: #15803d;
+  /* The app's -400 accent is 4.2:1 on white and 3.6:1 on its own tint; this
+     deeper green keeps accent text AA inside the flow (confirm + bundle steps). */
+  --nebula-400: #166534;
+  /* Same for the muted ink (3.0:1 on the cream tints) used by hints on the confirm screen. */
+  --ink-500: #5f6b66;
+  background: var(--af-bg);
+  color: var(--af-ink);
+}
+@media (prefers-color-scheme: dark) {
+  .af-panel {
+    background: #0b0f0e;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .af-theme {
+    color-scheme: dark;
+    --af-bg: #0b0f0e;
+    --af-card: #121816;
+    --af-ink: #f4f7f6;
+    --af-meta: #a7b3ae;
+    --af-border: #2a3430;
+    --af-pill-bg: #1f2925;
+    --af-pill-ink: #c4cec9;
+    --af-green-tint: rgba(34, 197, 94, 0.1);
+    --af-green-ink: #4ade80;
+    --ink-0: #f4f7f6;
+    --ink-100: #d9e1dd;
+    --ink-300: #a7b3ae;
+    --ink-500: #8d9a95;
+    --void-950: #0b0f0e;
+    --void-900: #121816;
+    --void-800: #1a221f;
+    --void-700: #26302c;
+    --nebula-400: #4ade80;
+    --nebula-500: #22c55e;
+    --line-soft: rgba(255, 255, 255, 0.12);
+    --line-strong: rgba(255, 255, 255, 0.2);
+    --color-black: #ffffff;
+  }
+}

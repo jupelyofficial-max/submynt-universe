@@ -1,5 +1,5 @@
 import { SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
-import { INDIA_POPULARITY_ORDER, PARENT_SERVICES } from "@/data/quickAdd";
+import { INDIA_POPULARITY_ORDER, LIST_EXCLUDED_CATEGORIES, PARENT_SERVICES } from "@/data/quickAdd";
 import { monthlyEquivalent, planCycleAmount } from "@/lib/utils";
 import { catalogPriceFor, type ServiceDetailsValue } from "@/components/onboarding/ServiceDetailsCard";
 import type { AccessType, BillingCycle, BundleProvider, Subscription, SubscriptionPlan } from "@/types/subscription";
@@ -71,11 +71,15 @@ export const QUICK_ORDER: Subscription[] = (() => {
   return out;
 })();
 
+/** What the list itself offers: everything but the excluded categories
+ * (QUICK_ORDER stays complete so bundle-flow rows still resolve). */
+export const LIST_ORDER: Subscription[] = QUICK_ORDER.filter((s) => !LIST_EXCLUDED_CATEGORIES.includes(s.category));
+
 /** The search filter over the list (empty query = everything). */
 export function filterServices(query: string): Subscription[] {
   const q = query.trim().toLowerCase();
-  if (!q) return QUICK_ORDER;
-  return QUICK_ORDER.filter(
+  if (!q) return LIST_ORDER;
+  return LIST_ORDER.filter(
     (s) =>
       s.name.toLowerCase().includes(q) ||
       s.provider.toLowerCase().includes(q) ||

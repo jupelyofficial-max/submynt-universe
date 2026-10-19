@@ -1,4 +1,4 @@
-import type { BundleProvider } from "@/types/subscription";
+import type { BundleProvider, Category } from "@/types/subscription";
 
 /**
  * Add-flow curation — edit freely, nothing else depends on the exact
@@ -16,9 +16,6 @@ export const INDIA_POPULARITY_ORDER: string[] = [
   "jiohotstar",
   "netflix",
   "spotify-premium",
-  "jio",
-  "airtel",
-  "vi",
   "google-one",
   "youtube-music-premium",
   "amazon-prime-video",
@@ -30,6 +27,11 @@ export const INDIA_POPULARITY_ORDER: string[] = [
   "canva-pro",
   "duolingo-super",
 ];
+
+/** Categories kept out of the "What do you use?" list (mobile and broadband
+ * plans). They stay available — and keep working as bundle plans — in the
+ * "Add from a bundle instead" flow. */
+export const LIST_EXCLUDED_CATEGORIES: Category[] = ["Telecom"];
 
 export interface ParentService {
   /** Catalogue ids this service includes. Selecting the parent adds each as

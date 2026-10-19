@@ -71,7 +71,7 @@ export function AddSubscriptionsModal() {
   const open = isOpen && Boolean(user) && ready;
 
   return (
-    <ResponsiveSheet open={open} onClose={close} hideHeader desktopVariant="center" widthClassName="w-[560px]" panelVariant="glass">
+    <ResponsiveSheet open={open} onClose={close} hideHeader desktopVariant="center" widthClassName="w-[560px]" panelVariant="solid" panelClassName="af-panel">
       {open && <AddSubscriptionsFlow preselectId={preselectId} startAtBundlePick={startAtBundlePick} entry={entry} onClose={close} />}
     </ResponsiveSheet>
   );
@@ -360,12 +360,12 @@ function AddSubscriptionsFlow({
   const stepIndex = STEP_ORDER.indexOf(step);
 
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
-        <h2 className="font-display text-base font-semibold text-ink-0">
+    <div className="af-theme flex flex-col">
+      <div className="flex items-center justify-between border-b border-[var(--af-border)]! px-5 py-4">
+        <h2 className="font-display text-base font-semibold text-[var(--af-ink)]">
           {step === "bundleConfirm" && currentBundle ? `Confirm your ${currentBundle.name}` : STEP_TITLES[step]}
         </h2>
-        <button onClick={onClose} className="text-xs text-ink-400 hover:text-ink-0 cursor-pointer">
+        <button onClick={onClose} className="text-xs font-medium text-[var(--af-meta)] hover:text-[var(--af-ink)] cursor-pointer">
           Close
         </button>
       </div>
@@ -373,7 +373,7 @@ function AddSubscriptionsFlow({
       {stepIndex >= 0 && (
         <div className="flex gap-1 px-5 pt-3" aria-hidden="true">
           {STEP_ORDER.map((s, i) => (
-            <div key={s} className={cn("h-1 flex-1 rounded-full", i <= stepIndex ? "bg-nebula-500" : "bg-black/10")} />
+            <div key={s} className={cn("h-1 flex-1 rounded-full", i <= stepIndex ? "bg-[var(--af-green)]" : "bg-[var(--af-border)]")} />
           ))}
         </div>
       )}

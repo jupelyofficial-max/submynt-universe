@@ -72,84 +72,115 @@ export type QuickAdd = ReturnType<typeof useQuickAdd>;
 
 // ---------------------------------------------------------------- screen 1
 
-function ServiceRow({
+/** Everything a selected service brings with it (its children, and theirs). */
+function includedUnder(rootId: string, items: QuickItem[]): QuickItem[] {
+  const out: QuickItem[] = [];
+  const seen = new Set<string>([rootId]);
+  const walk = (parentId: string) => {
+    for (const i of items) {
+      if (i.kind !== "bundled" || i.coverage?.parentId !== parentId || seen.has(i.id)) continue;
+      seen.add(i.id);
+      out.push(i);
+      walk(i.id);
+    }
+  };
+  walk(rootId);
+  return out;
+}
+
+/** The "＋ included  [logo Name] …" line inside a selected parent's card. */
+function IncludedChips({ items }: { items: QuickItem[] }) {
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <span aria-hidden="true" className="text-sm font-semibold text-[var(--af-green-ink)]">
+        ＋
+      </span>
+      <span className="text-xs font-semibold text-[var(--af-green-ink)]">included</span>
+      {items.map((c) => {
+        const sub = SUBSCRIPTIONS_BY_ID[c.id];
+        if (!sub) return null;
+        return (
+          <span
+            key={c.id}
+            className="inline-flex items-center gap-1 rounded-full border border-[var(--af-green)]/40! bg-[var(--af-card)] py-0.5 pl-1 pr-2 text-xs font-medium text-[var(--af-green-ink)]"
+          >
+            <SubscriptionLogo subscription={sub} size="xs" bare style={{ width: 16, height: 16, fontSize: 7 }} />
+            {sub.name}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function ServiceCard({
   id,
   quick,
   trackedIds,
-  nested = false,
+  included = [],
 }: {
   id: string;
   quick: QuickAdd;
   trackedIds: ReadonlySet<string>;
-  nested?: boolean;
+  included?: QuickItem[];
 }) {
   const sub = SUBSCRIPTIONS_BY_ID[id];
   if (!sub) return null;
   const tracked = trackedIds.has(id);
-  const state = quick.res.state[id] ?? "none";
-  const coverage = quick.res.coverage[id];
-  const bundled = state === "bundled";
-  const on = state === "direct" || bundled;
+  const on = (quick.res.state[id] ?? "none") === "direct";
   const from = fromMonthly(sub);
   const includes = includesText(id);
   // A price entered through the bundle steps replaces the catalogue's "from".
-  const entered = state === "direct" ? quick.details[id] : undefined;
-  const priceText =
-    entered && entered.priceAmount !== null
-      ? ` · ${formatINR(monthlyEquivalent(entered.priceAmount, entered.billing))}/mo`
-      : from !== null
-        ? ` · from ${formatINR(from)}/mo`
-        : "";
+  const entered = on ? quick.details[id] : undefined;
+  const price =
+    entered && entered.priceAmount !== null ? { label: "", amount: monthlyEquivalent(entered.priceAmount, entered.billing) } : from !== null ? { label: "from", amount: from } : null;
 
   return (
     <button
       type="button"
-      disabled={tracked || bundled}
+      disabled={tracked}
       aria-pressed={on}
       onClick={() => quick.tap(id)}
       className={cn(
-        "flex min-h-[56px] w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors",
-        nested && "ml-6 w-[calc(100%-1.5rem)]",
-        tracked || bundled ? "cursor-default" : "cursor-pointer",
-        tracked ? "border-black/10 opacity-50" : bundled ? "border-black/10 bg-black/[0.03] opacity-70" : on ? "border-nebula-500 bg-nebula-500/10" : "border-black/10 hover:border-black/20"
+        "flex w-full flex-col rounded-2xl text-left transition-colors",
+        on ? "border-2 border-[var(--af-green)]! bg-[var(--af-green-tint)] p-[11px]" : "border border-[var(--af-border)]! bg-[var(--af-card)] p-3",
+        tracked ? "cursor-default opacity-60" : "cursor-pointer",
+        !on && !tracked && "hover:border-[var(--af-meta)]!"
       )}
     >
-      <SubscriptionLogo subscription={sub} size="sm" />
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-ink-0">{sub.name}</div>
-        <div className="truncate text-xs text-ink-500">
-          {tracked
-            ? "Already tracked"
-            : bundled && coverage
-              ? `Included with ${coverage.name}`
-              : `${sub.category}${priceText}`}
+      <div className="flex w-full items-center gap-3">
+        <SubscriptionLogo subscription={sub} size="sm" />
+        <div className="min-w-0 flex-1">
+          <div className="text-base font-semibold leading-snug text-[var(--af-ink)]">{sub.name}</div>
+          <span className="mt-1 inline-flex rounded-full bg-[var(--af-pill-bg)] px-2 py-0.5 text-[11px] font-medium text-[var(--af-pill-ink)]">{sub.category}</span>
+          {includes && !on && !tracked && <div className="mt-1 text-xs text-[var(--af-meta)]">{includes}</div>}
         </div>
-        {includes && !tracked && <div className="truncate text-[11px] font-medium text-nebula-400">{includes}</div>}
+        <div className="flex shrink-0 flex-col items-end leading-none">
+          {tracked ? (
+            <span className="text-xs font-medium text-[var(--af-meta)]">Already tracked</span>
+          ) : (
+            price && (
+              <>
+                <span className="mb-0.5 h-3 text-[10px] font-medium uppercase tracking-wide text-[var(--af-meta)]">{price.label}</span>
+                <span className="text-[17px] font-bold text-[var(--af-ink)]">
+                  {formatINR(price.amount)}
+                  <span className="text-sm font-semibold">/mo</span>
+                </span>
+              </>
+            )
+          )}
+        </div>
+        <span
+          className={cn(
+            "flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+            on ? "bg-[var(--af-green-solid)] text-white" : "border-2 border-[var(--af-border)]!"
+          )}
+        >
+          {on && <Check size={14} strokeWidth={3} />}
+        </span>
       </div>
-      <div
-        className={cn(
-          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
-          on ? (bundled ? "border-black/20 bg-black/20 text-white" : "border-nebula-500 bg-nebula-500 text-white") : "border-black/15"
-        )}
-      >
-        {on && <Check size={12} />}
-      </div>
+      {on && included.length > 0 && <IncludedChips items={included} />}
     </button>
-  );
-}
-
-/** The row for each included service under a selected one, recursively. */
-function NestedRows({ parentId, quick, trackedIds }: { parentId: string; quick: QuickAdd; trackedIds: ReadonlySet<string> }) {
-  const children = quick.items.filter((i) => i.kind === "bundled" && i.coverage?.parentId === parentId);
-  return (
-    <>
-      {children.map((c) => (
-        <div key={c.id} className="flex flex-col gap-1.5">
-          <ServiceRow id={c.id} quick={quick} trackedIds={trackedIds} nested />
-          <NestedRows parentId={c.id} quick={quick} trackedIds={trackedIds} />
-        </div>
-      ))}
-    </>
   );
 }
 
@@ -166,64 +197,81 @@ export function QuickSelectScreen({
   onBundle: () => void;
   onNext: () => void;
 }) {
+  // Included services live inside their parent's card — never as rows of
+  // their own while it's selected — and don't count as "selected".
   const pinned = useMemo(() => new Set(quick.items.map((i) => i.id)), [quick.items]);
   const rest = useMemo(() => filterServices(quick.query).filter((s) => !pinned.has(s.id)), [quick.query, pinned]);
-  // Selected rows stay at the top; included rows follow the service that includes them.
-  const roots = quick.items.filter((i) => i.kind === "direct" || !i.coverage || !pinned.has(i.coverage.parentId));
-  const count = quick.items.length;
+  const direct = quick.items.filter((i) => i.kind === "direct");
+  const orphans = useMemo(() => {
+    const covered = new Set(direct.flatMap((d) => includedUnder(d.id, quick.items).map((i) => i.id)));
+    return quick.items.filter((i) => i.kind === "bundled" && !covered.has(i.id));
+  }, [direct, quick.items]);
+  const included = quick.items.length - direct.length;
 
   return (
     <>
       <div className="max-h-[65vh] overflow-y-auto px-5 py-4">
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-ink-400">Tap everything you pay for.</p>
+            <p className="text-xs text-[var(--af-meta)]">Tap everything you pay for.</p>
             {showBundleLink && (
-              <button type="button" onClick={onBundle} className="shrink-0 text-xs font-medium text-nebula-400 hover:text-nebula-500 cursor-pointer">
+              <button type="button" onClick={onBundle} className="shrink-0 text-xs font-semibold text-[var(--af-green-ink)] hover:underline cursor-pointer">
                 Add from a bundle instead →
               </button>
             )}
           </div>
 
           <div className="relative">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-500" />
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--af-meta)]" />
             <input
               value={quick.query}
               onChange={(e) => quick.setQuery(e.target.value)}
               aria-label="Search subscriptions"
               placeholder="Search subscriptions…"
-              className="w-full rounded-xl border border-black/10 bg-void-900/70 py-2.5 pl-9 pr-3 text-sm text-ink-0 outline-none placeholder:text-ink-500 focus:border-aurora-500/50"
+              className="w-full rounded-xl border border-[var(--af-border)]! bg-[var(--af-card)] py-2.5 pl-9 pr-3 text-sm text-[var(--af-ink)] outline-none placeholder:text-[var(--af-meta)] focus:border-[var(--af-green)]!"
             />
           </div>
 
-          {roots.length > 0 && (
-            <section aria-label="Selected" className="flex flex-col gap-1.5">
-              <h3 className="text-[11px] font-semibold uppercase tracking-wide text-ink-500">Selected · {count}</h3>
-              {roots.map((r) => (
-                <div key={r.id} className="flex flex-col gap-1.5">
-                  <ServiceRow id={r.id} quick={quick} trackedIds={trackedIds} />
-                  <NestedRows parentId={r.id} quick={quick} trackedIds={trackedIds} />
-                </div>
+          {(direct.length > 0 || orphans.length > 0) && (
+            <section aria-label="Selected" className="flex flex-col gap-2">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wide text-[var(--af-meta)]">Selected · {direct.length}</h3>
+              {direct.map((r) => (
+                <ServiceCard key={r.id} id={r.id} quick={quick} trackedIds={trackedIds} included={includedUnder(r.id, quick.items)} />
               ))}
+              {orphans.length > 0 && (
+                <div className="rounded-2xl border border-[var(--af-border)]! bg-[var(--af-card)] p-3">
+                  <p className="text-xs font-semibold text-[var(--af-ink)]">Included with your bundles</p>
+                  <IncludedChips items={orphans} />
+                </div>
+              )}
             </section>
           )}
 
-          <section aria-label="Subscriptions" className="flex flex-col gap-1.5">
-            {roots.length > 0 && <h3 className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-ink-500">All services</h3>}
+          <section aria-label="Subscriptions" className="flex flex-col gap-2">
+            {(direct.length > 0 || orphans.length > 0) && <h3 className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--af-meta)]">All services</h3>}
             {rest.map((sub) => (
-              <ServiceRow key={sub.id} id={sub.id} quick={quick} trackedIds={trackedIds} />
+              <ServiceCard key={sub.id} id={sub.id} quick={quick} trackedIds={trackedIds} />
             ))}
-            {rest.length === 0 && <p className="py-4 text-center text-sm text-ink-500">No matches.</p>}
+            {rest.length === 0 && <p className="py-4 text-center text-sm text-[var(--af-meta)]">No matches.</p>}
           </section>
         </div>
       </div>
 
-      <div className="border-t border-black/10 px-5 py-3">
+      <div className="border-t border-[var(--af-border)]! px-5 py-3">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-medium text-ink-0" aria-live="polite">
-            {count === 0 ? "Nothing selected yet" : `${count} selected · about ${money(quick.total)}/mo`}
+          <p className="min-w-0" aria-live="polite">
+            {quick.items.length === 0 ? (
+              <span className="text-sm font-medium text-[var(--af-ink)]">Nothing selected yet</span>
+            ) : (
+              <>
+                <span className="block text-[15px] font-bold text-[var(--af-ink)]">
+                  {direct.length} subscription{direct.length === 1 ? "" : "s"} · {money(quick.total)}/mo
+                </span>
+                {included > 0 && <span className="block text-xs font-semibold text-[var(--af-green-ink)]">+{included} included</span>}
+              </>
+            )}
           </p>
-          <Button onClick={onNext} disabled={count === 0}>
+          <Button onClick={onNext} disabled={quick.items.length === 0}>
             Continue
           </Button>
         </div>

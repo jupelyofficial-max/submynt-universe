@@ -17,6 +17,7 @@ export interface AddResumeIntent {
   kind: "add";
   preselectId?: string | null;
   startAtBundlePick?: boolean;
+  startAtQuick?: boolean;
 }
 
 /** "Notify me" on a curated bundle page, registered once they're back. */
@@ -63,7 +64,12 @@ export function consumeResumeIntent(): AddResumeIntent | null {
   try {
     sessionStorage.removeItem(RESUME_KEY);
   } catch {}
-  return { kind: "add", preselectId: parsed.preselectId ?? null, startAtBundlePick: Boolean(parsed.startAtBundlePick) };
+  return {
+    kind: "add",
+    preselectId: parsed.preselectId ?? null,
+    startAtBundlePick: Boolean(parsed.startAtBundlePick),
+    startAtQuick: Boolean(parsed.startAtQuick),
+  };
 }
 
 /** True once if a "notify me" for this bundle is pending (and clears it). */

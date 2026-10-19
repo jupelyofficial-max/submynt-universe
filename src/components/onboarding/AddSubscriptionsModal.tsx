@@ -17,12 +17,14 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useSubscriptionsReady } from "@/hooks/useSubscriptionsReady";
 import { signInWithGoogle } from "@/lib/auth/signIn";
 import { trackEvent } from "@/lib/events";
+import { QuickAddStep, quickAddDetails } from "./QuickAddStep";
 import { ServiceDetailsCard, catalogPriceFor, defaultServiceDetails, type ServiceDetailsValue } from "./ServiceDetailsCard";
 import { BundleConfirmManualStep, BundleConfirmPresetStep, BundlePickStep, BundlePlanRow, type BundlePlanValue } from "./BundleFirstSteps";
 
-type Step = "welcome" | "bundlePick" | "bundleConfirm" | "select" | "details" | "review" | "done";
+type Step = "quick" | "welcome" | "bundlePick" | "bundleConfirm" | "select" | "details" | "review" | "done";
 const STEP_ORDER: Step[] = ["welcome", "select", "details", "review"];
 const STEP_TITLES: Record<Step, string> = {
+  quick: "What do you pay for?",
   welcome: "Track your subscriptions",
   bundlePick: "Do you have any bundles?",
   bundleConfirm: "Confirm what's included",
@@ -63,6 +65,7 @@ export function AddSubscriptionsModal() {
   const isOpen = useUniverseStore((s) => s.isAddSubscriptionsModalOpen);
   const preselectId = useUniverseStore((s) => s.addSubscriptionsPreselectId);
   const startAtBundlePick = useUniverseStore((s) => s.addSubscriptionsStartAtBundlePick);
+  const startAtQuick = useUniverseStore((s) => s.addSubscriptionsStartAtQuick);
   const entry = useUniverseStore((s) => s.addSubscriptionsEntry);
   const user = useAuthStore((s) => s.user);
   const authHydrated = useAuthStore((s) => s.hydrated);
@@ -78,8 +81,8 @@ export function AddSubscriptionsModal() {
   useEffect(() => {
     if (!isOpen || !authHydrated || user) return;
     useUniverseStore.getState().setAddSubscriptionsModalOpen(false);
-    void signInWithGoogle({ resume: { kind: "add", preselectId, startAtBundlePick }, gate: "add" });
-  }, [isOpen, authHydrated, user, preselectId, startAtBundlePick]);
+    void signInWithGoogle({ resume: { kind: "add", preselectId, startAtBundlePick, startAtQuick }, gate: "add" });
+  }, [isOpen, authHydrated, user, preselectId, startAtBundlePick, startAtQuick]);
 
   // Also waits for the signed-in account to finish loading, so the flow's
   // "already tracked" defaults reflect what's actually on the account.
@@ -87,7 +90,9 @@ export function AddSubscriptionsModal() {
 
   return (
     <ResponsiveSheet open={open} onClose={close} hideHeader desktopVariant="center" widthClassName="w-[560px]" panelVariant="glass">
-      {open && <AddSubscriptionsFlow preselectId={preselectId} startAtBundlePick={startAtBundlePick} entry={entry} onClose={close} />}
+      {open && (
+        <AddSubscriptionsFlow preselectId={preselectId} startAtBundlePick={startAtBundlePick} startAtQuick={startAtQuick} entry={entry} onClose={close} />
+      )}
     </ResponsiveSheet>
   );
 }
@@ -95,11 +100,13 @@ export function AddSubscriptionsModal() {
 function AddSubscriptionsFlow({
   preselectId,
   startAtBundlePick,
+  startAtQuick,
   entry,
   onClose,
 }: {
   preselectId: string | null;
   startAtBundlePick: boolean;
+  startAtQuick: boolean;
   entry: AddFlowEntry | null;
   onClose: () => void;
 }) {
@@ -117,7 +124,17 @@ function AddSubscriptionsFlow({
   const isOwned = useMySubscriptionsStore((s) => s.isOwned);
   const ownedList = useMySubscriptionsStore((s) => s.owned);
 
-  const [step, setStep] = useState<Step>(startAtBundlePick ? "bundlePick" : preselectId ? "details" : "welcome");
+  const [step, setStep] = useState<Step>(startAtBundlePick ? "bundlePick" : preselectId ? "details" : startAtQuick ? "quick" : "welcome");
+  // Where "Back" from the detailed flow's first screen returns to.
+  const entryStep: Step = startAtQuick ? "quick" : "welcome";
+
+  // quick_add_shown — once per opening of the flow, when the grid first shows.
+  const quickShown = useRef(false);
+  useEffect(() => {
+    if (step !== "quick" || quickShown.current) return;
+    quickShown.current = true;
+    trackEvent("quick_add_shown", { source: entry ?? "other" });
+  }, [step, entry]);
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>(preselectId ? [preselectId] : []);
   const [details, setDetails] = useState<Record<string, ServiceDetailsValue>>(() =>
@@ -401,6 +418,40 @@ function AddSubscriptionsFlow({
     setStep("done");
   }
 
+  /** Quick-add grid: tapping selects at the catalogue default plan/price. */
+  function toggleQuick(id: string) {
+    const sub = SUBSCRIPTIONS_BY_ID[id];
+    if (!sub) return;
+    trackEvent(selectedIds.includes(id) ? "service_deselected" : "service_selected", { service_id: id });
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    setDetails((prev) => (prev[id] ? prev : { ...prev, [id]: defaultServiceDetails(sub) }));
+  }
+
+  // Guards a double click adding (and logging) twice before the step swaps.
+  const quickAdding = useRef(false);
+  function handleQuickAdd() {
+    if (quickAdding.current) return;
+    quickAdding.current = true;
+    let count = 0;
+    for (const id of selectedIds) {
+      const sub = SUBSCRIPTIONS_BY_ID[id];
+      const d = sub ? quickAddDetails(sub) : null;
+      if (!sub || !d || isOwned(id)) continue;
+      addOwned({
+        subscriptionId: id,
+        planName: d.planName || sub.name,
+        priceAmount: d.priceAmount ?? 0,
+        billing: d.billing,
+        nextRenewal: d.nextRenewal,
+        accessType: d.accessType,
+      });
+      count++;
+    }
+    trackEvent("quick_add_completed", { count, source: entry ?? "other" });
+    setAddedCount(count);
+    setStep("done");
+  }
+
   function goToTrackPage() {
     onClose();
     router.push("/my-subscriptions");
@@ -428,6 +479,17 @@ function AddSubscriptionsFlow({
       )}
 
       <div className="max-h-[65vh] overflow-y-auto px-5 py-4">
+        {step === "quick" && (
+          <QuickAddStep
+            query={query}
+            onQueryChange={setQuery}
+            selectedIds={selectedIds}
+            trackedIds={new Set(ownedList.map((o) => o.subscriptionId))}
+            onToggle={toggleQuick}
+            onPickBundle={() => setStep("bundlePick")}
+          />
+        )}
+
         {step === "welcome" && (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <p className="font-display text-lg text-ink-0">Track what you&apos;re actually paying for</p>
@@ -607,6 +669,22 @@ function AddSubscriptionsFlow({
       </div>
 
       <div className="flex items-center justify-between border-t border-black/10 px-5 py-4">
+        {step === "quick" && (
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setQuery("");
+                setStep("select");
+              }}
+            >
+              Add with details
+            </Button>
+            <Button onClick={handleQuickAdd} disabled={selectedIds.length === 0}>
+              {selectedIds.length > 0 ? `Add ${selectedIds.length} subscription${selectedIds.length === 1 ? "" : "s"}` : "Select what you pay for"}
+            </Button>
+          </>
+        )}
         {step === "welcome" && (
           <>
             <Button variant="ghost" onClick={() => setStep("bundlePick")}>
@@ -637,7 +715,7 @@ function AddSubscriptionsFlow({
         )}
         {step === "select" && (
           <>
-            <Button variant="ghost" onClick={() => setStep(selectedBundles.length > 0 ? "bundlePick" : "welcome")}>
+            <Button variant="ghost" onClick={() => setStep(selectedBundles.length > 0 ? "bundlePick" : entryStep)}>
               Back
             </Button>
             <Button onClick={goToDetails} disabled={selectedIds.length === 0}>

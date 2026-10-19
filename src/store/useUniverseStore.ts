@@ -16,7 +16,7 @@ function toggleInArray<T>(arr: T[], value: T): T[] {
 
 export type DetailTab = "overview" | "plans" | "alternatives";
 
-export type AddFlowEntry = "page_header" | "empty_state" | "saved" | "detail_panel" | "resume" | "bundle";
+export type AddFlowEntry = "page_header" | "empty_state" | "saved" | "detail_panel" | "resume" | "bundle" | "post_signin";
 
 interface UniverseUIState {
   searchQuery: string;
@@ -44,6 +44,9 @@ interface UniverseUIState {
    * state's primary CTA uses this; the modal's own "Add from a bundle"
    * button inside the normal flow reaches the same step without this. */
   addSubscriptionsStartAtBundlePick: boolean;
+  /** True when this open should start at the "What do you pay for?" quick-add
+   * grid (the Track empty state, and the first visit after signing in). */
+  addSubscriptionsStartAtQuick: boolean;
   /** Which control opened the add flow — the add_flow_opened event's
    * `entry` prop. */
   addSubscriptionsEntry: AddFlowEntry | null;
@@ -51,7 +54,8 @@ interface UniverseUIState {
     v: boolean,
     preselectId?: string | null,
     startAtBundlePick?: boolean,
-    entry?: AddFlowEntry
+    entry?: AddFlowEntry,
+    startAtQuick?: boolean
   ) => void;
 
   selectedId: string | null;
@@ -95,12 +99,14 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
   isAddSubscriptionsModalOpen: false,
   addSubscriptionsPreselectId: null,
   addSubscriptionsStartAtBundlePick: false,
+  addSubscriptionsStartAtQuick: false,
   addSubscriptionsEntry: null,
-  setAddSubscriptionsModalOpen: (v, preselectId = null, startAtBundlePick = false, entry) =>
+  setAddSubscriptionsModalOpen: (v, preselectId = null, startAtBundlePick = false, entry, startAtQuick = false) =>
     set({
       isAddSubscriptionsModalOpen: v,
       addSubscriptionsPreselectId: v ? preselectId : null,
       addSubscriptionsStartAtBundlePick: v ? startAtBundlePick : false,
+      addSubscriptionsStartAtQuick: v ? startAtQuick : false,
       addSubscriptionsEntry: v ? entry ?? null : null,
     }),
 

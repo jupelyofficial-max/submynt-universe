@@ -41,6 +41,25 @@ function rowBadge(o: OwnedSubscription, overlapName: string | undefined): RowBad
   return null;
 }
 
+const QUICK_ADD_OFFERED_PREFIX = "submynt-quickadd-offered:";
+
+/** Whether this account has already been shown the post-sign-in quick add.
+ * Storage that can't be read counts as offered — never risk a prompt on
+ * every visit. */
+function quickAddOffered(userId: string): boolean {
+  try {
+    return localStorage.getItem(QUICK_ADD_OFFERED_PREFIX + userId) !== null;
+  } catch {
+    return true;
+  }
+}
+
+function markQuickAddOffered(userId: string) {
+  try {
+    localStorage.setItem(QUICK_ADD_OFFERED_PREFIX + userId, "1");
+  } catch {}
+}
+
 export default function MySubscriptionsPage() {
   const owned = useMySubscriptionsStore((s) => s.owned);
   const ready = useSubscriptionsReady();
@@ -49,13 +68,21 @@ export default function MySubscriptionsPage() {
 
   // Back from signing in with an add action pending (see AddSubscriptionsModal's
   // gate) — replay it once the account has loaded, so the user lands on the
-  // add flow they originally asked for.
+  // add flow they originally asked for. Otherwise, an account with nothing
+  // tracked is offered the quick-add grid — once, so closing it isn't nagged.
   useEffect(() => {
     if (!user || !ready) return;
+    const open = useUniverseStore.getState().setAddSubscriptionsModalOpen;
     const intent = consumeResumeIntent();
+    // The first time this account is seen here, whatever it holds, uses up
+    // the offer — so it can't pop up later after someone removes everything.
+    const firstVisit = !quickAddOffered(user.id);
+    if (firstVisit) markQuickAddOffered(user.id);
     if (intent) {
-      useUniverseStore.getState().setAddSubscriptionsModalOpen(true, intent.preselectId ?? null, intent.startAtBundlePick, "resume");
+      open(true, intent.preselectId ?? null, intent.startAtBundlePick, "resume", intent.startAtQuick);
+      return;
     }
+    if (firstVisit && useMySubscriptionsStore.getState().owned.length === 0) open(true, null, false, "post_signin", true);
   }, [user, ready]);
 
   // Once per visit to this page, as soon as the list is trustworthy.
@@ -294,7 +321,7 @@ function EmptyState() {
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-2 sm:flex-row">
-        <Button className="flex-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, true, "empty_state")}>
+        <Button className="flex-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, false, "empty_state", true)}>
           <Plus size={14} />
           Add your first subscription
         </Button>

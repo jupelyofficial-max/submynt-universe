@@ -20,7 +20,7 @@ const CATEGORY_BEST_FOR: Record<Category, string[]> = {
   Wellness: ["Individuals", "Fitness enthusiasts"],
   News: ["Professionals", "Avid readers"],
   Gaming: ["Gamers", "Families"],
-  Shopping: ["Frequent shoppers", "Families"],
+  "Entertainment & Shopping": ["Frequent shoppers", "Families"],
   "Quick Commerce": ["Busy households", "Last-minute shoppers"],
   Business: ["Teams", "Professionals"],
   Communication: ["Teams", "Communities"],

@@ -6,26 +6,37 @@ import type { BundleProvider, Category } from "@/types/subscription";
  * judgement about India, not measured data.
  */
 
-/** Row order in the "What do you use?" list, most-paid-for first
- * (subscription ids). Anything not listed follows, in the catalogue's own
- * `popularity` order. Unknown ids are ignored, so a stale entry can't break
- * the list. */
-export const INDIA_POPULARITY_ORDER: string[] = [
+/** The "What do you use?" list's default contents: exactly these services,
+ * in this order (subscription ids). Everything else in the catalogue (minus
+ * LIST_EXCLUDED_CATEGORIES) is reachable through the list's search box, which
+ * lists these first, then the rest by the catalogue's own `popularity`.
+ * Unknown ids are ignored, so a stale entry can't break the list. */
+export const DEFAULT_ADD_LIST: string[] = [
   "youtube-premium",
   "amazon-prime",
-  "jiohotstar",
   "netflix",
+  "jiohotstar",
   "spotify-premium",
   "google-one",
-  "youtube-music-premium",
-  "amazon-prime-video",
-  "apple-music",
   "icloud",
-  "apple-one",
-  "microsoft-365",
   "chatgpt-plus",
+  "apple-one",
+  "sonyliv",
+  "zee5",
+  "apple-music",
+  "apple-tv",
+  "jiosaavn-pro",
+  "amazon-music-unlimited",
+  "google-ai-pro",
+  "claude-pro",
+  "perplexity-pro",
+  "microsoft-365",
+  "linkedin-premium",
   "canva-pro",
   "duolingo-super",
+  "udemy-personal-plan",
+  "cult-fit",
+  "healthifyme",
 ];
 
 /** Categories kept out of the "What do you use?" list and its search: mobile

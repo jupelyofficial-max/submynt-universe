@@ -57,7 +57,6 @@ const DOMAIN_BY_NAME = {
   "Adobe Creative Cloud": "adobe.com",
   "Canva Pro": "canva.com",
   "Figma Professional": "figma.com",
-  "CapCut Pro": "capcut.com",
   "Envato Elements": "elements.envato.com",
   Procreate: "procreate.com",
   "DaVinci Resolve Studio": "blackmagicdesign.com",

@@ -15,7 +15,7 @@ export const CATEGORY_META: Record<Category, { blurb: string; color: string }> =
   "Professional Networking": { blurb: "Career profile and professional connections", color: "#0A66C2" },
   "Quick Commerce": { blurb: "Groceries and essentials, delivered in minutes", color: "#8B5FBF" },
   "Reading": { blurb: "Audiobooks, ebooks and long-form writing", color: "#A99C87" },
-  "Shopping": { blurb: "Delivery, retail and loyalty perks", color: "#DD7A48" },
+  "Entertainment & Shopping": { blurb: "Delivery, retail and loyalty perks", color: "#DD7A48" },
   "Telecom": { blurb: "Mobile plans and home broadband", color: "#1E7A4C" },
   "Travel": { blurb: "Rides, stays and trip planning", color: "#D9668F" },
   "Wellness": { blurb: "Movement, mindfulness and recovery", color: "#3DAE7A" },

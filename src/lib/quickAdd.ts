@@ -1,5 +1,5 @@
 import { SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
-import { INDIA_POPULARITY_ORDER, LIST_EXCLUDED_CATEGORIES, PARENT_SERVICES } from "@/data/quickAdd";
+import { DEFAULT_ADD_LIST, LIST_EXCLUDED_CATEGORIES, PARENT_SERVICES } from "@/data/quickAdd";
 import { monthlyEquivalent, planCycleAmount } from "@/lib/utils";
 import { catalogPriceFor, type ServiceDetailsValue } from "@/components/onboarding/ServiceDetailsCard";
 import type { AccessType, BillingCycle, BundleProvider, Subscription, SubscriptionPlan } from "@/types/subscription";
@@ -57,12 +57,12 @@ export function shortCycle(billing: BillingCycle): string {
 
 const BY_POPULARITY = [...SUBSCRIPTIONS].sort((a, b) => b.popularity - a.popularity);
 
-/** Every service the list can add, in display order: the India list first,
- * then the rest by the catalogue's own popularity. */
+/** Every service the add flow can write, in display order: the curated
+ * default list first, then the rest by the catalogue's own popularity. */
 export const QUICK_ORDER: Subscription[] = (() => {
   const seen = new Set<string>();
   const out: Subscription[] = [];
-  for (const id of [...INDIA_POPULARITY_ORDER, ...BY_POPULARITY.map((s) => s.id)]) {
+  for (const id of [...DEFAULT_ADD_LIST, ...BY_POPULARITY.map((s) => s.id)]) {
     const sub = SUBSCRIPTIONS_BY_ID[id];
     if (!sub || seen.has(id) || !quickDefaultDetails(sub)) continue;
     seen.add(id);
@@ -75,10 +75,14 @@ export const QUICK_ORDER: Subscription[] = (() => {
  * (QUICK_ORDER stays complete so bundle-flow rows still resolve). */
 export const LIST_ORDER: Subscription[] = QUICK_ORDER.filter((s) => !LIST_EXCLUDED_CATEGORIES.includes(s.category));
 
-/** The search filter over the list (empty query = everything). */
+/** What the list shows with no search: the curated defaults, in order. */
+export const DEFAULT_LIST: Subscription[] = DEFAULT_ADD_LIST.map((id) => LIST_ORDER.find((s) => s.id === id)).filter((s): s is Subscription => Boolean(s));
+
+/** The list for a search query: no query = the curated defaults; a query
+ * searches the whole catalogue minus the excluded categories. */
 export function filterServices(query: string): Subscription[] {
   const q = query.trim().toLowerCase();
-  if (!q) return LIST_ORDER;
+  if (!q) return DEFAULT_LIST;
   return LIST_ORDER.filter(
     (s) =>
       s.name.toLowerCase().includes(q) ||

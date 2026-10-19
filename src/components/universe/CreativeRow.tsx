@@ -9,7 +9,7 @@ import { useUniverseStore } from "@/store/useUniverseStore";
 
 // Real catalog ids only (src/data/subscriptions.ts) — same card markup,
 // spacing and container alignment as EducationRow/AIToolsRow/MusicRow.
-const CREATIVE_IDS = ["adobe-creative-cloud", "canva-pro", "capcut-pro", "figma-professional", "envato-elements", "freepik"];
+const CREATIVE_IDS = ["adobe-creative-cloud", "canva-pro", "figma-professional", "envato-elements", "freepik"];
 
 export function CreativeRow() {
   const select = useUniverseStore((s) => s.select);

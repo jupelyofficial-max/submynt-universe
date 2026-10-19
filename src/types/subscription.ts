@@ -16,7 +16,7 @@ export type Category =
   | "Wellness"
   | "News"
   | "Gaming"
-  | "Shopping"
+  | "Entertainment & Shopping"
   | "Quick Commerce"
   | "Business"
   | "Communication"

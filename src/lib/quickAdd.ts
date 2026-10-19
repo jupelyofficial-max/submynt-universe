@@ -1,14 +1,15 @@
-import { SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
-import { DEFAULT_ADD_LIST, LIST_EXCLUDED_CATEGORIES, PARENT_SERVICES } from "@/data/quickAdd";
+import { INCLUDED_ONLY_SUBSCRIPTIONS, SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
+import { DEFAULT_ADD_LIST, INCLUDED_ONLY_IDS, LIST_EXCLUDED_CATEGORIES, MEMBER_PLANS, PARENT_SERVICES } from "@/data/quickAdd";
 import { monthlyEquivalent, planCycleAmount } from "@/lib/utils";
 import { catalogPriceFor, type ServiceDetailsValue } from "@/components/onboarding/ServiceDetailsCard";
 import type { AccessType, BillingCycle, BundleProvider, Subscription, SubscriptionPlan } from "@/types/subscription";
 
 // ---------------------------------------------------------------- prices
 
-/** The cheapest paid plan by monthly equivalent (a monthly plan wins a tie). */
-export function cheapestPlan(sub: Subscription): SubscriptionPlan | null {
-  const paid = sub.plans.filter((p) => p.priceMonthly > 0);
+/** The cheapest paid plan by monthly equivalent (a monthly plan wins a tie),
+ * optionally ignoring one plan by name. */
+export function cheapestPlan(sub: Subscription, exceptPlan?: string): SubscriptionPlan | null {
+  const paid = sub.plans.filter((p) => p.priceMonthly > 0 && p.name !== exceptPlan);
   if (paid.length === 0) return null;
   return paid.reduce((best, p) =>
     p.priceMonthly < best.priceMonthly || (p.priceMonthly === best.priceMonthly && p.billing === "monthly" && best.billing !== "monthly") ? p : best
@@ -35,6 +36,20 @@ export function quickDefaultDetails(sub: Subscription): ServiceDetailsValue | nu
     return { accessType: "direct", planName: sub.plans[0]?.name ?? "", priceAmount: monthly, billing: "monthly", nextRenewal: defaultRenewal() };
   }
   return null;
+}
+
+/** What an add writes for `sub` given what else is selected or tracked. Same
+ * as quickDefaultDetails, except a service with a member rate (MEMBER_PLANS)
+ * starts on the member plan when its parent service is selected, included
+ * via a bundle or already tracked, and on its other cheapest plan otherwise
+ * (the "from" price on the list still shows the member rate). */
+export function defaultDetailsFor(sub: Subscription, res: Resolution, trackedIds: ReadonlySet<string>): ServiceDetailsValue | null {
+  const base = quickDefaultDetails(sub);
+  const rule = MEMBER_PLANS[sub.id];
+  if (!base || !rule) return base;
+  const member = trackedIds.has(rule.with) || (res.state[rule.with] ?? "none") !== "none";
+  const plan = member ? sub.plans.find((p) => p.name === rule.plan) : cheapestPlan(sub, rule.plan);
+  return plan ? { ...base, planName: plan.name, billing: plan.billing, priceAmount: planCycleAmount(plan) } : base;
 }
 
 /** The row's "from ₹X/mo": the cheapest plan's monthly equivalent. */
@@ -90,6 +105,11 @@ export function filterServices(query: string): Subscription[] {
       s.category.toLowerCase().includes(q) ||
       s.tags.some((t) => t.toLowerCase().includes(q))
   );
+}
+
+/** Included-only services (INCLUDED_ONLY_IDS): never listed, never a pick. */
+export function isIncludedOnly(id: string): boolean {
+  return INCLUDED_ONLY_IDS.includes(id);
 }
 
 /** "Includes YouTube Music" — for a service that is a parent, else null. */
@@ -190,6 +210,7 @@ export function toggleSelection(sel: QuickSelection, res: Resolution, id: string
 
 /** "I pay separately" on an included row: it becomes its own direct row. */
 export function paySeparately(sel: QuickSelection, id: string): QuickSelection {
+  if (isIncludedOnly(id)) return sel;
   return {
     ...sel,
     picks: sel.picks.includes(id) ? sel.picks : [...sel.picks, id],
@@ -246,12 +267,12 @@ export function nextRenewalFromDay(day: number, now = new Date()): string {
 
 /** Everything the add will write, in list order: directly-paid services at
  * their (possibly edited) details, bundled ones at ₹0. */
-export function buildItems(res: Resolution, edits: QuickEdits): QuickItem[] {
+export function buildItems(res: Resolution, edits: QuickEdits, trackedIds: ReadonlySet<string> = new Set()): QuickItem[] {
   const out: QuickItem[] = [];
-  for (const sub of QUICK_ORDER) {
+  for (const sub of [...QUICK_ORDER, ...INCLUDED_ONLY_SUBSCRIPTIONS]) {
     const st = res.state[sub.id];
     if (st === "direct") {
-      const base = edits.details[sub.id] ?? quickDefaultDetails(sub);
+      const base = edits.details[sub.id] ?? defaultDetailsFor(sub, res, trackedIds);
       if (!base) continue;
       // A day-of-month only means something for a monthly renewal.
       const day = base.billing === "monthly" ? edits.renewDay[sub.id] : undefined;

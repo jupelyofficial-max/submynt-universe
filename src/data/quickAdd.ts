@@ -14,6 +14,7 @@ import type { BundleProvider, Category } from "@/types/subscription";
 export const DEFAULT_ADD_LIST: string[] = [
   "youtube-premium",
   "amazon-prime",
+  "amazon-music-unlimited",
   "netflix",
   "jiohotstar",
   "spotify-premium",
@@ -26,7 +27,6 @@ export const DEFAULT_ADD_LIST: string[] = [
   "apple-music",
   "apple-tv",
   "jiosaavn-pro",
-  "amazon-music-unlimited",
   "google-ai-pro",
   "claude-pro",
   "perplexity-pro",
@@ -46,6 +46,21 @@ export const DEFAULT_ADD_LIST: string[] = [
  * hidden service can still arrive as an included child (e.g. Apple Arcade
  * with Apple One, see PARENT_SERVICES). */
 export const LIST_EXCLUDED_CATEGORIES: Category[] = ["Telecom", "Gaming"];
+
+/** Included-only services: they exist only as a parent's child (a ₹0 row
+ * with the parent) — never in the list, its search or as a standalone pick,
+ * and with no "I pay separately" (they have no price of their own). Listed in
+ * INCLUDED_ONLY_SUBSCRIPTIONS (data/subscriptions.ts). */
+export const INCLUDED_ONLY_IDS: string[] = ["amazon-music-with-prime"];
+
+/** A paid add-on that has a cheaper rate for members of another service
+ * (Amazon Music Unlimited is ₹99 for Prime members, ₹119 otherwise). Its
+ * default plan on the confirm screen is `plan` when `with` is selected,
+ * included via a bundle, or already tracked — else its other (standard) plan.
+ * The add-on stays a normal row either way: never hidden or marked included. */
+export const MEMBER_PLANS: Record<string, { with: string; plan: string }> = {
+  "amazon-music-unlimited": { with: "amazon-prime", plan: "Prime member" },
+};
 
 export interface ParentService {
   /** Catalogue ids this service includes. Selecting the parent adds each as
@@ -70,7 +85,11 @@ export interface ParentService {
  */
 export const PARENT_SERVICES: Record<string, ParentService> = {
   "youtube-premium": { children: ["youtube-music-premium"], provider: "google", includes: "YouTube Music" },
-  "amazon-prime": { children: ["amazon-prime-video"], provider: "amazon", includes: "Prime Video" },
+  "amazon-prime": {
+    children: ["amazon-prime-video", "amazon-music-with-prime"],
+    provider: "amazon",
+    includes: "Prime Video, Amazon Music",
+  },
   "apple-one": {
     children: ["apple-music", "apple-tv", "apple-arcade", "icloud"],
     provider: "apple",

@@ -940,9 +940,10 @@ export const SUBSCRIPTIONS: Subscription[] = [
     addedAt: "2026-09-13T05:01:10Z",
   },
   {
-    // Added 2026-09-20, verified: ₹119/mo is the standalone non-Prime
-    // price (₹99/mo is a separate Prime-member-linked rate, not used here
-    // to keep this a standalone price like every other entry). New users
+    // Added 2026-09-20, verified: ₹119/mo is the non-Prime price; ₹99/mo is
+    // the Prime-member rate (added as its own plan so the add flow can pick
+    // it when Amazon Prime is also selected or tracked — see MEMBER_PLANS in
+    // data/quickAdd.ts). It is a paid add-on, not part of Prime. New users
     // get a real 3-month free trial per aboutamazon.in's own announcement.
     id: "amazon-music-unlimited",
     name: "Amazon Music Unlimited",
@@ -954,7 +955,10 @@ export const SUBSCRIPTIONS: Subscription[] = [
     domain: "music.amazon.com",
     priceMonthly: 119,
     billing: ["monthly"],
-    plans: [{ name: "Standard", priceMonthly: 119, billing: "monthly" }],
+    plans: [
+      { name: "Standard", priceMonthly: 119, billing: "monthly" },
+      { name: "Prime member", priceMonthly: 99, billing: "monthly" },
+    ],
     popularity: 42,
     rating: 4.1,
     region: "Available in India",
@@ -1446,8 +1450,32 @@ export const SUBSCRIPTIONS: Subscription[] = [
   },
 ];
 
+/** Services that only ever exist as something a paid service includes. They
+ * resolve by id (so a tracked row can show its name and logo) but are kept
+ * out of SUBSCRIPTIONS, so they never appear in Explore, search, Compare,
+ * recommendations or the add list — see PARENT_SERVICES in data/quickAdd.ts. */
+export const INCLUDED_ONLY_SUBSCRIPTIONS: Subscription[] = [
+  {
+    id: "amazon-music-with-prime",
+    name: "Amazon Music (with Prime)",
+    provider: "Amazon Music",
+    category: "Music",
+    tagline: "The ad-supported Amazon Music that comes with Prime",
+    color: "#25D1DA",
+    initials: "AM",
+    domain: "music.amazon.com",
+    priceMonthly: 0,
+    billing: ["monthly"],
+    plans: [],
+    popularity: 0,
+    rating: 4.0,
+    region: "Available in India",
+    tags: ["Music"],
+  },
+];
+
 export const SUBSCRIPTIONS_BY_ID: Record<string, Subscription> =
-  Object.fromEntries(SUBSCRIPTIONS.map((s) => [s.id, s]));
+  Object.fromEntries([...SUBSCRIPTIONS, ...INCLUDED_ONLY_SUBSCRIPTIONS].map((s) => [s.id, s]));
 
 export function getAlternatives(sub: Subscription, limit = 4): Subscription[] {
   return SUBSCRIPTIONS.filter(

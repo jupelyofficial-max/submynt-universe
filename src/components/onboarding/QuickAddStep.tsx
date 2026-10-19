@@ -14,6 +14,7 @@ import {
   fromMonthly,
   hasMissingPrice,
   includesText,
+  isIncludedOnly,
   monthlyTotal,
   paySeparately,
   resolveQuick,
@@ -37,7 +38,7 @@ export function useQuickAdd(trackedIds: ReadonlySet<string>, initialPicks: strin
   const [renewDay, setRenewDay] = useState<Record<string, number>>({});
 
   const res = useMemo(() => resolveQuick(sel, trackedIds), [sel, trackedIds]);
-  const items = useMemo(() => buildItems(res, { details, renewDay }), [res, details, renewDay]);
+  const items = useMemo(() => buildItems(res, { details, renewDay }, trackedIds), [res, details, renewDay, trackedIds]);
 
   return {
     query,
@@ -451,9 +452,11 @@ function IncludedList({ items, quick }: { items: QuickItem[]; quick: QuickAdd })
                     ₹0 · {viaLabel(c.coverage)}
                     {plan}
                   </span>
-                  <button type="button" onClick={() => quick.paySeparately(c.id)} className="font-medium text-[var(--af-green-ink)] hover:underline cursor-pointer">
-                    I pay separately
-                  </button>
+                  {!isIncludedOnly(c.id) && (
+                    <button type="button" onClick={() => quick.paySeparately(c.id)} className="font-medium text-[var(--af-green-ink)] hover:underline cursor-pointer">
+                      I pay separately
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

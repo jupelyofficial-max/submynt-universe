@@ -1,4 +1,4 @@
-import { SUBSCRIPTIONS } from "./subscriptions";
+import { INCLUDED_ONLY_SUBSCRIPTIONS, SUBSCRIPTIONS } from "./subscriptions";
 import type { SubscriptionVerification, VerifiedField } from "@/types/verification";
 
 /**
@@ -24,7 +24,7 @@ function unverified<T>(value: T): VerifiedField<T> {
 }
 
 export const VERIFICATION_BY_ID: Record<string, SubscriptionVerification> = Object.fromEntries(
-  SUBSCRIPTIONS.map((s) => [
+  [...SUBSCRIPTIONS, ...INCLUDED_ONLY_SUBSCRIPTIONS].map((s) => [
     s.id,
     {
       price: unverified(s.priceMonthly),

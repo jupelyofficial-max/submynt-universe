@@ -72,6 +72,16 @@ export function catalogPriceFor(sub: Subscription, billing: BillingCycle): numbe
   return null;
 }
 
+/** The rule behind the cycle switch: the catalogue's price for the new cycle
+ * (or null, so it must be re-entered) — never ×12/÷12, since an annual plan
+ * is usually discounted. A catalogue plan name follows along; a custom one
+ * is left as typed. Shared with the quick-add confirm screen. */
+export function switchBilling(sub: Subscription, value: ServiceDetailsValue, billing: BillingCycle): ServiceDetailsValue {
+  const isCatalogPlanName = sub.plans.some((p) => p.name === value.planName);
+  const planName = isCatalogPlanName ? sub.plans.find((p) => p.billing === billing)?.name ?? value.planName : value.planName;
+  return { ...value, billing, priceAmount: catalogPriceFor(sub, billing), planName };
+}
+
 export function defaultServiceDetails(sub: Subscription): ServiceDetailsValue {
   // Start on whichever flow cycle the catalogue actually prices (monthly
   // first), so the prefilled amount always matches the selected cycle.
@@ -109,9 +119,7 @@ export function ServiceDetailsCard({
   // annual plan is usually discounted. A catalogue plan name follows along;
   // a custom one is left as typed.
   function setBilling(billing: BillingCycle) {
-    const isCatalogPlanName = sub.plans.some((p) => p.name === value.planName);
-    const nextPlanName = isCatalogPlanName ? sub.plans.find((p) => p.billing === billing)?.name ?? value.planName : value.planName;
-    onChange({ ...value, billing, priceAmount: catalogPriceFor(sub, billing), planName: nextPlanName });
+    onChange(switchBilling(sub, value, billing));
   }
 
   const showBundleProvider = value.accessType === "bundled" || value.accessType === "family";

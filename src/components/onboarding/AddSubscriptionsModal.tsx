@@ -17,14 +17,16 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useSubscriptionsReady } from "@/hooks/useSubscriptionsReady";
 import { signInWithGoogle } from "@/lib/auth/signIn";
 import { trackEvent } from "@/lib/events";
-import { QuickAddStep, quickAddDetails } from "./QuickAddStep";
+import { QuickConfirmScreen, QuickSelectScreen, useQuickAdd } from "./QuickAddStep";
+import { NO_EDITS, buildItems, monthlyTotal, type QuickItem } from "@/lib/quickAdd";
 import { ServiceDetailsCard, catalogPriceFor, defaultServiceDetails, type ServiceDetailsValue } from "./ServiceDetailsCard";
 import { BundleConfirmManualStep, BundleConfirmPresetStep, BundlePickStep, BundlePlanRow, type BundlePlanValue } from "./BundleFirstSteps";
 
-type Step = "quick" | "welcome" | "bundlePick" | "bundleConfirm" | "select" | "details" | "review" | "done";
+type Step = "quick" | "quickConfirm" | "welcome" | "bundlePick" | "bundleConfirm" | "select" | "details" | "review" | "done";
 const STEP_ORDER: Step[] = ["welcome", "select", "details", "review"];
 const STEP_TITLES: Record<Step, string> = {
   quick: "What do you pay for?",
+  quickConfirm: "Confirm and add",
   welcome: "Track your subscriptions",
   bundlePick: "Do you have any bundles?",
   bundleConfirm: "Confirm what's included",
@@ -418,38 +420,61 @@ function AddSubscriptionsFlow({
     setStep("done");
   }
 
-  /** Quick-add grid: tapping selects at the catalogue default plan/price. */
-  function toggleQuick(id: string) {
-    const sub = SUBSCRIPTIONS_BY_ID[id];
-    if (!sub) return;
-    trackEvent(selectedIds.includes(id) ? "service_deselected" : "service_selected", { service_id: id });
-    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-    setDetails((prev) => (prev[id] ? prev : { ...prev, [id]: defaultServiceDetails(sub) }));
+  // ---- Quick add (two screens: select → confirm) ----
+  const trackedIds = useMemo(() => new Set(ownedList.map((o) => o.subscriptionId)), [ownedList]);
+  const quick = useQuickAdd(trackedIds);
+
+  function quickCategory(chipId: string) {
+    if (chipId === quick.chip) return;
+    quick.setChip(chipId);
+    quick.setQuery("");
+    trackEvent("quick_add_category", { category: chipId });
   }
 
-  // Guards a double click adding (and logging) twice before the step swaps.
+  function quickNext() {
+    trackEvent("quick_add_next", { count: quick.items.length });
+    setStep("quickConfirm");
+  }
+
+  // "Add with details": the picks (and their prices) carry into the
+  // detailed flow's own state.
+  function quickToDetailed() {
+    const items = quick.items;
+    setSelectedIds(items.map((i) => i.id));
+    setDetails(Object.fromEntries(items.map((i) => [i.id, i.value])));
+    setQuery("");
+    setStep("select");
+  }
+
+  // Guards a double click adding (and logging) twice before the flow closes.
   const quickAdding = useRef(false);
-  function handleQuickAdd() {
-    if (quickAdding.current) return;
+  function addQuickItems(items: QuickItem[], fast: boolean) {
+    if (quickAdding.current || items.length === 0) return;
     quickAdding.current = true;
-    let count = 0;
-    for (const id of selectedIds) {
-      const sub = SUBSCRIPTIONS_BY_ID[id];
-      const d = sub ? quickAddDetails(sub) : null;
-      if (!sub || !d || isOwned(id)) continue;
+    for (const item of items) {
+      if (isOwned(item.id)) continue;
+      const v = item.value;
       addOwned({
-        subscriptionId: id,
-        planName: d.planName || sub.name,
-        priceAmount: d.priceAmount ?? 0,
-        billing: d.billing,
-        nextRenewal: d.nextRenewal,
-        accessType: d.accessType,
+        subscriptionId: item.id,
+        planName: v.planName || SUBSCRIPTIONS_BY_ID[item.id]?.name || "Plan",
+        priceAmount: v.priceAmount ?? 0,
+        billing: v.billing,
+        nextRenewal: v.nextRenewal,
+        accessType: v.accessType,
+        bundleProvider: v.bundleProvider,
       });
-      count++;
     }
-    trackEvent("quick_add_completed", { count, source: entry ?? "other" });
-    setAddedCount(count);
-    setStep("done");
+    if (fast) trackEvent("quick_add_fast_path", { count: items.length });
+    trackEvent("quick_add_completed", {
+      count: items.length,
+      total_monthly: Math.round(monthlyTotal(items) * 100) / 100,
+      with_renewal_count: items.filter((i) => i.withRenewal).length,
+      source: entry ?? "other",
+    });
+    // Back to Track, where the overlap badges and "ways to save" line the
+    // page already shows for what's tracked appear on their own.
+    onClose();
+    router.push("/my-subscriptions");
   }
 
   function goToTrackPage() {
@@ -459,16 +484,41 @@ function AddSubscriptionsFlow({
 
   const stepIndex = STEP_ORDER.indexOf(step);
 
+  const header = (
+    <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
+      <h2 className="font-display text-base font-semibold text-ink-0">
+        {step === "bundleConfirm" && currentBundle ? `Confirm your ${currentBundle.name}` : STEP_TITLES[step]}
+      </h2>
+      <button onClick={onClose} className="text-xs text-ink-400 hover:text-ink-0 cursor-pointer">
+        Close
+      </button>
+    </div>
+  );
+
+  // The quick add has its own scroll area and sticky bottom bar per screen.
+  if (step === "quick" || step === "quickConfirm") {
+    return (
+      <div className="flex flex-col">
+        {header}
+        {step === "quick" ? (
+          <QuickSelectScreen
+            quick={quick}
+            trackedIds={trackedIds}
+            onCategory={quickCategory}
+            onNext={quickNext}
+            onFast={() => addQuickItems(buildItems(quick.res, NO_EDITS), true)}
+            onDetailed={quickToDetailed}
+          />
+        ) : (
+          <QuickConfirmScreen quick={quick} onBack={() => setStep("quick")} onConfirm={() => addQuickItems(quick.items, false)} />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
-        <h2 className="font-display text-base font-semibold text-ink-0">
-          {step === "bundleConfirm" && currentBundle ? `Confirm your ${currentBundle.name}` : STEP_TITLES[step]}
-        </h2>
-        <button onClick={onClose} className="text-xs text-ink-400 hover:text-ink-0 cursor-pointer">
-          Close
-        </button>
-      </div>
+      {header}
 
       {stepIndex >= 0 && (
         <div className="flex gap-1 px-5 pt-3">
@@ -479,17 +529,6 @@ function AddSubscriptionsFlow({
       )}
 
       <div className="max-h-[65vh] overflow-y-auto px-5 py-4">
-        {step === "quick" && (
-          <QuickAddStep
-            query={query}
-            onQueryChange={setQuery}
-            selectedIds={selectedIds}
-            trackedIds={new Set(ownedList.map((o) => o.subscriptionId))}
-            onToggle={toggleQuick}
-            onPickBundle={() => setStep("bundlePick")}
-          />
-        )}
-
         {step === "welcome" && (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <p className="font-display text-lg text-ink-0">Track what you&apos;re actually paying for</p>
@@ -669,22 +708,6 @@ function AddSubscriptionsFlow({
       </div>
 
       <div className="flex items-center justify-between border-t border-black/10 px-5 py-4">
-        {step === "quick" && (
-          <>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setQuery("");
-                setStep("select");
-              }}
-            >
-              Add with details
-            </Button>
-            <Button onClick={handleQuickAdd} disabled={selectedIds.length === 0}>
-              {selectedIds.length > 0 ? `Add ${selectedIds.length} subscription${selectedIds.length === 1 ? "" : "s"}` : "Select what you pay for"}
-            </Button>
-          </>
-        )}
         {step === "welcome" && (
           <>
             <Button variant="ghost" onClick={() => setStep("bundlePick")}>

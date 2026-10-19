@@ -158,10 +158,10 @@ body {
  * deliberately distinct from the app's warm cream/copper palette above.
  * Scoped to .ts-theme (my-subscriptions + the owned-item view of
  * DetailPanel) rather than touching :root, so the rest of the app is
- * completely unaffected. Follows the OS's prefers-color-scheme since the
- * app has no manual theme toggle anywhere to key off instead. */
+ * completely unaffected. Light only: the site ignores the OS dark-mode
+ * setting (see viewport.colorScheme in layout.tsx). */
 .ts-theme {
-  --ts-bg: #f5f9f8;
+  --ts-bg: #ffffff;
   --ts-card: #ffffff;
   --ts-ink-0: #0b1f18;
   --ts-ink-300: #4c6159;
@@ -180,25 +180,6 @@ body {
   color: var(--ts-ink-0);
 }
 
-@media (prefers-color-scheme: dark) {
-  .ts-theme {
-    --ts-bg: #071412;
-    --ts-card: #0d1e19;
-    --ts-ink-0: #eaf5f0;
-    --ts-ink-300: #9fb8af;
-    --ts-ink-500: #6c8880;
-    --ts-border: rgba(234, 245, 240, 0.08);
-    --ts-border-strong: rgba(234, 245, 240, 0.14);
-    --ts-mint-400: #2fe3a8;
-    --ts-mint-500: #22c796;
-    --ts-mint-tint: rgba(47, 227, 168, 0.14);
-    --ts-amber: #e3b24a;
-    --ts-amber-tint: rgba(227, 178, 74, 0.16);
-    --ts-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --ts-shadow-md: 0 12px 32px rgba(0, 0, 0, 0.35);
-  }
-}
-
 .ts-card {
   background: var(--ts-card);
   border: 1px solid var(--ts-border);
@@ -211,64 +192,34 @@ body {
 }
 
 /* Add-subscriptions flow ("What do you use?" → confirm). A solid, opaque
- * surface — white in light mode, near-black in dark — instead of the
- * translucent glass panel. .af-panel colours the sheet itself; .af-theme
- * wraps the content and carries the tokens. Dark follows the OS scheme (the
- * app has no manual toggle), and re-points the app's own ink/void/nebula
- * tokens and Tailwind's black so the confirm and bundle steps — which use
- * those — stay readable on the dark surface. */
+ * white surface — no translucency, no grey wash. .af-panel colours the sheet
+ * itself; .af-theme wraps the content and carries the tokens. Light only. */
 .af-panel {
   background: #ffffff;
-  border-color: #dde3e0;
+  border-color: #e5e7eb;
 }
 .af-theme {
   --af-bg: #ffffff;
   --af-card: #ffffff;
+  --af-search: #f5f6f4;
   --af-ink: #0b0f0e;
   --af-meta: #4b5563;
-  --af-border: #dde3e0;
-  --af-pill-bg: #eef2f0;
-  --af-pill-ink: #3a4541;
+  --af-border: #e5e7eb;
+  --af-pill-bg: #f3f4f6;
+  --af-pill-ink: #374151;
   --af-green: #22c55e;
   --af-green-solid: #16a34a;
   --af-green-tint: #f0fdf4;
   --af-green-ink: #15803d;
-  /* The app's -400 accent is 4.2:1 on white and 3.6:1 on its own tint; this
-     deeper green keeps accent text AA inside the flow (confirm + bundle steps). */
+  /* The app's muted tokens are below AA on white-ish surfaces (nebula-400
+     4.2:1, ink-500 3.0:1); these deeper values keep hints and accent text
+     readable inside the flow (confirm + bundle steps use them). */
   --nebula-400: #166534;
-  /* Same for the muted ink (3.0:1 on the cream tints) used by hints on the confirm screen. */
   --ink-500: #5f6b66;
   background: var(--af-bg);
   color: var(--af-ink);
 }
-@media (prefers-color-scheme: dark) {
-  .af-panel {
-    background: #0b0f0e;
-    border-color: rgba(255, 255, 255, 0.12);
-  }
-  .af-theme {
-    color-scheme: dark;
-    --af-bg: #0b0f0e;
-    --af-card: #121816;
-    --af-ink: #f4f7f6;
-    --af-meta: #a7b3ae;
-    --af-border: #2a3430;
-    --af-pill-bg: #1f2925;
-    --af-pill-ink: #c4cec9;
-    --af-green-tint: rgba(34, 197, 94, 0.1);
-    --af-green-ink: #4ade80;
-    --ink-0: #f4f7f6;
-    --ink-100: #d9e1dd;
-    --ink-300: #a7b3ae;
-    --ink-500: #8d9a95;
-    --void-950: #0b0f0e;
-    --void-900: #121816;
-    --void-800: #1a221f;
-    --void-700: #26302c;
-    --nebula-400: #4ade80;
-    --nebula-500: #22c55e;
-    --line-soft: rgba(255, 255, 255, 0.12);
-    --line-strong: rgba(255, 255, 255, 0.2);
-    --color-black: #ffffff;
-  }
+/* Cards on white: a 1px #E5E7EB border (set per element) plus this very soft lift. */
+.af-shadow {
+  box-shadow: 0 1px 2px rgba(11, 15, 14, 0.05);
 }

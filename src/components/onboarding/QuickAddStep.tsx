@@ -142,16 +142,16 @@ function ServiceCard({
       aria-pressed={on}
       onClick={() => quick.tap(id)}
       className={cn(
-        "flex w-full flex-col rounded-2xl text-left transition-colors",
+        "af-shadow flex w-full flex-col rounded-2xl text-left transition-colors",
         on ? "border-2 border-[var(--af-green)]! bg-[var(--af-green-tint)] p-[11px]" : "border border-[var(--af-border)]! bg-[var(--af-card)] p-3",
-        tracked ? "cursor-default opacity-60" : "cursor-pointer",
+        tracked ? "cursor-default" : "cursor-pointer",
         !on && !tracked && "hover:border-[var(--af-meta)]!"
       )}
     >
       <div className="flex w-full items-center gap-3">
-        <SubscriptionLogo subscription={sub} size="sm" />
+        <SubscriptionLogo subscription={sub} size="sm" className={tracked ? "grayscale" : undefined} />
         <div className="min-w-0 flex-1">
-          <div className="text-base font-semibold leading-snug text-[var(--af-ink)]">{sub.name}</div>
+          <div className={cn("text-base font-semibold leading-snug", tracked ? "text-[var(--af-meta)]" : "text-[var(--af-ink)]")}>{sub.name}</div>
           <span className="mt-1 inline-flex rounded-full bg-[var(--af-pill-bg)] px-2 py-0.5 text-[11px] font-medium text-[var(--af-pill-ink)]">{sub.category}</span>
           {includes && !on && !tracked && <div className="mt-1 text-xs text-[var(--af-meta)]">{includes}</div>}
         </div>
@@ -228,7 +228,7 @@ export function QuickSelectScreen({
               onChange={(e) => quick.setQuery(e.target.value)}
               aria-label="Search subscriptions"
               placeholder="Search subscriptions…"
-              className="w-full rounded-xl border border-[var(--af-border)]! bg-[var(--af-card)] py-2.5 pl-9 pr-3 text-sm text-[var(--af-ink)] outline-none placeholder:text-[var(--af-meta)] focus:border-[var(--af-green)]!"
+              className="w-full rounded-xl border border-[var(--af-border)]! bg-[var(--af-search)] py-2.5 pl-9 pr-3 text-sm text-[var(--af-ink)] outline-none placeholder:text-[var(--af-meta)] focus:border-[var(--af-green)]!"
             />
           </div>
 
@@ -239,7 +239,7 @@ export function QuickSelectScreen({
                 <ServiceCard key={r.id} id={r.id} quick={quick} trackedIds={trackedIds} included={includedUnder(r.id, quick.items)} />
               ))}
               {orphans.length > 0 && (
-                <div className="rounded-2xl border border-[var(--af-border)]! bg-[var(--af-card)] p-3">
+                <div className="af-shadow rounded-2xl border border-[var(--af-border)]! bg-[var(--af-card)] p-3">
                   <p className="text-xs font-semibold text-[var(--af-ink)]">Included with your bundles</p>
                   <IncludedChips items={orphans} />
                 </div>
@@ -257,7 +257,7 @@ export function QuickSelectScreen({
         </div>
       </div>
 
-      <div className="border-t border-[var(--af-border)]! px-5 py-3">
+      <div className="border-t border-[var(--af-border)]! bg-[var(--af-bg)] px-5 py-3">
         <div className="flex items-center justify-between gap-3">
           <p className="min-w-0" aria-live="polite">
             {quick.items.length === 0 ? (
@@ -303,16 +303,16 @@ export function QuickConfirmScreen({ quick, onBack, onConfirm }: { quick: QuickA
             <DirectRow key={item.id} item={item} quick={quick} />
           ))}
           {loose.length > 0 && (
-            <div className="rounded-xl border border-black/10 bg-void-900/40 p-3">
-              <p className="text-xs font-semibold text-ink-0">Included with your bundles</p>
+            <div className="rounded-xl border border-[var(--af-border)]! bg-[var(--af-card)] af-shadow p-3">
+              <p className="text-xs font-semibold text-[var(--af-ink)]">Included with your bundles</p>
               <IncludedList items={loose} quick={quick} />
             </div>
           )}
         </div>
       </div>
 
-      <div className="border-t border-black/10 px-5 py-3">
-        <p className="mb-2 text-sm font-medium text-ink-0" aria-live="polite">
+      <div className="border-t border-[var(--af-border)]! bg-[var(--af-bg)] px-5 py-3">
+        <p className="mb-2 text-sm font-medium text-[var(--af-ink)]" aria-live="polite">
           Total {money(monthly)}/month · {money(monthly * 12)}/year
         </p>
         {missing && <p className="mb-2 text-xs text-red-400">Enter a price for every subscription to continue.</p>}
@@ -339,18 +339,18 @@ function DirectRow({ item, quick }: { item: QuickItem; quick: QuickAdd }) {
   const nested = quick.items.filter((i) => i.kind === "bundled" && i.coverage?.parentId === item.id);
 
   return (
-    <div className="rounded-xl border border-black/10 bg-void-900/40 p-3">
+    <div className="rounded-xl border border-[var(--af-border)]! bg-[var(--af-card)] af-shadow p-3">
       <div className="flex items-center gap-2.5">
         <SubscriptionLogo subscription={sub} size="xs" />
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink-0">{sub.name}</span>
-        <div role="group" aria-label={`${sub.name} billing cycle`} className="flex shrink-0 overflow-hidden rounded-lg border border-black/10">
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--af-ink)]">{sub.name}</span>
+        <div role="group" aria-label={`${sub.name} billing cycle`} className="flex shrink-0 overflow-hidden rounded-lg border border-[var(--af-border)]!">
           {FLOW_CYCLES.map((c) => (
             <button
               key={c.value}
               type="button"
               aria-pressed={value.billing === c.value}
               onClick={() => value.billing !== c.value && edit(switchBilling(sub, value, c.value))}
-              className={cn("h-8 px-2.5 text-xs font-medium cursor-pointer", value.billing === c.value ? "bg-nebula-500/15 text-nebula-400" : "text-ink-300 hover:bg-black/5")}
+              className={cn("h-8 px-2.5 text-xs font-medium cursor-pointer", value.billing === c.value ? "bg-[var(--af-green-tint)] text-[var(--af-green-ink)]" : "text-[var(--af-meta)] hover:bg-[var(--af-pill-bg)]")}
             >
               {c.label}
             </button>
@@ -370,7 +370,7 @@ function DirectRow({ item, quick }: { item: QuickItem; quick: QuickAdd }) {
                 onClick={() => edit(applyPlan(value, p))}
                 className={cn(
                   "rounded-full border px-2.5 py-1 text-[11px] font-medium cursor-pointer",
-                  active ? "border-nebula-500 bg-nebula-500/10 text-nebula-400" : "border-black/10 text-ink-300 hover:border-black/20"
+                  active ? "border-[var(--af-green)]! bg-[var(--af-green-tint)] text-[var(--af-green-ink)]" : "border-[var(--af-border)]! text-[var(--af-meta)] hover:border-[var(--af-meta)]!"
                 )}
               >
                 {p.name} · {formatINR(planCycleAmount(p))}/{shortCycle(p.billing)}
@@ -381,7 +381,7 @@ function DirectRow({ item, quick }: { item: QuickItem; quick: QuickAdd }) {
       )}
 
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
-        <label className="flex items-center gap-1.5 text-xs text-ink-300">
+        <label className="flex items-center gap-1.5 text-xs text-[var(--af-meta)]">
           ₹
           <input
             type="number"
@@ -393,21 +393,21 @@ function DirectRow({ item, quick }: { item: QuickItem; quick: QuickAdd }) {
             aria-invalid={value.priceAmount === null}
             onChange={(e) => edit({ ...value, priceAmount: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })}
             className={cn(
-              "h-9 w-24 rounded-lg border bg-void-900/70 px-2 text-sm text-ink-0 outline-none focus:border-aurora-500/50",
-              value.priceAmount === null ? "border-red-400/60" : "border-black/10"
+              "h-9 w-24 rounded-lg border bg-[var(--af-card)] px-2 text-sm text-[var(--af-ink)] outline-none focus:border-[var(--af-green)]!",
+              value.priceAmount === null ? "border-red-500!" : "border-[var(--af-border)]!"
             )}
           />
           /{value.billing === "annual" ? "year" : "month"}
         </label>
 
         {value.billing === "monthly" ? (
-          <label className="flex items-center gap-1.5 text-xs text-ink-300">
+          <label className="flex items-center gap-1.5 text-xs text-[var(--af-meta)]">
             Renews on day
             <select
               value={day ?? ""}
               aria-label={`${sub.name} renewal day of the month, for reminders`}
               onChange={(e) => quick.setDay(item.id, e.target.value === "" ? undefined : Number(e.target.value))}
-              className="h-9 rounded-lg border border-black/10 bg-void-900/70 px-2 text-sm text-ink-0 outline-none focus:border-aurora-500/50"
+              className="h-9 rounded-lg border border-[var(--af-border)]! bg-[var(--af-card)] px-2 text-sm text-[var(--af-ink)] outline-none focus:border-[var(--af-green)]!"
             >
               <option value="">—</option>
               {DAYS.map((d) => (
@@ -416,10 +416,10 @@ function DirectRow({ item, quick }: { item: QuickItem; quick: QuickAdd }) {
                 </option>
               ))}
             </select>
-            <span className="text-ink-500">for reminders</span>
+            <span className="text-[var(--af-meta)]">for reminders</span>
           </label>
         ) : (
-          <span className="text-[11px] text-ink-500">Set the exact renewal date later from its detail panel.</span>
+          <span className="text-[11px] text-[var(--af-meta)]">Set the exact renewal date later from its detail panel.</span>
         )}
       </div>
       {value.priceAmount === null && (
@@ -434,7 +434,7 @@ function DirectRow({ item, quick }: { item: QuickItem; quick: QuickAdd }) {
 /** Services something includes, indented at ₹0 — with their own children below. */
 function IncludedList({ items, quick }: { items: QuickItem[]; quick: QuickAdd }) {
   return (
-    <ul className="mt-2 flex flex-col gap-1.5 border-l-2 border-nebula-500/30 pl-3">
+    <ul className="mt-2 flex flex-col gap-1.5 border-l-2 border-[var(--af-green)]/40! pl-3">
       {items.map((c) => {
         const sub = SUBSCRIPTIONS_BY_ID[c.id];
         if (!sub || !c.coverage) return null;
@@ -445,13 +445,13 @@ function IncludedList({ items, quick }: { items: QuickItem[]; quick: QuickAdd })
             <div className="flex items-start gap-2">
               <SubscriptionLogo subscription={sub} size="xs" />
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-medium leading-tight text-ink-0">{sub.name}</div>
-                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-ink-400">
+                <div className="text-xs font-medium leading-tight text-[var(--af-ink)]">{sub.name}</div>
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-[var(--af-meta)]">
                   <span>
                     ₹0 · {viaLabel(c.coverage)}
                     {plan}
                   </span>
-                  <button type="button" onClick={() => quick.paySeparately(c.id)} className="font-medium text-nebula-400 hover:text-nebula-500 cursor-pointer">
+                  <button type="button" onClick={() => quick.paySeparately(c.id)} className="font-medium text-[var(--af-green-ink)] hover:underline cursor-pointer">
                     I pay separately
                   </button>
                 </div>

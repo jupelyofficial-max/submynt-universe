@@ -38,7 +38,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0906",
+  // Light only — the site ignores the OS dark-mode setting. Emits
+  // <meta name="color-scheme" content="light"> so native controls and
+  // scrollbars stay light too.
+  colorScheme: "light",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

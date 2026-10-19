@@ -32,7 +32,7 @@ export const ECOSYSTEMS: Ecosystem[] = [
     id: "apple",
     name: "Apple",
     logo: "/ecosystems/apple.png",
-    serviceIds: ["apple-music", "apple-tv", "icloud", "apple-arcade"],
+    serviceIds: ["apple-music", "apple-tv", "icloud", "apple-arcade", "apple-one"],
   },
   {
     // Only Creative Cloud is in the catalogue today, so Adobe stays hidden

@@ -1,9 +1,8 @@
 import { SUBSCRIPTIONS, SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
-import { BUNDLE_CATALOGUE, type BundleCatalogueEntry } from "@/data/bundleCatalogue";
-import { AUTO_INCLUDE_BUNDLES, INDIA_POPULARITY_ORDER, QUICK_ADD_CHIPS } from "@/data/quickAdd";
+import { INDIA_POPULARITY_ORDER, PARENT_SERVICES } from "@/data/quickAdd";
 import { monthlyEquivalent, planCycleAmount } from "@/lib/utils";
 import { catalogPriceFor, type ServiceDetailsValue } from "@/components/onboarding/ServiceDetailsCard";
-import type { BillingCycle, Subscription, SubscriptionPlan } from "@/types/subscription";
+import type { AccessType, BillingCycle, BundleProvider, Subscription, SubscriptionPlan } from "@/types/subscription";
 
 // ---------------------------------------------------------------- prices
 
@@ -16,16 +15,16 @@ export function cheapestPlan(sub: Subscription): SubscriptionPlan | null {
   );
 }
 
-/** Same 30-day default the detailed flow uses when no renewal date is known. */
+/** Same 30-day default the rest of the add flow uses when no renewal date is known. */
 function defaultRenewal(): string {
   const d = new Date();
   d.setDate(d.getDate() + 30);
   return d.toISOString().slice(0, 10);
 }
 
-/** What a quick add writes for `sub` when the user doesn't change anything:
- * its cheapest plan at that plan's own per-cycle price. Null when the
- * catalogue lists no paid price at all (never invented). */
+/** What an add writes for `sub` when the user doesn't change anything: its
+ * cheapest plan at that plan's own per-cycle price. Null when the catalogue
+ * lists no paid price at all (never invented). */
 export function quickDefaultDetails(sub: Subscription): ServiceDetailsValue | null {
   const plan = cheapestPlan(sub);
   if (plan) {
@@ -38,7 +37,7 @@ export function quickDefaultDetails(sub: Subscription): ServiceDetailsValue | nu
   return null;
 }
 
-/** The tile's "from ₹X/mo": the cheapest plan's monthly equivalent. */
+/** The row's "from ₹X/mo": the cheapest plan's monthly equivalent. */
 export function fromMonthly(sub: Subscription): number | null {
   const d = quickDefaultDetails(sub);
   return d && d.priceAmount !== null ? monthlyEquivalent(d.priceAmount, d.billing) : null;
@@ -49,7 +48,7 @@ export function applyPlan(value: ServiceDetailsValue, plan: SubscriptionPlan): S
   return { ...value, planName: plan.name, billing: plan.billing, priceAmount: planCycleAmount(plan) };
 }
 
-/** Short per-cycle suffix for compact chips and tiles ("mo", "yr"). */
+/** Short per-cycle suffix for compact chips ("mo", "yr"). */
 export function shortCycle(billing: BillingCycle): string {
   return billing === "annual" ? "yr" : billing === "monthly" ? "mo" : billing === "quarterly" ? "qtr" : billing === "half-yearly" ? "6 mo" : "";
 }
@@ -58,7 +57,7 @@ export function shortCycle(billing: BillingCycle): string {
 
 const BY_POPULARITY = [...SUBSCRIPTIONS].sort((a, b) => b.popularity - a.popularity);
 
-/** Every service the grid can add, in display order: the India list first,
+/** Every service the list can add, in display order: the India list first,
  * then the rest by the catalogue's own popularity. */
 export const QUICK_ORDER: Subscription[] = (() => {
   const seen = new Set<string>();
@@ -72,76 +71,95 @@ export const QUICK_ORDER: Subscription[] = (() => {
   return out;
 })();
 
-/** The grid for a category chip. A search overrides the chip and looks
- * through everything, so a typed name is never hidden by the filter. */
-export function filterServices(chipId: string, query: string): Subscription[] {
+/** The search filter over the list (empty query = everything). */
+export function filterServices(query: string): Subscription[] {
   const q = query.trim().toLowerCase();
-  if (q) {
-    return QUICK_ORDER.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.provider.toLowerCase().includes(q) ||
-        s.category.toLowerCase().includes(q) ||
-        s.tags.some((t) => t.toLowerCase().includes(q))
-    );
-  }
-  const chip = QUICK_ADD_CHIPS.find((c) => c.id === chipId);
-  if (!chip || chip.categories.length === 0) return QUICK_ORDER;
-  return QUICK_ORDER.filter((s) => chip.categories.includes(s.category));
+  if (!q) return QUICK_ORDER;
+  return QUICK_ORDER.filter(
+    (s) =>
+      s.name.toLowerCase().includes(q) ||
+      s.provider.toLowerCase().includes(q) ||
+      s.category.toLowerCase().includes(q) ||
+      s.tags.some((t) => t.toLowerCase().includes(q))
+  );
+}
+
+/** "Includes YouTube Music" — for a service that is a parent, else null. */
+export function includesText(id: string): string | null {
+  const p = PARENT_SERVICES[id];
+  return p ? `Includes ${p.includes}` : null;
 }
 
 // ----------------------------------------------------- smart inclusions
 
-/** What the user explicitly chose for a service. Absent = no choice yet. */
-export type QuickMode = "direct" | "bundled" | "none";
-/** What the tile shows: "maybe" = a selected parent may include it. */
-export type TileState = "direct" | "bundled" | "maybe" | "none";
+/** What a service is, given the selection. "bundled" = included with
+ * something else the user picked (₹0, never double counted). */
+export type TileState = "direct" | "bundled" | "none";
 
+/** What includes a bundled service. */
 export interface Coverage {
+  /** The parent service row it nests under on the confirm screen ("" when
+   * the bundle has no tracked plan row, e.g. Family). */
   parentId: string;
-  bundle: BundleCatalogueEntry;
-  /** True when the parent certainly includes it (no confirmation needed). */
-  auto: boolean;
+  provider: BundleProvider;
+  accessType: Extract<AccessType, "bundled" | "family">;
+  /** Shown as "via X" / "Included with X". */
+  name: string;
+  /** Set for services that came from the "Add from a bundle" sub-flow. */
+  bundleId?: string;
 }
+
+/** The user's choices. */
+export interface QuickSelection {
+  /** Services the user picked themselves (paid for directly). */
+  picks: string[];
+  /** Included services the user says they pay for separately anyway. */
+  separate: string[];
+  /** Bundled regardless of any parent — from the bundle sub-flow. */
+  fixed: Record<string, Coverage>;
+}
+export const EMPTY_SELECTION: QuickSelection = { picks: [], separate: [], fixed: {} };
 
 export interface Resolution {
   state: Record<string, TileState>;
-  /** For each service a selected parent's bundle lists. */
+  /** For every service something selected includes. */
   coverage: Record<string, Coverage>;
 }
 
-const PARENT_BUNDLES = BUNDLE_CATALOGUE.filter((b) => b.hasPresetList && b.plan);
+/** "Prime" for Amazon Prime, else the service's own name. */
+function shortName(id: string): string {
+  return (SUBSCRIPTIONS_BY_ID[id]?.name ?? id).replace(/^Amazon /, "");
+}
 
-/** Works out every tile's state from the user's explicit choices. A service
- * is a parent when it's the plan of a bundle in the bundle catalogue (Amazon
- * Prime, Jio, Airtel); picking one covers that bundle's listed services.
- * Already-tracked services are never touched. Runs a few passes because a
- * bundled service can itself be a parent (Prime included in an Airtel plan
- * → Prime Video included in Prime). */
-export function resolveQuick(modes: Record<string, QuickMode>, trackedIds: ReadonlySet<string>): Resolution {
+/** Works out every service's state from the user's choices. Picking a parent
+ * (PARENT_SERVICES) makes its children bundled ₹0 — even ones picked earlier,
+ * so nothing is counted twice — unless the user marked a child "I pay
+ * separately". Already-tracked services are never touched. A few passes
+ * because a bundled service can itself be a parent. */
+export function resolveQuick(sel: QuickSelection, trackedIds: ReadonlySet<string>): Resolution {
+  const picks = new Set(sel.picks);
+  const separate = new Set(sel.separate);
   let state: Record<string, TileState> = {};
   let coverage: Record<string, Coverage> = {};
+
   for (let pass = 0; pass < 4; pass++) {
-    const active = new Set(Object.entries(state).filter(([, s]) => s === "direct" || s === "bundled").map(([id]) => id));
-    if (pass === 0) for (const [id, m] of Object.entries(modes)) if (m === "direct" && !trackedIds.has(id)) active.add(id);
+    const active = new Set<string>(pass === 0 ? [...picks].filter((id) => !trackedIds.has(id)) : Object.entries(state).filter(([, s]) => s !== "none").map(([id]) => id));
 
     const nextCoverage: Record<string, Coverage> = {};
-    for (const bundle of PARENT_BUNDLES) {
-      const parentId = bundle.plan!.serviceId;
+    for (const [parentId, parent] of Object.entries(PARENT_SERVICES)) {
       if (!active.has(parentId)) continue;
-      for (const item of bundle.includedServices) {
-        if (item.serviceId === parentId || nextCoverage[item.serviceId]) continue;
-        nextCoverage[item.serviceId] = { parentId, bundle, auto: AUTO_INCLUDE_BUNDLES.includes(bundle.id) && (item.defaultOn ?? true) };
+      for (const childId of parent.children) {
+        if (childId === parentId || nextCoverage[childId]) continue;
+        nextCoverage[childId] = { parentId, provider: parent.provider, accessType: "bundled", name: shortName(parentId) };
       }
     }
+    for (const [id, cov] of Object.entries(sel.fixed)) if (!nextCoverage[id]) nextCoverage[id] = cov;
 
     const nextState: Record<string, TileState> = {};
-    for (const id of new Set([...Object.keys(modes), ...Object.keys(nextCoverage)])) {
+    for (const id of new Set([...picks, ...separate, ...Object.keys(nextCoverage)])) {
       if (trackedIds.has(id) || !SUBSCRIPTIONS_BY_ID[id]) continue;
-      const mode = modes[id];
-      const cov = nextCoverage[id];
-      if (cov) nextState[id] = mode === "direct" ? "direct" : mode === "none" ? "none" : mode === "bundled" ? "bundled" : cov.auto ? "bundled" : "maybe";
-      else nextState[id] = mode === "direct" ? "direct" : "none";
+      const covered = Boolean(nextCoverage[id]) && !separate.has(id);
+      nextState[id] = covered ? "bundled" : picks.has(id) || separate.has(id) ? "direct" : "none";
     }
 
     const settled = pass > 0 && JSON.stringify(nextState) === JSON.stringify(state);
@@ -152,27 +170,41 @@ export function resolveQuick(modes: Record<string, QuickMode>, trackedIds: Reado
   return { state, coverage };
 }
 
-/** The explicit choice a tap produces (undefined = clear the choice).
- * Uncovered: add ↔ remove. Covered by a certain parent: included → pay
- * separately → not using → included. Covered by an uncertain parent:
- * maybe → confirmed included → pay separately → maybe. */
-export function nextMode(res: Resolution, id: string): QuickMode | undefined {
-  const cur = res.state[id] ?? "none";
-  const cov = res.coverage[id];
-  if (!cov) return cur === "direct" ? undefined : "direct";
-  if (cov.auto) return cur === "bundled" ? "direct" : cur === "direct" ? "none" : "bundled";
-  return cur === "maybe" ? "bundled" : cur === "bundled" ? "direct" : undefined;
+/** Tap on a row: pick it or un-pick it. Included (bundled) rows don't respond. */
+export function toggleSelection(sel: QuickSelection, res: Resolution, id: string): QuickSelection {
+  const st = res.state[id] ?? "none";
+  if (st === "bundled") return sel;
+  if (st === "direct") {
+    return { ...sel, picks: sel.picks.filter((x) => x !== id), separate: sel.separate.filter((x) => x !== id), fixed: omit(sel.fixed, id) };
+  }
+  return { ...sel, picks: [...sel.picks, id] };
 }
 
-/** "via Prime" / "via Jio" / "via Airtel". */
+/** "I pay separately" on an included row: it becomes its own direct row. */
+export function paySeparately(sel: QuickSelection, id: string): QuickSelection {
+  return {
+    ...sel,
+    picks: sel.picks.includes(id) ? sel.picks : [...sel.picks, id],
+    separate: sel.separate.includes(id) ? sel.separate : [...sel.separate, id],
+    fixed: omit(sel.fixed, id),
+  };
+}
+
+function omit<T>(obj: Record<string, T>, key: string): Record<string, T> {
+  const next = { ...obj };
+  delete next[key];
+  return next;
+}
+
+/** "via Prime" / "via Jio" / "via Family". */
 export function viaLabel(cov: Coverage): string {
-  return `via ${(SUBSCRIPTIONS_BY_ID[cov.parentId]?.name ?? cov.bundle.name).replace(/^Amazon /, "")}`;
+  return `via ${cov.name}`;
 }
 
 // ----------------------------------------------------------- the items
 
 export interface QuickEdits {
-  /** Screen-2 edits (plan / cycle / price), per directly-paid service. */
+  /** Confirm-screen edits (plan / cycle / price), per directly-paid service. */
   details: Record<string, ServiceDetailsValue>;
   /** Renewal day-of-month (1–31), per directly-paid service. */
   renewDay: Record<string, number>;
@@ -204,12 +236,8 @@ export function nextRenewalFromDay(day: number, now = new Date()): string {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-function bundledDetails(bundle: BundleCatalogueEntry): ServiceDetailsValue {
-  return { accessType: "bundled", bundleProvider: bundle.bundleProvider, planName: "Bundled", priceAmount: 0, billing: "monthly", nextRenewal: defaultRenewal() };
-}
-
-/** Everything the quick add will write, in grid order: directly-paid
- * services at their (possibly edited) details, bundled ones at ₹0. */
+/** Everything the add will write, in list order: directly-paid services at
+ * their (possibly edited) details, bundled ones at ₹0. */
 export function buildItems(res: Resolution, edits: QuickEdits): QuickItem[] {
   const out: QuickItem[] = [];
   for (const sub of QUICK_ORDER) {
@@ -222,7 +250,16 @@ export function buildItems(res: Resolution, edits: QuickEdits): QuickItem[] {
       out.push({ id: sub.id, kind: "direct", value: day ? { ...base, nextRenewal: nextRenewalFromDay(day) } : base, withRenewal: Boolean(day) });
     } else if (st === "bundled") {
       const coverage = res.coverage[sub.id];
-      if (coverage) out.push({ id: sub.id, kind: "bundled", value: bundledDetails(coverage.bundle), coverage, withRenewal: false });
+      if (!coverage) continue;
+      const parentPlan = coverage.parentId ? (edits.details[coverage.parentId] ?? quickDefaultDetails(SUBSCRIPTIONS_BY_ID[coverage.parentId]))?.planName : undefined;
+      const planName = (parentPlan && PARENT_SERVICES[coverage.parentId]?.childPlans?.[sub.id]?.[parentPlan]) || "Bundled";
+      out.push({
+        id: sub.id,
+        kind: "bundled",
+        value: { accessType: coverage.accessType, bundleProvider: coverage.provider, planName, priceAmount: 0, billing: "monthly", nextRenewal: defaultRenewal() },
+        coverage,
+        withRenewal: false,
+      });
     }
   }
   return out;

@@ -5,50 +5,41 @@ import { Check, Search } from "lucide-react";
 import { SubscriptionLogo } from "@/components/subscriptions/SubscriptionLogo";
 import { Button } from "@/components/ui/Button";
 import { SUBSCRIPTIONS_BY_ID } from "@/data/subscriptions";
-import { QUICK_ADD_CHIPS } from "@/data/quickAdd";
-import { cn, formatINR, planCycleAmount } from "@/lib/utils";
+import { cn, formatINR, monthlyEquivalent, planCycleAmount } from "@/lib/utils";
 import {
+  EMPTY_SELECTION,
   applyPlan,
   buildItems,
   filterServices,
   fromMonthly,
   hasMissingPrice,
+  includesText,
   monthlyTotal,
-  nextMode,
+  paySeparately,
   resolveQuick,
   shortCycle,
+  toggleSelection,
   viaLabel,
+  type Coverage,
   type QuickItem,
-  type QuickMode,
+  type QuickSelection,
 } from "@/lib/quickAdd";
 import { switchBilling, type ServiceDetailsValue } from "./ServiceDetailsCard";
 
 const money = (n: number) => (n > 0 ? formatINR(n) : "₹0");
 
-/** All of the quick add's selection state. Lives in the add flow (not in the
- * screens) so Back from screen 2 — or from the detailed flow — keeps it. */
-export function useQuickAdd(trackedIds: ReadonlySet<string>) {
-  const [chip, setChip] = useState("all");
+/** All of the add flow's selection state. Lives in the flow (not in the
+ * screens) so Back from the confirm screen — or from the bundle steps — keeps it. */
+export function useQuickAdd(trackedIds: ReadonlySet<string>, initialPicks: string[] = []) {
   const [query, setQuery] = useState("");
-  const [modes, setModes] = useState<Record<string, QuickMode>>({});
+  const [sel, setSel] = useState<QuickSelection>({ ...EMPTY_SELECTION, picks: initialPicks });
   const [details, setDetails] = useState<Record<string, ServiceDetailsValue>>({});
   const [renewDay, setRenewDay] = useState<Record<string, number>>({});
 
-  const res = useMemo(() => resolveQuick(modes, trackedIds), [modes, trackedIds]);
+  const res = useMemo(() => resolveQuick(sel, trackedIds), [sel, trackedIds]);
   const items = useMemo(() => buildItems(res, { details, renewDay }), [res, details, renewDay]);
 
-  function setMode(id: string, mode: QuickMode | undefined) {
-    setModes((prev) => {
-      const next = { ...prev };
-      if (mode === undefined) delete next[id];
-      else next[id] = mode;
-      return next;
-    });
-  }
-
   return {
-    chip,
-    setChip,
     query,
     setQuery,
     res,
@@ -56,8 +47,17 @@ export function useQuickAdd(trackedIds: ReadonlySet<string>) {
     details,
     renewDay,
     total: monthlyTotal(items),
-    tap: (id: string) => setMode(id, nextMode(res, id)),
-    payDirectly: (id: string) => setMode(id, "direct"),
+    tap: (id: string) => setSel((prev) => toggleSelection(prev, resolveQuick(prev, trackedIds), id)),
+    paySeparately: (id: string) => setSel((prev) => paySeparately(prev, id)),
+    /** Merges what the "Add from a bundle" sub-flow confirmed into the selection. */
+    addFromBundles: (input: { picks: string[]; details: Record<string, ServiceDetailsValue>; fixed: Record<string, Coverage> }) => {
+      setSel((prev) => ({
+        picks: [...prev.picks, ...input.picks.filter((id) => !prev.picks.includes(id))],
+        separate: prev.separate,
+        fixed: { ...prev.fixed, ...input.fixed },
+      }));
+      setDetails((prev) => ({ ...prev, ...input.details }));
+    },
     setDetail: (id: string, value: ServiceDetailsValue) => setDetails((prev) => ({ ...prev, [id]: value })),
     setDay: (id: string, day: number | undefined) =>
       setRenewDay((prev) => {
@@ -72,22 +72,104 @@ export type QuickAdd = ReturnType<typeof useQuickAdd>;
 
 // ---------------------------------------------------------------- screen 1
 
+function ServiceRow({
+  id,
+  quick,
+  trackedIds,
+  nested = false,
+}: {
+  id: string;
+  quick: QuickAdd;
+  trackedIds: ReadonlySet<string>;
+  nested?: boolean;
+}) {
+  const sub = SUBSCRIPTIONS_BY_ID[id];
+  if (!sub) return null;
+  const tracked = trackedIds.has(id);
+  const state = quick.res.state[id] ?? "none";
+  const coverage = quick.res.coverage[id];
+  const bundled = state === "bundled";
+  const on = state === "direct" || bundled;
+  const from = fromMonthly(sub);
+  const includes = includesText(id);
+  // A price entered through the bundle steps replaces the catalogue's "from".
+  const entered = state === "direct" ? quick.details[id] : undefined;
+  const priceText =
+    entered && entered.priceAmount !== null
+      ? ` · ${formatINR(monthlyEquivalent(entered.priceAmount, entered.billing))}/mo`
+      : from !== null
+        ? ` · from ${formatINR(from)}/mo`
+        : "";
+
+  return (
+    <button
+      type="button"
+      disabled={tracked || bundled}
+      aria-pressed={on}
+      onClick={() => quick.tap(id)}
+      className={cn(
+        "flex min-h-[56px] w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors",
+        nested && "ml-6 w-[calc(100%-1.5rem)]",
+        tracked || bundled ? "cursor-default" : "cursor-pointer",
+        tracked ? "border-black/10 opacity-50" : bundled ? "border-black/10 bg-black/[0.03] opacity-70" : on ? "border-nebula-500 bg-nebula-500/10" : "border-black/10 hover:border-black/20"
+      )}
+    >
+      <SubscriptionLogo subscription={sub} size="sm" />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium text-ink-0">{sub.name}</div>
+        <div className="truncate text-xs text-ink-500">
+          {tracked
+            ? "Already tracked"
+            : bundled && coverage
+              ? `Included with ${coverage.name}`
+              : `${sub.category}${priceText}`}
+        </div>
+        {includes && !tracked && <div className="truncate text-[11px] font-medium text-nebula-400">{includes}</div>}
+      </div>
+      <div
+        className={cn(
+          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
+          on ? (bundled ? "border-black/20 bg-black/20 text-white" : "border-nebula-500 bg-nebula-500 text-white") : "border-black/15"
+        )}
+      >
+        {on && <Check size={12} />}
+      </div>
+    </button>
+  );
+}
+
+/** The row for each included service under a selected one, recursively. */
+function NestedRows({ parentId, quick, trackedIds }: { parentId: string; quick: QuickAdd; trackedIds: ReadonlySet<string> }) {
+  const children = quick.items.filter((i) => i.kind === "bundled" && i.coverage?.parentId === parentId);
+  return (
+    <>
+      {children.map((c) => (
+        <div key={c.id} className="flex flex-col gap-1.5">
+          <ServiceRow id={c.id} quick={quick} trackedIds={trackedIds} nested />
+          <NestedRows parentId={c.id} quick={quick} trackedIds={trackedIds} />
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function QuickSelectScreen({
   quick,
   trackedIds,
-  onCategory,
+  showBundleLink,
+  onBundle,
   onNext,
-  onFast,
-  onDetailed,
 }: {
   quick: QuickAdd;
   trackedIds: ReadonlySet<string>;
-  onCategory: (chipId: string) => void;
+  showBundleLink: boolean;
+  onBundle: () => void;
   onNext: () => void;
-  onFast: () => void;
-  onDetailed: () => void;
 }) {
-  const shown = useMemo(() => filterServices(quick.chip, quick.query), [quick.chip, quick.query]);
+  const pinned = useMemo(() => new Set(quick.items.map((i) => i.id)), [quick.items]);
+  const rest = useMemo(() => filterServices(quick.query).filter((s) => !pinned.has(s.id)), [quick.query, pinned]);
+  // Selected rows stay at the top; included rows follow the service that includes them.
+  const roots = quick.items.filter((i) => i.kind === "direct" || !i.coverage || !pinned.has(i.coverage.parentId));
   const count = quick.items.length;
 
   return (
@@ -96,9 +178,11 @@ export function QuickSelectScreen({
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-ink-400">Tap everything you pay for.</p>
-            <button type="button" onClick={onDetailed} className="shrink-0 text-xs font-medium text-nebula-400 hover:text-nebula-500 cursor-pointer">
-              Add with details →
-            </button>
+            {showBundleLink && (
+              <button type="button" onClick={onBundle} className="shrink-0 text-xs font-medium text-nebula-400 hover:text-nebula-500 cursor-pointer">
+                Add from a bundle instead →
+              </button>
+            )}
           </div>
 
           <div className="relative">
@@ -112,89 +196,35 @@ export function QuickSelectScreen({
             />
           </div>
 
-          {/* Scrolls sideways on phones; the sheet's own scroller clips it. */}
-          <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Categories">
-            {QUICK_ADD_CHIPS.map((c) => {
-              const active = !quick.query.trim() && quick.chip === c.id;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => onCategory(c.id)}
-                  className={cn(
-                    "h-10 shrink-0 rounded-full border px-4 text-xs font-medium transition-colors cursor-pointer",
-                    active ? "border-nebula-500 bg-nebula-500/10 text-nebula-400" : "border-black/10 text-ink-300 hover:border-black/20"
-                  )}
-                >
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
+          {roots.length > 0 && (
+            <section aria-label="Selected" className="flex flex-col gap-1.5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wide text-ink-500">Selected · {count}</h3>
+              {roots.map((r) => (
+                <div key={r.id} className="flex flex-col gap-1.5">
+                  <ServiceRow id={r.id} quick={quick} trackedIds={trackedIds} />
+                  <NestedRows parentId={r.id} quick={quick} trackedIds={trackedIds} />
+                </div>
+              ))}
+            </section>
+          )}
 
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4" role="group" aria-label={quick.query.trim() ? "Search results" : "Subscriptions"}>
-            {shown.map((sub) => {
-              const tracked = trackedIds.has(sub.id);
-              const state = quick.res.state[sub.id] ?? "none";
-              const coverage = quick.res.coverage[sub.id];
-              const on = state === "direct" || state === "bundled";
-              const from = fromMonthly(sub);
-              return (
-                <button
-                  key={sub.id}
-                  type="button"
-                  disabled={tracked}
-                  aria-pressed={on}
-                  title={sub.name}
-                  onClick={() => quick.tap(sub.id)}
-                  className={cn(
-                    "relative flex min-h-[104px] flex-col items-center gap-1 rounded-xl border px-1.5 py-2.5 text-center transition-colors sm:px-2 sm:py-3",
-                    tracked ? "cursor-default border-black/10 opacity-50" : "cursor-pointer",
-                    on ? "border-nebula-500 bg-nebula-500/10" : state === "maybe" ? "border-dashed border-nebula-500/60" : !tracked && "border-black/10 hover:border-black/20"
-                  )}
-                >
-                  <SubscriptionLogo subscription={sub} size="xs" />
-                  <span className="line-clamp-2 w-full break-words text-[11px] font-medium leading-tight text-ink-0 sm:text-xs">{sub.name}</span>
-                  <span className="text-[10px] leading-tight text-ink-500 sm:text-[11px]">
-                    {tracked
-                      ? "Already tracked"
-                      : state === "bundled" && coverage
-                        ? `Included with ${viaLabel(coverage).slice(4)}`
-                        : state === "maybe"
-                          ? "May be included in your plan — tap to confirm"
-                          : from !== null
-                            ? `from ${formatINR(from)}/mo`
-                            : ""}
-                  </span>
-                  {on && (
-                    <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-nebula-500 text-white">
-                      <Check size={10} />
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          {shown.length === 0 && <p className="py-4 text-center text-sm text-ink-500">No matches. Try &ldquo;Add with details&rdquo; to add it yourself.</p>}
+          <section aria-label="Subscriptions" className="flex flex-col gap-1.5">
+            {roots.length > 0 && <h3 className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-ink-500">All services</h3>}
+            {rest.map((sub) => (
+              <ServiceRow key={sub.id} id={sub.id} quick={quick} trackedIds={trackedIds} />
+            ))}
+            {rest.length === 0 && <p className="py-4 text-center text-sm text-ink-500">No matches.</p>}
+          </section>
         </div>
       </div>
 
       <div className="border-t border-black/10 px-5 py-3">
-        <p className="mb-2 text-sm font-medium text-ink-0" aria-live="polite">
-          {count === 0 ? "Nothing selected yet" : `${count} selected · about ${money(quick.total)}/mo`}
-        </p>
         <div className="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onFast}
-            disabled={count === 0}
-            className="text-xs font-medium text-nebula-400 hover:text-nebula-500 disabled:pointer-events-none disabled:opacity-40 cursor-pointer"
-          >
-            Add at usual prices
-          </button>
+          <p className="text-sm font-medium text-ink-0" aria-live="polite">
+            {count === 0 ? "Nothing selected yet" : `${count} selected · about ${money(quick.total)}/mo`}
+          </p>
           <Button onClick={onNext} disabled={count === 0}>
-            Next
+            Continue
           </Button>
         </div>
       </div>
@@ -212,6 +242,8 @@ const FLOW_CYCLES = [
 
 export function QuickConfirmScreen({ quick, onBack, onConfirm }: { quick: QuickAdd; onBack: () => void; onConfirm: () => void }) {
   const direct = quick.items.filter((i) => i.kind === "direct");
+  // Bundle-sub-flow services whose plan row isn't being added (e.g. Family).
+  const loose = quick.items.filter((i) => i.kind === "bundled" && !quick.items.some((p) => p.id === i.coverage?.parentId));
   const missing = hasMissingPrice(quick.items);
   const monthly = quick.total;
 
@@ -222,6 +254,12 @@ export function QuickConfirmScreen({ quick, onBack, onConfirm }: { quick: QuickA
           {direct.map((item) => (
             <DirectRow key={item.id} item={item} quick={quick} />
           ))}
+          {loose.length > 0 && (
+            <div className="rounded-xl border border-black/10 bg-void-900/40 p-3">
+              <p className="text-xs font-semibold text-ink-0">Included with your bundles</p>
+              <IncludedList items={loose} quick={quick} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -340,19 +378,20 @@ function DirectRow({ item, quick }: { item: QuickItem; quick: QuickAdd }) {
         <p className="mt-1.5 text-[11px] text-red-400">No standard {value.billing} price for this one. Enter what you pay.</p>
       )}
 
-      {nested.length > 0 && <NestedBundled parentId={item.id} quick={quick} depth={1} />}
+      {nested.length > 0 && <IncludedList items={nested} quick={quick} />}
     </div>
   );
 }
 
-/** Services a parent includes, indented under it at ₹0. */
-function NestedBundled({ parentId, quick, depth }: { parentId: string; quick: QuickAdd; depth: number }) {
-  const children = quick.items.filter((i) => i.kind === "bundled" && i.coverage?.parentId === parentId);
+/** Services something includes, indented at ₹0 — with their own children below. */
+function IncludedList({ items, quick }: { items: QuickItem[]; quick: QuickAdd }) {
   return (
-    <ul className="mt-2 flex flex-col gap-1.5 border-l-2 border-nebula-500/30 pl-3" style={{ marginLeft: depth > 1 ? 12 : 0 }}>
-      {children.map((c) => {
+    <ul className="mt-2 flex flex-col gap-1.5 border-l-2 border-nebula-500/30 pl-3">
+      {items.map((c) => {
         const sub = SUBSCRIPTIONS_BY_ID[c.id];
         if (!sub || !c.coverage) return null;
+        const below = quick.items.filter((i) => i.kind === "bundled" && i.coverage?.parentId === c.id);
+        const plan = c.value.planName !== "Bundled" ? ` · ${c.value.planName}` : "";
         return (
           <li key={c.id}>
             <div className="flex items-start gap-2">
@@ -360,14 +399,17 @@ function NestedBundled({ parentId, quick, depth }: { parentId: string; quick: Qu
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-medium leading-tight text-ink-0">{sub.name}</div>
                 <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-ink-400">
-                  <span>₹0 · {viaLabel(c.coverage)}</span>
-                  <button type="button" onClick={() => quick.payDirectly(c.id)} className="font-medium text-nebula-400 hover:text-nebula-500 cursor-pointer">
+                  <span>
+                    ₹0 · {viaLabel(c.coverage)}
+                    {plan}
+                  </span>
+                  <button type="button" onClick={() => quick.paySeparately(c.id)} className="font-medium text-nebula-400 hover:text-nebula-500 cursor-pointer">
                     I pay separately
                   </button>
                 </div>
               </div>
             </div>
-            <NestedBundled parentId={c.id} quick={quick} depth={depth + 1} />
+            {below.length > 0 && <IncludedList items={below} quick={quick} />}
           </li>
         );
       })}

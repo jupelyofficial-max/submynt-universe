@@ -1,15 +1,15 @@
-import type { Category } from "@/types/subscription";
-import type { BundleId } from "./bundleCatalogue";
+import type { BundleProvider } from "@/types/subscription";
 
 /**
- * Quick-add ("What do you pay for?") curation — edit freely, nothing else
- * depends on the exact contents. NEEDS MANUAL UPKEEP, like the bundle
- * catalogue: this is editorial judgement about India, not measured data.
+ * Add-flow curation — edit freely, nothing else depends on the exact
+ * contents. NEEDS MANUAL UPKEEP, like the bundle catalogue: this is editorial
+ * judgement about India, not measured data.
  */
 
-/** Tile order in the quick-add grid, most-paid-for first (subscription ids).
- * Anything not listed follows, in the catalogue's own `popularity` order.
- * Unknown ids are ignored, so a stale entry can't break the grid. */
+/** Row order in the "What do you use?" list, most-paid-for first
+ * (subscription ids). Anything not listed follows, in the catalogue's own
+ * `popularity` order. Unknown ids are ignored, so a stale entry can't break
+ * the list. */
 export const INDIA_POPULARITY_ORDER: string[] = [
   "youtube-premium",
   "amazon-prime",
@@ -24,35 +24,41 @@ export const INDIA_POPULARITY_ORDER: string[] = [
   "amazon-prime-video",
   "apple-music",
   "icloud",
+  "apple-one",
   "microsoft-365",
   "chatgpt-plus",
   "canva-pro",
   "duolingo-super",
 ];
 
-export interface QuickAddChip {
-  /** Stable id — also the `category` prop of the quick_add_category event. */
-  id: string;
-  label: string;
-  /** Catalogue categories this chip shows. Empty = everything ("All"). A
-   * category no chip lists (Education, Wellness, News, …) only appears
-   * under All and in search. */
-  categories: Category[];
+export interface ParentService {
+  /** Catalogue ids this service includes. Selecting the parent adds each as
+   * a bundled ₹0 row; with no parent selected they're ordinary services. */
+  children: string[];
+  /** Written as the children's bundleProvider (an existing BundleProvider). */
+  provider: BundleProvider;
+  /** The parent row's "Includes …" subtitle. */
+  includes: string;
+  /** Optional plan label for a child, by the parent's plan name — e.g. the
+   * iCloud+ size that comes with each Apple One plan. */
+  childPlans?: Record<string, Record<string, string>>;
 }
 
-export const QUICK_ADD_CHIPS: QuickAddChip[] = [
-  { id: "all", label: "All", categories: [] },
-  // Shopping is only Amazon Prime (video + delivery); Gaming sits with entertainment.
-  { id: "entertainment", label: "Entertainment", categories: ["Entertainment", "Shopping", "Gaming"] },
-  { id: "music", label: "Music", categories: ["Music"] },
-  { id: "mobile_broadband", label: "Mobile & broadband", categories: ["Telecom"] },
-  { id: "ai_tools", label: "AI tools", categories: ["AI Tools"] },
-  { id: "work", label: "Work", categories: ["Productivity", "Business", "Creative", "Professional Networking"] },
-  { id: "cloud", label: "Cloud", categories: ["Cloud"] },
-];
-
-/** Bundles whose included services are certain, so selecting the parent
- * marks them included straight away. Every other bundle (Jio, Airtel) is
- * plan-tier dependent: its services show "may be included" and need the
- * user's confirmation. Ids from bundleCatalogue.ts. */
-export const AUTO_INCLUDE_BUNDLES: BundleId[] = ["amazon-prime"];
+/** Parent → children. Keys and children are subscription ids.
+ *
+ * Note (Apple India, Sept 2026): Apple says Apple TV and Apple Arcade are now
+ * included with any paid iCloud+ and no longer sold on their own, and that
+ * Apple One is closed to new subscribers. If you want iCloud+ to cover them
+ * here too, add:
+ *   icloud: { children: ["apple-tv", "apple-arcade"], provider: "apple", includes: "TV+, Arcade" },
+ */
+export const PARENT_SERVICES: Record<string, ParentService> = {
+  "youtube-premium": { children: ["youtube-music-premium"], provider: "google", includes: "YouTube Music" },
+  "amazon-prime": { children: ["amazon-prime-video"], provider: "amazon", includes: "Prime Video" },
+  "apple-one": {
+    children: ["apple-music", "apple-tv", "apple-arcade", "icloud"],
+    provider: "apple",
+    includes: "Music, TV+, Arcade, iCloud+",
+    childPlans: { icloud: { Individual: "50 GB", Family: "200 GB" } },
+  },
+};

@@ -44,9 +44,6 @@ interface UniverseUIState {
    * state's primary CTA uses this; the modal's own "Add from a bundle"
    * button inside the normal flow reaches the same step without this. */
   addSubscriptionsStartAtBundlePick: boolean;
-  /** True when this open should start at the "What do you pay for?" quick-add
-   * grid (the Track empty state, and the first visit after signing in). */
-  addSubscriptionsStartAtQuick: boolean;
   /** Which control opened the add flow — the add_flow_opened event's
    * `entry` prop. */
   addSubscriptionsEntry: AddFlowEntry | null;
@@ -54,8 +51,7 @@ interface UniverseUIState {
     v: boolean,
     preselectId?: string | null,
     startAtBundlePick?: boolean,
-    entry?: AddFlowEntry,
-    startAtQuick?: boolean
+    entry?: AddFlowEntry
   ) => void;
 
   selectedId: string | null;
@@ -99,14 +95,12 @@ export const useUniverseStore = create<UniverseUIState>()((set) => ({
   isAddSubscriptionsModalOpen: false,
   addSubscriptionsPreselectId: null,
   addSubscriptionsStartAtBundlePick: false,
-  addSubscriptionsStartAtQuick: false,
   addSubscriptionsEntry: null,
-  setAddSubscriptionsModalOpen: (v, preselectId = null, startAtBundlePick = false, entry, startAtQuick = false) =>
+  setAddSubscriptionsModalOpen: (v, preselectId = null, startAtBundlePick = false, entry) =>
     set({
       isAddSubscriptionsModalOpen: v,
       addSubscriptionsPreselectId: v ? preselectId : null,
       addSubscriptionsStartAtBundlePick: v ? startAtBundlePick : false,
-      addSubscriptionsStartAtQuick: v ? startAtQuick : false,
       addSubscriptionsEntry: v ? entry ?? null : null,
     }),
 

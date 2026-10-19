@@ -896,6 +896,32 @@ export const SUBSCRIPTIONS: Subscription[] = [
     addedAt: "2026-09-13T05:01:10Z",
   },
   {
+    // Added 2026-10-19. Prices are the India launch/2025 figures supplied for
+    // this task (Individual ₹195, Family ₹365) and could NOT be re-verified
+    // against a live Apple page: apple.com/in/apple-one renders client-side
+    // and Apple's Sept 2026 India newsroom post says Apple One is closed to
+    // NEW subscribers (existing ones keep it) — so this entry is for people
+    // tracking a plan they already have. Recheck the prices before relying on them.
+    id: "apple-one",
+    name: "Apple One",
+    provider: "Apple One",
+    category: "Entertainment",
+    tagline: "Music, TV+, Arcade and iCloud+ in one plan",
+    color: "#1d1d1f",
+    initials: "A1",
+    domain: "apple.com",
+    priceMonthly: 195,
+    billing: ["monthly"],
+    plans: [
+      { name: "Individual", priceMonthly: 195, billing: "monthly" },
+      { name: "Family", priceMonthly: 365, billing: "monthly" },
+    ],
+    popularity: 45,
+    rating: 4.4,
+    region: "Available in India",
+    tags: ["Entertainment", "Music", "Cloud"],
+  },
+  {
     id: "jiosaavn-pro",
     name: "JioSaavn Pro",
     provider: "JioSaavn Pro",

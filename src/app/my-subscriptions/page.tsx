@@ -79,10 +79,10 @@ export default function MySubscriptionsPage() {
     const firstVisit = !quickAddOffered(user.id);
     if (firstVisit) markQuickAddOffered(user.id);
     if (intent) {
-      open(true, intent.preselectId ?? null, intent.startAtBundlePick, "resume", intent.startAtQuick);
+      open(true, intent.preselectId ?? null, intent.startAtBundlePick, "resume");
       return;
     }
-    if (firstVisit && useMySubscriptionsStore.getState().owned.length === 0) open(true, null, false, "post_signin", true);
+    if (firstVisit && useMySubscriptionsStore.getState().owned.length === 0) open(true, null, false, "post_signin");
   }, [user, ready]);
 
   // Once per visit to this page, as soon as the list is trustworthy.
@@ -321,7 +321,7 @@ function EmptyState() {
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-2 sm:flex-row">
-        <Button className="flex-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, false, "empty_state", true)}>
+        <Button className="flex-1" onClick={() => useUniverseStore.getState().setAddSubscriptionsModalOpen(true, null, false, "empty_state")}>
           <Plus size={14} />
           Add your first subscription
         </Button>

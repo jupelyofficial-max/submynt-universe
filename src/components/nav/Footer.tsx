@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const LINK_CLASS = "text-[#111111] transition-opacity hover:opacity-70";
@@ -40,21 +41,7 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
             <Link href="/explore" className="flex items-center gap-2 shrink-0 group w-fit">
-              <svg width="22" height="22" viewBox="0 0 240 240" className="shrink-0" aria-hidden="true">
-                <defs>
-                  <linearGradient id="footerLogoGreen" x1="0%" y1="100%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#0EA672" />
-                    <stop offset="100%" stopColor="#5EEAA0" />
-                  </linearGradient>
-                  <linearGradient id="footerLogoBlue" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#38BDF8" />
-                    <stop offset="100%" stopColor="#1D4ED8" />
-                  </linearGradient>
-                </defs>
-                <rect x="10" y="26" width="220" height="96" rx="48" fill="url(#footerLogoGreen)" transform="rotate(-15 120 74)" />
-                <rect x="14" y="126" width="212" height="96" rx="48" fill="url(#footerLogoBlue)" />
-                <path d="M 55 118 L 185 118 L 120 152 Z" fill="#0B1F5C" />
-              </svg>
+              <Image src="/brand/submynt-mark-small.svg" alt="" aria-hidden="true" width={22} height={22} unoptimized className="shrink-0" />
               <span className="font-display text-base font-bold tracking-tight">
                 <span className="text-ink-0">sub</span>
                 <span className="text-[#22c55e]">mynt</span>
